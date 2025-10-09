@@ -216,14 +216,9 @@
         </div>
         
         <!-- API Key Input -->
-        <div id="apiKeyContainer" class="mb-6">
+        <div class="mb-6">
             <label for="apiKeyInput" class="block text-sm font-medium text-gray-100 mb-1">Enter your Gemini API Key:</label>
-            <div class="flex items-center space-x-2">
-                <input type="password" id="apiKeyInput" class="flex-grow px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-700 text-white" placeholder="Paste your API key here...">
-                <button id="saveKeyButton" class="px-4 py-2 bg-emerald-600 text-white font-semibold rounded-lg shadow-md hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:bg-emerald-300 disabled:cursor-not-allowed">
-                    Save Key
-                </button>
-            </div>
+            <input type="password" id="apiKeyInput" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-700 text-white" placeholder="Paste your API key here...">
         </div>
         
         <!-- Specialized Prompts Buttons (NEW DROPDOWN STRUCTURE) -->
@@ -305,8 +300,6 @@
     <script>
         (function() {
             const apiKeyInput = document.getElementById('apiKeyInput');
-            const saveKeyButton = document.getElementById('saveKeyButton'); // NEW
-            const apiKeyContainer = document.getElementById('apiKeyContainer'); // NEW
             const sendButton = document.getElementById('sendButton');
             const userInput = document.getElementById('userInput');
             const chatArea = document.getElementById('chatArea');
@@ -702,22 +695,6 @@ The table must be the last element of the response before the suggestions block.
                 role: "model",
                 parts: [{ text: "Hi there! I'm Bob. How can I assist you today?" }]
             }];
-
-            // NEW FUNCTION: Saves the key to localStorage and hides the input container
-            function saveAndHideKey(key) {
-                if (key) {
-                    localStorage.setItem('geminiApiKey', key);
-                    if (apiKeyContainer) { // Safety check
-                        apiKeyContainer.classList.add('hidden'); // HIDE THE CONTAINER
-                    }
-                } else {
-                    if (apiKeyContainer) { // Safety check
-                        apiKeyContainer.classList.remove('hidden');
-                    }
-                }
-            }
-
-            let MIN_HEIGHT = 0; // Calculated minimum height (1 line)
             
             // Function to handle dynamic textarea resizing with min/max height cap
             function autoResizeTextarea(textarea) {
@@ -750,7 +727,6 @@ The table must be the last element of the response before the suggestions block.
                 const savedKey = localStorage.getItem('geminiApiKey');
                 if (savedKey) {
                     apiKeyInput.value = savedKey;
-                    saveAndHideKey(savedKey); // NEW: Hide key on load if found
                 }
                 populateMenus();
                 
@@ -978,14 +954,6 @@ The table must be the last element of the response before the suggestions block.
                 sendButton.disabled = false;
                 userInput.focus();
             }
-
-            // NEW: Listener for the Save Key button
-            saveKeyButton.addEventListener('click', () => {
-                const key = apiKeyInput.value.trim();
-                if (key) {
-                    saveAndHideKey(key);
-                }
-            });
             
             // Event listener for button click
             sendButton.addEventListener('click', sendMessage);
