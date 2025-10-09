@@ -762,25 +762,43 @@ The table must be the last element of the response before the suggestions block.
             // Function to generate the sub-menu buttons and attach listeners
             function populateMenus() {
                 const createButton = (text, menuElement) => {
+                    // *** MODIFICATION for Bob version 10: Exit if no corresponding prompt exists ***
+                    const promptText = PROMPT_MAP[text];
+                    if (!promptText || !menuElement) { 
+                        return; // Prevents error if prompt or container is missing
+                    }
+                    // ******************************************************************************
+
                     const button = document.createElement('button');
                     button.classList.add('sub-menu-btn');
                     button.textContent = text;
-                    button.title = PROMPT_MAP[text] || text; // Use the prompt text as a tooltip
+                    button.title = promptText || text; 
+                    
                     button.onclick = () => {
-                        userInput.value = PROMPT_MAP[text];
-                        // Trigger resize after populating content
+                        userInput.value = promptText;
                         autoResizeTextarea(userInput);
-                        // Hide all menus when a selection is made
+                        
+                        // NEW LOGIC: Auto-select placeholder (e.g., [input SPECIFIC...])
+                        const placeholderRegex = /\[input [^\]]*\]/i;
+                        const match = promptText.match(placeholderRegex);
+                        
+                        if (match) {
+                            const startIndex = match.index;
+                            const endIndex = startIndex + match[0].length;
+                            userInput.setSelectionRange(startIndex, endIndex);
+                        }
+                        
                         initialSetupMenu.classList.add('hidden');
                         analysisMenu.classList.add('hidden');
                         solutionDesignMenu.classList.add('hidden');
                         executionMenu.classList.add('hidden');
-                        // Focus on the input field
                         userInput.focus();
                     };
-                    menuElement.appendChild(button);
+                    
+                    menuElement.appendChild(button); // Only append if successful
                 };
-                // Populate Menus
+
+                // Existing robust population logic (from v8) remains here
                 if (initialSetupMenu) {
                     initialSetupMenu.innerHTML = '';
                     INITIAL_SETUP_BUTTONS.forEach(btnText => createButton(btnText, initialSetupMenu));
