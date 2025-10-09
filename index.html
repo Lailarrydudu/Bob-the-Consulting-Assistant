@@ -781,14 +781,25 @@ The table must be the last element of the response before the suggestions block.
                     menuElement.appendChild(button);
                 };
                 // Populate Menus
-                initialSetupMenu.innerHTML = '';
-                INITIAL_SETUP_BUTTONS.forEach(btnText => createButton(btnText, initialSetupMenu));
-                analysisMenu.innerHTML = '';
-                ANALYSIS_BUTTONS.forEach(btnText => createButton(btnText, analysisMenu));
-                solutionDesignMenu.innerHTML = '';
-                SOLUTION_DESIGN_BUTTONS.forEach(btnText => createButton(btnText, solutionDesignMenu));
-                executionMenu.innerHTML = '';
-                EXECUTION_BUTTONS.forEach(btnText => createButton(btnText, executionMenu));
+                if (initialSetupMenu) {
+                    initialSetupMenu.innerHTML = '';
+                    INITIAL_SETUP_BUTTONS.forEach(btnText => createButton(btnText, initialSetupMenu));
+                }
+                
+                if (analysisMenu) {
+                    analysisMenu.innerHTML = '';
+                    ANALYSIS_BUTTONS.forEach(btnText => createButton(btnText, analysisMenu));
+                }
+                
+                if (solutionDesignMenu) {
+                    solutionDesignMenu.innerHTML = '';
+                    SOLUTION_DESIGN_BUTTONS.forEach(btnText => createButton(btnText, solutionDesignMenu));
+                }
+                
+                if (executionMenu) {
+                    executionMenu.innerHTML = '';
+                    EXECUTION_BUTTONS.forEach(btnText => createButton(btnText, executionMenu));
+                }
             }
             
             // Function to create and append a message bubble
