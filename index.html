@@ -1035,23 +1035,46 @@ The table must be the last element of the response before the suggestions block.
                 // Toggle the current menu
                 menuElement.classList.toggle('hidden');
             }
+            // --- DROPDOWN TOGGLE LOGIC (MODIFIED for v9: Added defensive null checks) ---
+            function toggleMenu(menuElement, buttonElement) {
+                // Determine if any *other* menus are open and close them
+                [initialSetupMenu, analysisMenu, solutionDesignMenu, executionMenu].forEach(menu => {
+                    if (menu && menu !== menuElement) { // Added menu check here too, for safety
+                        menu.classList.add('hidden');
+                    }
+                });
+                // Toggle the current menu
+                if (menuElement) { // Added check for the current element
+                    menuElement.classList.toggle('hidden');
+                }
+            }
+            
             // Click listeners for the main dropdown buttons
-            initialSetupDropdownBtn.addEventListener('click', (e) => {
-                e.stopPropagation(); 
-                toggleMenu(initialSetupMenu, initialSetupDropdownBtn);
-            });
-            analysisDropdownBtn.addEventListener('click', (e) => {
-                e.stopPropagation(); 
-                toggleMenu(analysisMenu, analysisDropdownBtn);
-            });
-            solutionDesignDropdownBtn.addEventListener('click', (e) => {
-                e.stopPropagation(); 
-                toggleMenu(solutionDesignMenu, solutionDesignDropdownBtn);
-            });
-            executionDropdownBtn.addEventListener('click', (e) => {
-                e.stopPropagation(); 
-                toggleMenu(executionMenu, executionDropdownBtn);
-            });
+            if (initialSetupDropdownBtn) { // NEW CHECK
+                initialSetupDropdownBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); 
+                    toggleMenu(initialSetupMenu, initialSetupDropdownBtn);
+                });
+            }
+            if (analysisDropdownBtn) { // NEW CHECK
+                analysisDropdownBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); 
+                    toggleMenu(analysisMenu, analysisDropdownBtn);
+                });
+            }
+            if (solutionDesignDropdownBtn) { // NEW CHECK
+                solutionDesignDropdownBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); 
+                    toggleMenu(solutionDesignMenu, solutionDesignDropdownBtn);
+                });
+            }
+            if (executionDropdownBtn) { // NEW CHECK
+                executionDropdownBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); 
+                    toggleMenu(executionMenu, executionDropdownBtn);
+                });
+            }
+            
             // Listener to close menus when clicking anywhere else on the document
             document.addEventListener('click', (e) => {
                 const menus = [initialSetupMenu, analysisMenu, solutionDesignMenu, executionMenu];
