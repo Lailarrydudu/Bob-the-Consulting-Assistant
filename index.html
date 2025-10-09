@@ -195,15 +195,11 @@
             resize: none; /* Prevent manual resizing */
         }
     </style>
-    <!-- Add the 'marked' library to handle Markdown-to-HTML conversion -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-900">
-    <!-- Main Container -->
     <div class="bg-gray-800 text-gray-100 rounded-2xl shadow-xl w-full max-w-2xl p-6 md:p-8">
-        <!-- Header -->
         <div class="flex items-center space-x-4 mb-6">
-            <!-- Updated Circle with a Star SVG -->
             <div class="p-3 bg-emerald-100 rounded-full">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="#10b981" viewBox="0 0 24 24" stroke-width="1.5" stroke="#10b981" class="w-6 h-6">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.225 3.658a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.6l-4.725-2.885a.563.563 0 00-.582 0l-4.725 2.885a.562.562 0 01-.84-.6l1.285-5.385a.562.562 0 00-.182-.557L3.991 10.49a.562.562 0 01.32-.988l5.518-.442a.563.563 0 00.475-.345l2.125-5.111z" />
@@ -215,73 +211,56 @@
             </div>
         </div>
         
-        <!-- API Key Input -->
         <div class="mb-6">
             <label for="apiKeyInput" class="block text-sm font-medium text-gray-100 mb-1">Enter your Gemini API Key:</label>
             <input type="password" id="apiKeyInput" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-700 text-white" placeholder="Paste your API key here...">
         </div>
         
-        <!-- Specialized Prompts Buttons (NEW DROPDOWN STRUCTURE) -->
         <div class="flex flex-wrap gap-4 mb-4">
             
-            <!-- Phase I: Initial Setup Button Dropdown -->
             <div class="relative">
                 <button id="initialSetupDropdownBtn" class="dropdown-btn flex items-center justify-center">
                     Initial Setup
-                    <!-- Down arrow icon -->
                     <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
                 <div id="initialSetupMenu" class="absolute hidden top-full mt-2 w-56 bg-gray-800 rounded-lg shadow-2xl z-10 border border-emerald-500 p-2">
-                    <!-- Sub-menu buttons will be inserted here by JS -->
-                </div>
+                    </div>
             </div>
 
-            <!-- Phase II: Analysis Button Dropdown -->
             <div class="relative">
                 <button id="analysisDropdownBtn" class="dropdown-btn flex items-center justify-center">
                     Analysis 
-                    <!-- Down arrow icon -->
                     <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
                 <div id="analysisMenu" class="absolute hidden top-full mt-2 w-56 bg-gray-800 rounded-lg shadow-2xl z-10 border border-emerald-500 p-2">
-                    <!-- Sub-menu buttons will be inserted here by JS -->
-                </div>
+                    </div>
             </div>
 
-            <!-- Phase III: Solution Design Button Dropdown -->
             <div class="relative">
                 <button id="solutionDesignDropdownBtn" class="dropdown-btn flex items-center justify-center">
                     Solution Design
-                    <!-- Down arrow icon -->
                     <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
                 <div id="solutionDesignMenu" class="absolute hidden top-full mt-2 w-56 bg-gray-800 rounded-lg shadow-2xl z-10 border border-emerald-500 p-2">
-                    <!-- Sub-menu buttons will be inserted here by JS -->
-                </div>
+                    </div>
             </div>
 
-            <!-- Phase IV: Execution Button Dropdown -->
             <div class="relative">
                 <button id="executionDropdownBtn" class="dropdown-btn flex items-center justify-center">
                     Execution
-                    <!-- Down arrow icon -->
                     <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
                 <div id="executionMenu" class="absolute hidden top-full mt-2 w-56 bg-gray-800 rounded-lg shadow-2xl z-10 border border-emerald-500 p-2">
-                    <!-- Sub-menu buttons will be inserted here by JS -->
-                </div>
+                    </div>
             </div>
 
         </div>
         
-        <!-- Clear Chat button -->
         <div class="mb-4 text-right">
             <button id="clearChatBtn" class="px-4 py-2 text-sm bg-red-200 text-red-700 rounded-lg shadow-md hover:bg-red-300">Clear Chat</button>
         </div>
         
-        <!-- Chat Area -->
         <div id="chatArea" class="space-y-4 max-h-96 overflow-y-auto mb-6">
-            <!-- Initial welcome message -->
             <div class="flex justify-start">
                 <div class="bg-emerald-100 text-emerald-700 rounded-xl p-3 max-w-sm shadow-md">
                     Hi there! I'm Bob. How can I assist you today?
@@ -289,9 +268,7 @@
             </div>
         </div>
         
-        <!-- Input and Button -->
         <div class="flex items-center space-x-2">
-            <!-- TEXTAREA for multi-line input -->
             <textarea id="userInput" placeholder="Ask a question... (Enter to Send, Shift + Enter for Newline)" rows="1" class="flex-grow px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-700 text-white resize-none overflow-y-hidden"></textarea>
             <button id="sendButton" class="px-6 py-2 bg-emerald-600 text-white font-semibold rounded-lg shadow-md hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:bg-emerald-300 disabled:cursor-not-allowed" >Send</button>
         </div>
@@ -770,7 +747,7 @@ The table must be the last element of the response before the suggestions block.
                 EXECUTION_BUTTONS.forEach(btnText => createButton(btnText, executionMenu));
             }
             
-            // Function to create and append a message bubble
+            // Function to create and append a message bubble (MODIFIED FOR BOB V11: COPY)
             function createMessageBubble(text, sender) {
                 const messageContainer = document.createElement('div');
                 messageContainer.classList.add('flex', sender === 'user' ? 'justify-end' : 'justify-start');
@@ -787,7 +764,7 @@ The table must be the last element of the response before the suggestions block.
                 );
                 
                 const suggestionsMarker = '---SUGGESTIONS---';
-                let mainText = text;
+                let mainText = text; // The raw Markdown text we want to copy
                 let suggestions = [];
                 
                 if (sender === 'model' && text.includes(suggestionsMarker)) {
@@ -797,11 +774,53 @@ The table must be the last element of the response before the suggestions block.
                 }
                 
                 if (sender === 'model') {
+                    // --- BOB V11 MODIFICATION START: Add Copy Button ---
+                    
+                    // 1. Create a wrapper for the content and button (to handle flex layout within the bubble)
+                    const contentWrapper = document.createElement('div');
+                    contentWrapper.classList.add('flex', 'flex-col');
+                    
+                    // 2. Create the content div (the rendered Markdown)
                     const contentDiv = document.createElement('div');
-                    contentDiv.classList.add('ai-response-content');
+                    contentDiv.classList.add('ai-response-content', 'mb-2'); // Added mb-2 for spacing
                     const htmlContent = marked.parse(mainText);
                     contentDiv.innerHTML = htmlContent;
-                    messageBubble.appendChild(contentDiv);
+
+                    // 3. Create the Copy Button
+                    const copyButton = document.createElement('button');
+                    copyButton.classList.add('self-end', 'px-2', 'py-1', 'text-xs', 'bg-gray-600', 'text-gray-300', 'rounded-full', 'hover:bg-gray-500', 'transition', 'duration-150');
+                    copyButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 inline-block align-text-bottom mr-1">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v2.25A2.25 2.25 0 0113.5 22.5h-8.25a2.25 2.25 0 01-2.25-2.25v-8.25a2.25 2.25 0 012.25-2.25H5.25a2.25 2.25 0 012.25-2.25h1.5a.75.75 0 010 1.5H6a.75.75 0 00-.75.75v8.25c0 .414.336.75.75.75H13.5a.75.75 0 00.75-.75V11.25H18a.75.75 0 01.75.75v4.5a.75.75 0 00.75.75h1.5A2.25 2.25 0 0122.5 17.25v2.25a.75.75 0 001.5 0V17.25A2.25 2.25 0 0021.75 15h-1.5a.75.75 0 01-.75-.75V9.75a2.25 2.25 0 00-2.25-2.25H15z" />
+                                            </svg>
+                                            Copy Markdown`;
+
+                    // 4. Copy Logic
+                    copyButton.onclick = () => {
+                        // Use the raw Markdown text (mainText) for copying
+                        navigator.clipboard.writeText(mainText)
+                            .then(() => {
+                                const originalText = copyButton.innerHTML;
+                                // Provide visual feedback for 1.5 seconds
+                                copyButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 inline-block align-text-bottom mr-1">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                                        </svg>
+                                                        Copied!`;
+                                setTimeout(() => {
+                                    copyButton.innerHTML = originalText;
+                                }, 1500);
+                            })
+                            .catch(err => {
+                                console.error('Failed to copy text: ', err);
+                                alert('Failed to copy text. Please check your browser permissions.');
+                            });
+                    };
+
+                    // 5. Append to bubble
+                    contentWrapper.appendChild(contentDiv);
+                    contentWrapper.appendChild(copyButton);
+                    messageBubble.appendChild(contentWrapper);
+                    
+                    // --- BOB V11 MODIFICATION END ---
                 } else {
                     messageBubble.textContent = mainText;
                 }
