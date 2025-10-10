@@ -259,7 +259,7 @@
                 </div>
             </div> 
 
-                        <div class="relative self-start">
+            <div class="relative self-start">
                 <button id="myPromptsDropdownBtn" class="px-3 py-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200 flex items-center justify-center font-bold text-xs">
                     My Prompts ⭐
                     <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -269,13 +269,9 @@
             </div>
         </div> 
         
-        <div class="mb-4 flex justify-center items-center gap-4">
-            <button id="generateTakeawaysBtn" class="px-3 py-1.5 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition duration-200 font-bold text-xs">
-                Generate Takeaways 📝
-            </button>
+        <div class="mb-4 text-right">
             <button id="clearChatBtn" class="px-3 py-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-200 font-bold text-xs">Clear Chat</button>
         </div>
-
         
         <div id="chatArea" class="space-y-4 max-h-96 overflow-y-auto mb-6">
             <div class="flex justify-start">
@@ -298,7 +294,6 @@
             const userInput = document.getElementById('userInput');
             const chatArea = document.getElementById('chatArea');
             const clearChatBtn = document.getElementById('clearChatBtn');
-            const generateTakeawaysBtn = document.getElementById('generateTakeawaysBtn');
             // DROPDOWN ELEMENTS
             const initialSetupDropdownBtn = document.getElementById('initialSetupDropdownBtn');
             const initialSetupMenu = document.getElementById('initialSetupMenu');
@@ -1106,7 +1101,7 @@ The table must be the last element of the response before the suggestions block.
                 // If Shift + Enter is pressed, the default action (newline) is permitted, and the 'input' event will handle the resize.
             });
             
-                // New event listener for the "Clear Chat" button
+            // New event listener for the "Clear Chat" button
             clearChatBtn.addEventListener('click', () => {
                 chatArea.innerHTML = '';
                 
@@ -1120,24 +1115,7 @@ The table must be the last element of the response before the suggestions block.
                 userInput.placeholder = "Ask a question... (Enter to Send, Shift + Enter for Newline)";
                 autoResizeTextarea(userInput); // Reset height on clear
             });
-            
-            // Generate Takeaways button functionality   
-            generateTakeawaysBtn.addEventListener('click', function() {
-                // Generate Takeaways functionality
-                console.log('Generate Takeaways clicked');
-                
-                // Check if there's content in the chat
-                if (chatHistory.length <= 1) {
-                    alert('No conversation to generate takeaways from. Please have a conversation first.');
-                    return;
-                }
-                
-                // TODO: Add your Generate Takeaways logic here
-                alert('Generate Takeaways feature activated!');
-            });                                         
-            
             // --- DROPDOWN TOGGLE LOGIC ---
-
             function toggleMenu(menuElement, buttonElement) {
                 // Determine if any *other* menus are open and close them
                 [initialSetupMenu, analysisMenu, solutionDesignMenu, executionMenu, myPromptsMenu].forEach(menu => {
