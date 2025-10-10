@@ -130,8 +130,8 @@
             border-color: #34d399; /* Tailwind emerald-400 for better visibility */
             
             /* Sizing and alignment */
-            width: 11rem; /* Fixed width for consistent size (w-44) */
-            height: 3rem; /* Fixed height for consistent size (h-12) */
+            width: 11rem; /* w-44 */
+            height: 3rem; /* h-12 */
             text-align: center;
             display: flex;
             align-items: center;
@@ -144,47 +144,11 @@
             /* Ensure dropdown buttons inherit base style but can be overridden */
             cursor: pointer;
         }
-
+        
         .prompt-btn:hover, .dropdown-btn:hover {
             background-color: #d1fae5; /* Hover:bg-emerald-100 */
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1); /* Hover:shadow-xl */
             transform: translateY(-2px); /* Subtle lift effect */
-        }
-        
-        /* === Custom Button Style (Half-Height Utility Buttons) === */
-        /* Implements the half-height and reduced font size for My Prompts, Generate Takeaways, and Clear Chat */
-        .utility-btn {
-            font-family: 'Roboto Slab', serif; 
-            font-size: 0.75rem; /* Smaller font for half height */
-            font-weight: 700;
-            
-            /* Fixed height to be exactly half of 3rem, and padding adjustments */
-            height: 1.5rem; 
-            padding-top: 0.25rem; 
-            padding-bottom: 0.25rem; 
-            
-            /* Standard styles for consistency */
-            border-radius: 0.5rem; /* Slightly less rounded */
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1); 
-            transition: all 0.2s ease-in-out;
-            cursor: pointer;
-            
-            /* Ensure text is vertically centered */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            white-space: nowrap; /* Prevent button text from wrapping in the small space */
-        }
-        
-        .utility-btn:hover {
-            transform: translateY(-1px); /* Subtle lift effect */
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
-        }
-
-        .initial-greeting {
-            font-size: 0.9rem; /* Reduced font size */
-            padding-top: 0.5rem !important; /* Adjust padding if needed, or remove for default */
         }
         
         /* Added active state for a physical "press" effect */
@@ -252,78 +216,56 @@
             <input type="password" id="apiKeyInput" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-700 text-white" placeholder="Paste your API key here...">
         </div>
         
-        <div class="flex justify-between mb-4 items-start">
+        <div class="flex flex-wrap gap-4 mb-4">
             
-            <div class="grid grid-cols-2 gap-4">
-                
-                <div class="flex flex-col gap-4">
-                    <div class="relative">
-                        <button id="initialSetupDropdownBtn" class="dropdown-btn flex items-center justify-center">
-                            Initial Setup
-                            <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </button>
-                        <div id="initialSetupMenu" class="absolute hidden top-full mt-2 w-56 bg-gray-800 rounded-lg shadow-2xl z-10 border border-emerald-500 p-2">
-                            </div>
-                    </div>
-                    <div class="relative">
-                        <button id="solutionDesignDropdownBtn" class="dropdown-btn flex items-center justify-center">
-                            Solution Design
-                            <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </button>
-                        <div id="solutionDesignMenu" class="absolute hidden top-full mt-2 w-56 bg-gray-800 rounded-lg shadow-2xl z-10 border border-emerald-500 p-2">
-                            </div>
-                    </div>
-                </div>
-                
-                <div class="flex flex-col gap-4">
-                    <div class="relative">
-                        <button id="analysisDropdownBtn" class="dropdown-btn flex items-center justify-center">
-                            Analysis
-                            <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </button>
-                        <div id="analysisMenu" class="absolute hidden top-full mt-2 w-56 bg-gray-800 rounded-lg shadow-2xl z-10 border border-emerald-500 p-2">
-                            </div>
-                    </div>
-                    <div class="relative">
-                        <button id="executionDropdownBtn" class="dropdown-btn flex items-center justify-center">
-                            Execution
-                            <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </button>
-                        <div id="executionMenu" class="absolute hidden top-full mt-2 w-56 bg-gray-800 rounded-lg shadow-2xl z-10 border border-emerald-500 p-2">
-                            </div>
-                    </div>
-                </div>
-            </div> 
-
-            <div class="flex flex-col justify-between w-44" style="height: 6.5rem;">
-                
-                <div class="relative w-full">
-                    <button id="myPromptsDropdownBtn" class="utility-btn bg-blue-500 text-white hover:bg-blue-600 transition duration-200 w-full">
-                        My Prompts
-                        <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                    <div id="myPromptsMenu" class="absolute hidden top-full mt-2 w-56 bg-gray-800 rounded-lg shadow-2xl z-10 border border-emerald-500 p-2">
-                        </div>
-                </div>
-
-                <button id="summarizeThreadBtn" class="utility-btn bg-purple-600 text-white hover:bg-purple-700 transition duration-200 w-full">
-                    Generate Takeaways
+            <div class="relative">
+                <button id="initialSetupDropdownBtn" class="dropdown-btn flex items-center justify-center">
+                    Initial Setup
+                    <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
-                
-                <button id="clearChatBtn" class="utility-btn bg-red-500 text-white hover:bg-red-600 transition duration-200 w-full">
-                    Clear Chat
-                </button>
+                <div id="initialSetupMenu" class="absolute hidden top-full mt-2 w-56 bg-gray-800 rounded-lg shadow-2xl z-10 border border-emerald-500 p-2">
+                    </div>
             </div>
+
+            <div class="relative">
+                <button id="analysisDropdownBtn" class="dropdown-btn flex items-center justify-center">
+                    Analysis 
+                    <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div id="analysisMenu" class="absolute hidden top-full mt-2 w-56 bg-gray-800 rounded-lg shadow-2xl z-10 border border-emerald-500 p-2">
+                    </div>
+            </div>
+
+            <div class="relative">
+                <button id="solutionDesignDropdownBtn" class="dropdown-btn flex items-center justify-center">
+                    Solution Design
+                    <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div id="solutionDesignMenu" class="absolute hidden top-full mt-2 w-56 bg-gray-800 rounded-lg shadow-2xl z-10 border border-emerald-500 p-2">
+                    </div>
+            </div>
+
+            <div class="relative">
+                <button id="executionDropdownBtn" class="dropdown-btn flex items-center justify-center">
+                    Execution
+                    <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div id="executionMenu" class="absolute hidden top-full mt-2 w-56 bg-gray-800 rounded-lg shadow-2xl z-10 border border-emerald-500 p-2">
+                    </div>
+            </div>
+
         </div>
         
-        <div id="chatArea" class="space-y-4 max-h-96 overflow-y-auto mb-6 mt-8">
-            
+        <div class="mb-4 text-right">
+            <button id="clearChatBtn" class="px-4 py-2 text-sm bg-red-200 text-red-700 rounded-lg shadow-md hover:bg-red-300">Clear Chat</button>
+        </div>
+        
+        <div id="chatArea" class="space-y-4 max-h-96 overflow-y-auto mb-6">
             <div class="flex justify-start">
-                <div class="bg-gray-700 text-white p-3 rounded-tr-xl rounded-bl-xl rounded-br-xl max-w-lg shadow-lg initial-greeting">
-                    <p>Hi there! I'm Bob. How can I assist you today?</p>
+                <div class="bg-emerald-100 text-emerald-700 rounded-xl p-3 max-w-sm shadow-md">
+                    Hi there! I'm Bob. How can I assist you today?
                 </div>
             </div>
-
         </div>
         
         <div class="flex items-center space-x-2">
@@ -348,11 +290,6 @@
             const solutionDesignMenu = document.getElementById('solutionDesignMenu');
             const executionDropdownBtn = document.getElementById('executionDropdownBtn');
             const executionMenu = document.getElementById('executionMenu');
-            // NEW PROMPT ELEMENTS
-            const myPromptsDropdownBtn = document.getElementById('myPromptsDropdownBtn'); // NEW
-            const myPromptsMenu = document.getElementById('myPromptsMenu'); // NEW
-            // ADDED: NEW BUTTON CONSTANT
-            const summarizeThreadBtn = document.getElementById('summarizeThreadBtn'); 
             let MIN_HEIGHT = 0; // Calculated minimum height (1 line)
             
             // --- PROMPT DEFINITIONS ---
@@ -382,8 +319,13 @@ The output MUST strictly follow this high-readability structure:
 | [Trend 1 Name] | * [Impact bullet 1] <br> * [Impact bullet 2] |
 | [Trend 2 Name] | * [Impact bullet 1] <br> * [Impact bullet 2] |
 | [Trend 3 Name] | * [Impact bullet 1] <br> * [Impact bullet 2] |
+
 The table must be the last element of the response before the suggestions block.`,
-                'Initial Project Charter Draft': `Generate an Initial Project Charter Draft for [input SPECIFIC PROJECT TYPE, e.g., 'implementing a new cloud-based CRM system for the sales department']. The output MUST strictly follow this professional structure:
+              
+                'Initial Project Charter Draft': `Generate an Initial Project Charter Draft for [input SPECIFIC PROJECT TYPE, e.g., 'implementing a new cloud-based CRM system for the sales department']. 
+
+The output MUST strictly follow this professional structure:
+
 # Project Charter: [Project Title]
 [Short introductory summary of the project goal]
 
@@ -411,8 +353,13 @@ The table must be the last element of the response before the suggestions block.
 * Phase 1: Initiation and Planning ([Duration])
 * Phase 2: Execution and Development ([Duration])
 * Phase 3: Deployment and Stabilization ([Duration])
+
 The timeline must be the last element of the response before the suggestions block.`,
-                'Problem Statement Draft': `Draft a Preliminary Problem Statement for [input SPECIFIC ISSUE, e.g., 'Customer retention has dropped by 10% in the last quarter']. The output MUST strictly follow the Current State, Desired State, Impact structure using Markdown headings and paragraphs:
+              
+                'Problem Statement Draft': `Draft a Preliminary Problem Statement for [input SPECIFIC ISSUE, e.g., 'Customer retention has dropped by 10% in the last quarter']. 
+
+The output MUST strictly follow the Current State, Desired State, Impact structure using Markdown headings and paragraphs:
+
 # Preliminary Problem Statement
 [A single introductory sentence about why this problem is critical.]
 
@@ -424,536 +371,650 @@ The timeline must be the last element of the response before the suggestions blo
 
 ## 3. Impact of Solving (The Value)
 [A concise paragraph describing the strategic or financial value derived by the business upon successful achievement of the desired state.]
+
 The "Impact of Solving" section must be the last element of the response before the suggestions block.`,
+              
                 // Analysis (Phase II)
-                'Market Analysis': `Conduct a market analysis for [input SPECIFIC MARKET / INDUSTRY]. Focus on key trends, the competitive landscape, and the future outlook. The output MUST strictly follow this high-readability structure:
+                'Market Analysis': `Conduct a market analysis for [input SPECIFIC MARKET / INDUSTRY]. Focus on key trends, the competitive landscape, and the future outlook. 
+
+The output MUST strictly follow this high-readability structure:
+
 # [Analysis Title]
 [concise, clear introductory explanation]
 
 ## Key Trends
 * [concise, clear bullet point 1]
 * [concise, clear bullet point 2]
-* [concise, clear bullet point 3]
+...
 
 ## Competitive Landscape
-* **Key Player 1**: [Brief description of strategy/market share]
-* **Key Player 2**: [Brief description of strategy/market share]
-* **Key Player 3**: [Brief description of strategy/market share]
-
-## Future Outlook and Threats
-* [Threat/Opportunity 1]
-* [Threat/Opportunity 2]
-* [Threat/Opportunity 3]
-The "Future Outlook and Threats" section must be the last element of the response before the suggestions block.`,
-                'SWOT Analysis': `Perform a comprehensive SWOT analysis for [input SPECIFIC COMPANY OR PROJECT] focused on [input SPECIFIC BUSINESS AREA, e.g., 'their recent expansion into the European market']. The output MUST strictly follow this structure:
-# SWOT Analysis: [Target]
-[Short introductory sentence]
-
-## Strengths (Internal/Positive)
-* [Specific Strength 1]
-* [Specific Strength 2]
-* [Specific Strength 3]
-
-## Weaknesses (Internal/Negative)
-* [Specific Weakness 1]
-* [Specific Weakness 2]
-* [Specific Weakness 3]
-
-## Opportunities (External/Positive)
-* [Specific Opportunity 1]
-* [Specific Opportunity 2]
-* [Specific Opportunity 3]
-
-## Threats (External/Negative)
-* [Specific Threat 1]
-* [Specific Threat 2]
-* [Specific Threat 3]
-
-## Strategic Implications Matrix
-| Factor | Implication (1-2 sentences) |
-|---|---|
-| S-O (Max/Max) | [Strategy combining Strength and Opportunity] |
-| W-O (Min/Max) | [Strategy mitigating Weakness to capture Opportunity] |
-| S-T (Max/Min) | [Strategy using Strength to avoid Threat] |
-| W-T (Min/Min) | [Strategy minimizing Weakness and avoiding Threat] |
-The "Strategic Implications Matrix" must be the last element of the response before the suggestions block.`,
-                'PESTEL Analysis': `Conduct a PESTEL analysis for [input SPECIFIC INDUSTRY OR REGION]. The output MUST strictly follow this high-readability structure:
-# PESTEL Analysis: [Target]
-[Short introductory sentence]
-
-## Political Factors
-* [Factor 1]
-* [Factor 2]
-* [Factor 3]
-
-## Economic Factors
-* [Factor 1]
-* [Factor 2]
-* [Factor 3]
-
-## Sociocultural Factors
-* [Factor 1]
-* [Factor 2]
-* [Factor 3]
-
-## Technological Factors
-* [Factor 1]
-* [Factor 2]
-* [Factor 3]
-
-## Environmental Factors
-* [Factor 1]
-* [Factor 2]
-* [Factor 3]
-
-## Legal Factors
-* [Factor 1]
-* [Factor 2]
-* [Factor 3]
-
-## Key Implications Summary
-| PESTEL Factor | Key Risk/Opportunity |
-|---|---|
-| Political | [Summary sentence] |
-| Economic | [Summary sentence] |
-| Sociocultural | [Summary sentence] |
-| Technological | [Summary sentence] |
-| Environmental | [Summary sentence] |
-| Legal | [Summary sentence] |
-The "Key Implications Summary" must be the last element of the response before the suggestions block.`,
-                // Solution Design (Phase III)
-                'Stakeholder Mapping': `Generate a comprehensive Stakeholder Map for a project involving [input SPECIFIC PROJECT, e.g., 'a company-wide digital transformation']. Identify key stakeholders, their power, interest, and management strategy. The output MUST strictly follow this table structure:
-# Stakeholder Mapping: [Project Name]
-[Short introductory sentence about the mapping goal]
-
-## Stakeholder Matrix
-| Stakeholder | Role / Department | Power (High/Low) | Interest (High/Low) | Management Strategy (Keep Informed / Manage Closely) |
-|---|---|---|---|---|
-| CEO | Executive Leadership | High | High | Manage Closely |
-| IT Department | Technology Support | High | Low | Keep Satisfied |
-| Sales Team | End-User Group | Low | High | Keep Informed |
-| ... (at least 5 key stakeholders) | | | | |
-
-## Communication Plan Draft
-* **High Power / High Interest (Manage Closely):** [Communication frequency/method]
-* **High Power / Low Interest (Keep Satisfied):** [Communication frequency/method]
-* **Low Power / High Interest (Keep Informed):** [Communication frequency/method]
-* **Low Power / Low Interest (Minimum Effort):** [Communication frequency/method]
-The "Communication Plan Draft" must be the last element of the response before the suggestions block.`,
-                'High-Level Requirements Document (HLRD)': `Draft a High-Level Requirements Document (HLRD) for a new system/solution designed to [input SPECIFIC BUSINESS GOAL, e.g., 'automate inventory tracking']. The output MUST strictly follow this structure:
-# High-Level Requirements Document: [Solution Name]
-[Short introductory summary of the proposed solution and its primary objective.]
-
-## 1. Functional Requirements (What the System MUST Do)
-* **FR 1.0:** [Core action/functionality, e.g., 'The system must allow users to scan barcodes for inventory check-in.']
-* **FR 2.0:** [Core action/functionality]
-* **FR 3.0:** [Core action/functionality]
-
-## 2. Non-Functional Requirements (How the System MUST Be)
-* **Performance:** [Requirement, e.g., 'The system must handle 50 concurrent users without latency exceeding 2 seconds.']
-* **Security:** [Requirement, e.g., 'All user data must be encrypted in transit and at rest.']
-* **Usability:** [Requirement, e.g., 'The user interface must be intuitive and require minimal training.']
-The "Non-Functional Requirements" section must be the last element of the response before the suggestions block.`,
-                'Risk Assessment Matrix': `Generate a comprehensive Risk Assessment Matrix for a project involving [input SPECIFIC PROJECT, e.g., 'the rollout of a new corporate policy']. The output MUST strictly follow this table structure:
-# Risk Assessment Matrix: [Project Name]
-[Short introductory sentence about the risk assessment]
-
-## Risk Matrix
-| Risk ID | Risk Description | Probability (High/Med/Low) | Impact (High/Med/Low) | Mitigation Strategy (1-2 sentences) | Owner |
-|---|---|---|---|---|---|
-| R01 | [Specific Risk, e.g., 'Key project team member leaving unexpectedly.'] | Medium | High | [Strategy to reduce probability or impact] | [Name/Role] |
-| R02 | [Specific Risk] | | | | |
-| R03 | [Specific Risk] | | | | |
-| ... (at least 5 key risks) | | | | | |
-
-## Top 3 Priority Risks
-* [Risk ID, Description, and brief rationale for priority]
-* [Risk ID, Description, and brief rationale for priority]
-* [Risk ID, Description, and brief rationale for priority]
-The "Top 3 Priority Risks" section must be the last element of the response before the suggestions block.`,
-                // Execution (Phase IV)
-                'Work Breakdown Structure (WBS)': `Generate a high-level Work Breakdown Structure (WBS) for [input SPECIFIC PROJECT, e.g., 'launching a new product line']. The output MUST strictly follow this hierarchical structure, using bold text for level 1:
-# Work Breakdown Structure: [Project Name]
-[Short introductory sentence defining the WBS structure.]
-
-## **Level 1: Project Phase**
-* **Level 2: Major Deliverable**
-    * Level 3: Sub-Task
-    * Level 3: Sub-Task
-* **Level 2: Major Deliverable**
-    * Level 3: Sub-Task
-
-## Example Output Structure (3 Levels Deep):
-* **1.0 Planning & Initiation**
-    * **1.1 Define Scope**
-        * 1.1.1 Hold kickoff meeting
-        * 1.1.2 Finalize charter
-    * **1.2 Resource Allocation**
-        * 1.2.1 Assign roles
-        * 1.2.2 Secure budget
-* **2.0 Development & Testing**
-    * **2.1 Core System Build**
-        * 2.1.1 Code module A
-        * 2.1.2 Code module B
-* **3.0 Deployment & Closeout**
-    * **3.1 User Training**
-The example must be the last element of the response before the suggestions block.`,
-                'Status Report Draft': `Draft a Weekly Project Status Report for [input SPECIFIC PROJECT NAME]. The report MUST strictly follow this concise, action-oriented structure:
-# Weekly Status Report: [Project Name]
-[Date Range]
-
-## 1. Overall Status: [Green/Yellow/Red]
-[A single, concise sentence explaining the status.]
-
-## 2. Key Accomplishments (Last Week)
-* [Accomplishment 1]
-* [Accomplishment 2]
-* [Accomplishment 3]
-
-## 3. Planned Activities (Next Week)
-* [Activity 1]
-* [Activity 2]
-* [Activity 3]
-
-## 4. Key Risks & Issues (Needs Help)
-| Item | Severity (High/Med/Low) | Mitigation/Resolution Status | Owner |
-|---|---|---|---|
-| [Specific Issue/Risk] | [Severity] | [Action needed or taken] | [Owner Name/Role] |
-| [Specific Issue/Risk] | [Severity] | [Action needed or taken] | [Owner Name/Role] |
-The "Key Risks & Issues" table must be the last element of the response before the suggestions block.`,
-                'Change Request Draft (CR)': `Draft a Preliminary Change Request (CR) for a proposed modification to [input SPECIFIC PROJECT/SYSTEM]. The proposed change is [input BRIEF DESCRIPTION OF CHANGE, e.g., 'to add a new reporting dashboard for finance']. The output MUST strictly follow this structure:
-# Change Request (CR) Draft: [CR Title]
-[Short introductory summary of the change.]
-
-## 1. Problem Statement / Justification
-[1-2 paragraphs detailing why the change is necessary and the business problem it solves.]
-
-## 2. Proposed Change Details
-* **Description:** [Detailed description of what will be modified or added.]
-* **Impacted Areas:** [List of systems, teams, or processes affected.]
-
-## 3. Estimated Impact (Resources)
-| Factor | Estimate | Justification |
+| Competitor | Market Share/Focus | Key Strengths/Weaknesses |
 |---|---|---|
-| Effort (Mandays) | [Number] | [Rationale] |
-| Cost (USD) | [Amount] | [Rationale] |
-| Schedule Impact | [Days/Weeks Added] | [Rationale] |
+| [Name 1] | [Focus] | * [Strength 1] <br> * [Weakness 1] |
+| [Name 2] | [Focus] | * [Strength 1] <br> * [Weakness 1] |
 
-## 4. Acceptance Criteria
-* [Criteria 1: The system must successfully do X.]
-* [Criteria 2: The system must successfully do Y.]
-The "Acceptance Criteria" section must be the last element of the response before the suggestions block.`,
+## Future Outlook
+* [concise, clear bullet point 1]
+* [concise, clear bullet point 2]
+...
+
+The table must be the last element before the suggestions block.`,
+              
+                'SWOT Analysis': `Perform a SWOT analysis for [input SPECIFIC COMPANY / PROJECT]. The analysis should be grounded in recent information.
+
+The output MUST strictly follow this structure:
+
+# SWOT Analysis for [Company/Project]
+[A concise paragraph explaining the current situation and objective.]
+
+## Analysis Matrix
+| Strengths | Weaknesses | Opportunities | Threats |
+|---|---|---|---|
+| * [Bullet point 1] <br> * [Bullet point 2] | * [Bullet point 1] <br> * [Bullet point 2] | * [Bullet point 1] <br> * [Bullet point 2] | * [Bullet point 1] <br> * [Bullet point 2] |
+| * [Bullet point 3] | * [Bullet point 3] | * [Bullet point 3] | * [Bullet point 3] |
+
+The table must be the last element of the response before the suggestions block.`,
+              
+                'Competitor Benchmarking': `Perform a detailed competitive analysis for [input COMPANY A] against [input COMPETITOR B] and [input COMPETITOR C]. Focus on their market share, product features, pricing models, and online presence. 
+
+The output MUST strictly follow this structure:
+
+# Competitor Benchmarking Report
+[A brief introduction defining the competitive scope.]
+
+## Benchmarking Table
+| Competitor | Market Share/Focus | Product Features | Pricing Model | Online Presence |
+|---|---|---|---|---|
+| **[Competitor B]** | [Share/Focus] | * [Feature 1] <br> * [Feature 2] | [Model description] | [Score/Metric] |
+| **[Competitor C]** | [Share/Focus] | * [Feature 1] <br> * [Feature 2] | [Model description] | [Score/Metric] |
+
+The table must be the last element of the response before the suggestions block.`,
+              
+                '5 Forces Analysis': `Conduct a 5 Forces Analysis for [input SPECIFIC INDUSTRY]. Analyze the threat of new entrants, the bargaining power of buyers, the bargaining power of suppliers, the threat of substitute products, and competitive rivalry.
+
+The output MUST strictly follow this structure:
+
+# Porter's Five Forces Analysis: [Industry]
+[A concise introductory paragraph about the industry's profitability outlook.]
+
+## Industry Structure Summary
+| Force | Threat Level (High/Medium/Low) | Key Drivers/Evidence |
+|---|---|---|
+| **Threat of New Entrants** | [Level] | * [Driver 1] <br> * [Driver 2] |
+| **Bargaining Power of Buyers** | [Level] | * [Driver 1] <br> * [Driver 2] |
+| **Bargaining Power of Suppliers** | [Level] | * [Driver 1] <br> * [Driver 2] |
+| **Threat of Substitutes** | [Level] | * [Driver 1] <br> * [Driver 2] |
+| **Competitive Rivalry** | [Level] | * [Driver 1] <br> * [Driver 2] |
+
+The table must be the last element of the response before the suggestions block.`,
+              
+                'PESTLE Analysis': `Perform a PESTLE analysis for [input SPECIFIC COMPANY / INDUSTRY]. Analyze the Political, Economic, Social, Technological, Legal, and Environmental factors.
+
+The output MUST strictly follow this structure:
+
+# PESTLE Analysis for [Company/Industry]
+[A brief introduction explaining the purpose of the analysis.]
+
+The remaining analysis MUST be presented in a specific two-column table format where the 'Key Findings' column contains bullet points separated by line breaks (<br>).
+
+| Factor | Key Findings |
+|---|---|
+| **Political** | * [concise finding 1] <br> * [concise finding 2] |
+| **Economic** | * [concise finding 1] <br> * [concise finding 2] |
+| **Social** | * [concise finding 1] <br> * [concise finding 2] |
+| **Technological** | * [concise finding 1] <br> * [concise finding 2] |
+| **Legal** | * [concise finding 1] <br> * [concise finding 2] |
+| **Environmental** | * [concise finding 1] <br> * [concise finding 2] |
+
+The table must be the last element of the response before the suggestions block.`,
+
+                'Hofstede Analysis': `Perform a Hofstede's Cultural Dimensions analysis for [input SPECIFIC COUNTRY/CULTURE] focusing on its implications for [input SPECIFIC BUSINESS SCENARIO, e.g., 'market entry strategy' or 'managing a remote team']. 
+                
+The output MUST strictly follow this structure:
+
+# Hofstede's Cultural Analysis: [Country]
+[A concise introductory paragraph explaining the purpose of the analysis.]
+
+## Cultural Dimensions Summary
+| Dimension | Score/Rating | Business Implication |
+|---|---|---|
+| **Power Distance (PDI)** | [Score/Rating] | * [Implication 1] <br> * [Implication 2] |
+| **Individualism vs. Collectivism (IDV)** | [Score/Rating] | * [Implication 1] <br> * [Implication 2] |
+| **Masculinity vs. Femininity (MAS)** | [Score/Rating] | * [Implication 1] <br> * [Implication 2] |
+| **Uncertainty Avoidance (UAI)** | [Score/Rating] | * [Implication 1] <br> * [Implication 2] |
+| **Long-Term vs. Short-Term Orientation (LTO)** | [Score/Rating] | * [Implication 1] <br> * [Implication 2] |
+| **Indulgence vs. Restraint (IVR)** | [Score/Rating] | * [Implication 1] <br> * [Implication 2] |
+
+The table must be the last element of the response before the suggestions block.`,
+                
+                // Solution Design (Phase III)
+                'Business Plan Outline': `Draft a comprehensive business plan outline for a [input YOUR BUSINESS IDEA]. 
+
+The output MUST strictly follow this structure:
+
+# Business Plan Outline: [Your Business Idea]
+[A concise introductory summary paragraph.]
+
+## Executive Summary
+* [Core Concept]
+* [Target Market]
+* [Financial Highlights]
+
+## Company Description
+* [Mission Statement]
+* [Legal Structure]
+* [Key Personnel]
+
+## Market Analysis
+* [Industry Trends]
+* [Competitive Advantage]
+* [Market Size]
+
+## Organization and Management
+* [Organizational Structure]
+* [Key Management Team Roles]
+
+## Service or Product Line
+* [Product/Service Description]
+* [Development Status]
+* [Intellectual Property]
+
+## Marketing and Sales Strategy
+* [Marketing Channels]
+* [Sales Strategy]
+* [Key Partnerships]
+
+## Financial Projections
+* [Startup Costs Summary]
+* [3-Year Revenue Forecast Highlight]
+* [Funding Request]
+
+## Appendix
+* [Supporting Documents]
+
+The Appendix section must be the last element of the response before the suggestions block.`,
+              
+                'Market Entry Strategy': `Develop a comprehensive market entry strategy for [input PRODUCT / SERVICE] entering the [input SPECIFIC COUNTRY / MARKET]. 
+
+The output MUST strictly follow this structure:
+
+# Market Entry Strategy: [Product] in [Market]
+[A brief paragraph summarizing the primary recommendation.]
+
+## Target Audience
+* [Demographics]
+* [Key Needs/Pain Points]
+
+## Distribution Strategy
+* [Primary Channel]
+* [Logistics and Fulfillment]
+
+## Pricing Model
+* [Recommended Strategy (e.g., Penetration, Skimming)]
+* [Key Cost Drivers]
+
+## Market Entry Options Summary
+| Method | Key Advantages | Key Disadvantages |
+|---|---|---|
+| [Method 1] | * [Advantage 1] <br> * [Advantage 2] | * [Disadvantage 1] <br> * [Disadvantage 2] |
+| [Method 2] | * [Advantage 1] <br> * [Advantage 2] | * [Disadvantage 1] <br> * [Disadvantage 2] |
+| [Method 3] | * [Advantage 1] <br> * [Advantage 2] | * [Disadvantage 1] <br> * [Disadvantage 2] |
+
+The table must be the last element of the response before the suggestions block.`,
+
+                'Go-to-market Strategy': `Develop a comprehensive Go-to-Market (GTM) Strategy for [input PRODUCT / SERVICE (e.g. a new B2B SaaS platform)] targeting [input SPECIFIC AUDIENCE / GEOGRAPHY (e.g. mid-market financial services)]. Focus on key messaging, channel strategy, and launch metrics.
+
+The output MUST strictly follow this structure:
+
+# Go-to-Market Strategy: [Product]
+[A brief introductory paragraph summarizing the strategic approach and main goal.]
+
+## Target Customer Profile (ICP)
+* [Target Demographic/Firmographic]
+* [Primary Pain Point Addressed]
+* [Unique Value Proposition (UVP)]
+
+## Channel and Tactics Plan
+| Channel Category | Key Tactics/Activities | Owner/Timeline |
+|---|---|---|
+| **Marketing** | * [Tactic 1 (e.g., Content)] <br> * [Tactic 2 (e.g., SEO)] | [Owner/Timeline] |
+| **Sales** | * [Tactic 1 (e.g., Outbound)] <br> * [Tactic 2 (e.g., Partnerships)] | [Owner/Timeline] |
+| **Product/Success** | * [Tactic 1 (e.g., Onboarding)] <br> * [Tactic 2 (e.g., Documentation)] | [Owner/Timeline] |
+
+## Pricing & Packaging
+* [Recommended Pricing Model]
+* [Launch Offer / Incentive]
+
+## Launch Metrics (KPIs)
+* [Metric 1: Definition of success]
+* [Metric 2: Definition of success]
+* [Metric 3: Definition of success]
+
+The "Launch Metrics" section must be the last element of the response before the suggestions block.`,
+
+                'Ansoff Matrix': `Apply the Ansoff Matrix (Product/Market Expansion Grid) to recommend growth strategies for [input COMPANY NAME / PRODUCT IDEA ]. Analyze Market Penetration, Product Development, Market Development, and Diversification.
+
+The output MUST strictly follow this structure:
+
+# Ansoff Matrix Growth Recommendations
+[A concise introduction defining the company's current core product and market.]
+
+## Growth Strategy Matrix
+| Strategy | Product/Market Status | Key Action/Risk |
+|---|---|---|
+| **Market Penetration** | Existing Product / Existing Market | * [Action 1] <br> * [Action 2] |
+| **Product Development** | New Product / Existing Market | * [Action 1] <br> * [Action 2] |
+| **Market Development** | Existing Product / New Market | * [Action 1] <br> * [Action 2] |
+| **Diversification** | New Product / New Market | * [Action 1] <br> * [Action 2] |
+
+The table must be the last element of the response before the suggestions block.`,
+              
+                'Risk Analysis': `Conduct a risk analysis for [input SPECIFIC BUSINESS VENTURE / PROJECT]. Identify potential risks, assess their likelihood and impact, and propose mitigation strategies. 
+
+The output MUST strictly follow this structure:
+
+# High-Level Risk Analysis: [Venture/Project Name]
+[A brief introductory statement on the scope of the risk assessment.]
+
+## Risk Mitigation Table
+| Risk Area | Likelihood (H/M/L) | Impact (H/M/L) | Mitigation Strategy |
+|---|---|---|---|
+| **[Risk Category 1]** | [Level] | [Level] | * [Strategy 1] <br> * [Strategy 2] |
+| **[Risk Category 2]** | [Level] | [Level] | * [Strategy 1] <br> * [Strategy 2] |
+| **[Risk Category 3]** | [Level] | [Level] | * [Strategy 1] <br> * [Strategy 2] |
+
+The table must be the last element of the response before the suggestions block.`,
+              
+                // Execution (Phase IV)
+                'KPI Dashboard Mockup': `Design a **KPI Dashboard Mockup** structure for tracking the success of [input SPECIFIC BUSINESS GOAL / PROJECT, e.g., 'reducing customer churn' or 'launching a new product feature']. Define a minimum of five mandatory KPIs (Key Performance Indicators).
+
+The output MUST strictly follow this structure:
+
+# Key Performance Indicator (KPI) Dashboard Mockup
+[A concise statement defining the overall goal of the dashboard.]
+
+## Defined Metrics
+| KPI Name | Definition/Formula | Target Value | Reporting Frequency |
+|---|---|---|---|
+| **[KPI 1: Financial]** | [Formula] | [Target #] | [Daily/Weekly/Monthly] |
+| **[KPI 2: Customer/User]** | [Formula] | [Target #] | [Daily/Weekly/Monthly] |
+| **[KPI 3: Operational]** | [Formula] | [Target #] | [Daily/Weekly/Monthly] |
+| **[KPI 4: Quality]** | [Formula] | [Target #] | [Daily/Weekly/Monthly] |
+| **[KPI 5: Strategic]** | [Formula] | [Target #] | [Daily/Weekly/Monthly] |
+
+The table must be the last element of the response before the suggestions block.`,
+              
+                'Implementation Plan Outline': `Generate a high-level **Implementation Plan Outline** for [input PROJECT / STRATEGY, e.g., 'launching a new corporate training program']. Structure the plan into clear phases.
+
+The output MUST strictly follow this structure:
+
+# High-Level Implementation Plan: [Project Title]
+[A brief introductory paragraph summarizing the plan's execution approach.]
+
+## Implementation Phases
+| Phase | Key Milestones | Required Resources | Estimated Duration |
+|---|---|---|---|
+| **Phase 1: Setup** | * [Milestone 1] <br> * [Milestone 2] | [Team/Budget/Tools] | [Duration] |
+| **Phase 2: Development** | * [Milestone 1] <br> * [Milestone 2] | [Team/Budget/Tools] | [Duration] |
+| **Phase 3: Deployment** | * [Milestone 1] <br> * [Milestone 2] | [Team/Budget/Tools] | [Duration] |
+| **Phase 4: Stabilization** | * [Milestone 1] <br> * [Milestone 2] | [Team/Budget/Tools] | [Duration] |
+
+The table must be the last element of the response before the suggestions block.`,
+              
             };
+            // Focused Button Lists
+            const INITIAL_SETUP_BUTTONS = ['Industry Trends Snapshot', 'Initial Project Charter Draft', 'Problem Statement Draft'];
+            const ANALYSIS_BUTTONS = ['Market Analysis', 'SWOT Analysis', 'Competitor Benchmarking', '5 Forces Analysis', 'PESTLE Analysis', 'Hofstede Analysis'];
+            const SOLUTION_DESIGN_BUTTONS = ['Business Plan Outline', 'Market Entry Strategy', 'Go-to-market Strategy', 'Ansoff Matrix', 'Risk Analysis'];
+            const EXECUTION_BUTTONS = ['KPI Dashboard Mockup', 'Implementation Plan Outline'];
+            // This array will hold the conversation history
+            const chatHistory = [{
+                role: "model",
+                parts: [{ text: "Hi there! I'm Bob. How can I assist you today?" }]
+            }];
             
-            // --- DROPDOWN POPULATION ---
-            function populateDropdowns() {
-                const menuMap = {
-                    initialSetupMenu: ['Industry Trends Snapshot', 'Initial Project Charter Draft', 'Problem Statement Draft'],
-                    analysisMenu: ['Market Analysis', 'SWOT Analysis', 'PESTEL Analysis'],
-                    solutionDesignMenu: ['Stakeholder Mapping', 'High-Level Requirements Document (HLRD)', 'Risk Assessment Matrix'],
-                    executionMenu: ['Work Breakdown Structure (WBS)', 'Status Report Draft', 'Change Request Draft (CR)'],
-                    myPromptsMenu: [/* This is intentionally empty for the user to populate */]
-                };
+            // Function to handle dynamic textarea resizing with min/max height cap
+            function autoResizeTextarea(textarea) {
+                const MAX_LINES = 4;
+                const computed = window.getComputedStyle(textarea);
+                const lineHeight = parseFloat(computed.lineHeight);
                 
-                for (const menuId in menuMap) {
-                    const menu = document.getElementById(menuId);
-                    if (menu) {
-                        menu.innerHTML = ''; // Clear previous contents
-                        menuMap[menuId].forEach(promptName => {
-                            const button = document.createElement('button');
-                            button.textContent = promptName;
-                            button.className = 'sub-menu-btn'; // Use the custom sub-menu button class
-                            button.setAttribute('data-prompt-name', promptName);
-                            button.addEventListener('click', (e) => {
-                                e.stopPropagation(); // Stop click from propagating to document
-                                const promptTemplate = PROMPT_MAP[promptName];
-                                
-                                // Insert the placeholder text into the input field
-                                userInput.value = promptTemplate;
-                                
-                                // Manually resize the textarea to fit the new content
-                                autoResizeTextarea(userInput);
-                                
-                                // Hide all menus after selection
-                                closeAllMenus();
-                            });
-                            menu.appendChild(button);
-                        });
-                    }
+                // Calculate max height based on MIN_HEIGHT (1 line) + 3 extra lines
+                const maxHeight = MIN_HEIGHT + (lineHeight * (MAX_LINES - 1));
+                // 1. Temporarily shrink to 'auto' to get the current content height
+                textarea.style.height = 'auto'; 
+                let newHeight = textarea.scrollHeight;
+                // 2. Ensure min height is respected (when empty or content is small)
+                if (newHeight < MIN_HEIGHT) {
+                    newHeight = MIN_HEIGHT;
                 }
-            }
-            // --- END DROPDOWN POPULATION ---
-
-
-            // --- UTILITY FUNCTIONS ---
-            function addMessageToChat(content, sender, isHidden = false) {
-                // ... (rest of addMessageToChat remains the same)
-                const messageDiv = document.createElement('div');
-                messageDiv.className = `flex ${sender === 'user' ? 'justify-end user-message' : 'justify-start ai-message'}`;
-                
-                const contentDiv = document.createElement('div');
-                contentDiv.className = `${sender === 'user' ? 'bg-emerald-600 text-white user-input' : 'bg-gray-700 text-gray-100 ai-response-content'} rounded-xl p-3 max-w-sm shadow-md`;
-                
-                if (sender === 'user') {
-                    contentDiv.textContent = content;
+                // 3. Cap the height at max height
+                if (newHeight > maxHeight) {
+                    newHeight = maxHeight;
+                    textarea.style.overflowY = 'auto';
                 } else {
-                    // Use the placeholder for the response content (will be streamed later)
-                    contentDiv.innerHTML = isHidden ? '<div id="responsePlaceholder"></div>' : '<div class="typing-indicator"></div>';
+                    textarea.style.overflowY = 'hidden';
                 }
                 
-                messageDiv.appendChild(contentDiv);
-                chatArea.appendChild(messageDiv);
-                
-                // Scroll to the bottom
-                chatArea.scrollTop = chatArea.scrollHeight;
-                
-                // Return the placeholder for the AI response
-                return sender === 'ai' ? contentDiv.querySelector('#responsePlaceholder') : null;
+                // 4. Apply the final height
+                textarea.style.height = `${newHeight}px`;
             }
-
-            function closeAllMenus() {
-                const menus = [initialSetupMenu, analysisMenu, solutionDesignMenu, executionMenu, myPromptsMenu]; 
-                menus.forEach(menu => menu.classList.add('hidden'));
-            }
-
-            function toggleMenu(menuElement, buttonElement) {
-                const isHidden = menuElement.classList.contains('hidden');
-                
-                // Close all other menus first
-                closeAllMenus();
-                
-                // Toggle the current menu
-                if (isHidden) {
-                    menuElement.classList.remove('hidden');
-                } else {
-                    menuElement.classList.add('hidden');
+            // Load the API key from local storage and set up initial state
+            document.addEventListener('DOMContentLoaded', () => {
+                const savedKey = localStorage.getItem('geminiApiKey');
+                if (savedKey) {
+                    apiKeyInput.value = savedKey;
                 }
-            }
-
-            // Function for the dynamic resizing of the textarea
-            function autoResizeTextarea(element) {
-                if (MIN_HEIGHT === 0) {
-                    // Calculate and store MIN_HEIGHT (height of 1 row) on first run
-                    element.rows = 1; // Start with one row to measure
-                    MIN_HEIGHT = element.scrollHeight;
-                }
+                populateMenus();
                 
-                // Reset the rows to 1 (or min-height) before calculating the new height
-                element.style.height = 'auto';
+                // --- CRITICAL: Calculate MIN_HEIGHT (1 line height) after DOM is ready ---
+                // Temporarily set height to auto to get the correct initial scroll height for an empty textarea
+                userInput.style.height = 'auto';
+                MIN_HEIGHT = userInput.scrollHeight;
                 
-                // Set the new height based on scrollHeight, ensuring it's never less than MIN_HEIGHT
-                element.style.height = (element.scrollHeight > MIN_HEIGHT ? element.scrollHeight : MIN_HEIGHT) + 'px';
-            }
-            
-            // --- LOADING AND STATE MANAGEMENT ---
-            function setLoadingState(isLoading) {
-                const finishLoadingState = () => {
-                    sendButton.disabled = false;
-                    sendButton.textContent = 'Send';
-                    apiKeyInput.disabled = false;
-                    userInput.disabled = false;
-                    
-                    // ADDED: Re-enable Summarize Button
-                    summarizeThreadBtn.disabled = false;
-                    summarizeThreadBtn.textContent = 'Generate Takeaways'; 
-                    
-                    initialSetupDropdownBtn.disabled = false;
-                    analysisDropdownBtn.disabled = false;
-                    solutionDesignDropdownBtn.disabled = false;
-                    executionDropdownBtn.disabled = false;
-                    myPromptsDropdownBtn.disabled = false; 
-                    clearChatBtn.disabled = false; 
-                };
-
-                if (isLoading) {
-                    sendButton.disabled = true;
-                    sendButton.textContent = 'Thinking...';
-                    apiKeyInput.disabled = true;
-                    userInput.disabled = true;
-                    
-                    // ADDED: Disable Summarize Button
-                    summarizeThreadBtn.disabled = true; 
-                    
-                    initialSetupDropdownBtn.disabled = true;
-                    analysisDropdownBtn.disabled = true;
-                    solutionDesignDropdownBtn.disabled = true;
-                    executionDropdownBtn.disabled = true;
-                    myPromptsDropdownBtn.disabled = true;
-                    clearChatBtn.disabled = true;
-                } else {
-                    // This function should be called when streaming completes or an error occurs
-                    finishLoadingState();
-                }
-            }
-            
-            // --- API COMMUNICATION ---
-            async function sendPrompt(prompt) {
-                const apiKey = apiKeyInput.value.trim();
-                
-                if (!apiKey) {
-                    alert("Please enter your Gemini API Key first.");
-                    setLoadingState(false);
-                    return;
-                }
-
-                // Add user message to chat area
-                const userMessageDiv = addMessageToChat(prompt, 'user');
-                // Add AI placeholder message to chat area and get the element reference
-                const aiPlaceholder = addMessageToChat('', 'ai', true);
-                
-                setLoadingState(true);
-
-                // Initialize the Gemini client (replace with your actual API endpoint logic)
-                // Since this is a self-contained HTML file, we'll simulate the API call structure.
-                
-                try {
-                    // === PLACEHOLDER FOR ACTUAL API CALL ===
-                    // In a real implementation, you would use a backend or a CORS-enabled endpoint here.
-                    // Example Fetch structure (Commented out, as it requires a real endpoint):
-                    /*
-                    const response = await fetch('YOUR_BACKEND_API_ENDPOINT', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-API-Key': apiKey 
-                        },
-                        body: JSON.stringify({
-                            prompt: prompt,
-                            // Optionally send chat history for context (if not included in the meta-prompt already)
-                            history: [] 
-                        })
-                    });
-                    
-                    if (!response.ok) {
-                        throw new Error(`API Error: ${response.statusText}`);
-                    }
-                    
-                    // Simulate streaming the response
-                    const reader = response.body.getReader();
-                    let responseText = '';
-                    while (true) {
-                        const { done, value } = await reader.read();
-                        if (done) break;
-                        const chunk = new TextDecoder().decode(value);
-                        responseText += chunk;
-                        
-                        // Update the placeholder with streamed content
-                        aiPlaceholder.innerHTML = marked.parse(responseText);
-                        chatArea.scrollTop = chatArea.scrollHeight;
-                    }
-                    */
-
-                    // --- MOCKING API RESPONSE FOR FUNCTIONALITY TESTING ---
-                    const mockResponse = "### Generating Summary...\n\nDue to the security restrictions of this environment, the actual API call cannot be executed. However, if this were running on your server, Bob would now perform the following:\n\n1.  **Read History**: Retrieve the entire conversation.\n2.  **Send Prompt**: Send the history along with the meta-prompt for summary generation to the Gemini API.\n3.  **Stream Result**: Stream the following content:\n\n# Engagement Summary\n\n## Top 5 Key Findings/Insights\n\n* **Finding 1**: The current thread established a clear Problem Statement focusing on customer retention.\n* **Finding 2**: A comprehensive PESTEL analysis was performed on the [Industry/Region].\n* **Finding 3**: Risk R03 (System Integration) was identified as a High-Impact, Medium-Probability threat.\n* **Finding 4**: The proposed solution is a cloud-based CRM system.\n* **Finding 5**: Stakeholder Mapping successfully identified the CEO and Sales Team as High-Priority.\n\n## Next 3 Recommended Actions\n\n1.  **Finalize HLRD**: Complete the outstanding Non-Functional Requirements section for the CRM.\n2.  **Mitigation Plan**: Immediately assign an owner and timeline for mitigating Risk R01 (Key Staff Departure).\n3.  **WBS Detailing**: Decompose the 'Development & Testing' WBS phase into detailed tasks.\n\n## Open Questions\n\n* Is the current budget sufficient for the estimated cost of the change request (CR)?\n* Has a specific target date been set for the 'Deployment and Stabilization' phase?";
-                    
-                    // Simulate a delay for the "Thinking..." state
-                    await new Promise(resolve => setTimeout(resolve, 1500));
-                    
-                    // Write the mock response
-                    aiPlaceholder.innerHTML = marked.parse(mockResponse);
-                    
-                    // --- END MOCKING ---
-                    
-                } catch (error) {
-                    aiPlaceholder.innerHTML = `<span class="text-red-400">Error: Failed to get response. Please check your API key or network connection. Details: ${error.message}</span>`;
-                }
-                
-                setLoadingState(false);
-                chatArea.scrollTop = chatArea.scrollHeight;
-            }
-            
-            // --- NEW: FUNCTION TO RETRIEVE HISTORY ---
-            function retrieveFullHistory() {
-                const chatHistoryContainer = document.getElementById('chatArea');
-                // Select all message containers, skipping the initial welcome message
-                const messages = Array.from(chatHistoryContainer.children).slice(1);
-                
-                let fullHistory = "CONSULTING CONVERSATION HISTORY (for summary generation):\n---\n";
-
-                messages.forEach(messageDiv => {
-                    // Only process user or AI messages
-                    if (messageDiv.classList.contains('user-message') || messageDiv.classList.contains('ai-message')) {
-                        const sender = messageDiv.classList.contains('user-message') ? "USER" : "AI";
-                        const contentElement = messageDiv.querySelector('.ai-response-content, .user-input');
-                        
-                        if (contentElement) {
-                             // Use innerText to preserve line breaks and list structure from rendered content
-                            const content = contentElement.innerText.trim();
-                            
-                            // Prevent including the "Generate Takeaways" click itself in the history sent to the API
-                            if (content && content !== "Generate Takeaways") {
-                                fullHistory += `${sender}:\n${content}\n--\n`;
-                            }
-                        }
-                    }
-                });
-                
-                fullHistory += "---\nEND OF HISTORY.\n";
-                return fullHistory;
-            }
-            // --- END NEW FUNCTION ---
-            
-            // --- EVENT LISTENERS ---
-            
-            // ADDED: NEW EVENT LISTENER FOR SUMMARIZE BUTTON
-            summarizeThreadBtn.addEventListener('click', async () => {
-                // 1. Check if chat has enough content (excluding the initial welcome message, which is the only child at index 0)
-                if (document.getElementById('chatArea').children.length <= 1) {
-                    alert("Chat is empty. Start a conversation first!");
-                    return;
-                }
-                
-                // 2. Get the history and craft the meta-prompt
-                const chatHistory = retrieveFullHistory();
-                
-                // The meta-prompt ensures the model returns a structured, consulting-focused summary.
-                const metaPrompt = 
-                    "Review the complete consulting thread provided below. Based *only* on the information in the thread, format a final, actionable summary. Title the response 'Engagement Summary' using an H1 tag. Include: 1. **Top 5 Key Findings/Insights** (in bullet points). 2. **Next 3 Recommended Actions** (in a numbered list). 3. **Open Questions** for the client (if applicable). Use clear, professional, markdown formatting.\n\n" + chatHistory;
-                
-                // 3. Call the main sendPrompt function directly with the programmatic prompt
-                try {
-                    await sendPrompt(metaPrompt);
-                } catch (error) {
-                    console.error("Error during summary generation:", error);
-                    // The error handling inside sendPrompt will call setLoadingState(false)
-                }
-            });
-
-
-            sendButton.addEventListener('click', () => {
-                const prompt = userInput.value.trim();
-                if (prompt && !sendButton.disabled) {
-                    sendPrompt(prompt);
-                    userInput.value = ''; // Clear input field
-                    autoResizeTextarea(userInput); // Reset textarea size
-                }
-            });
-
-            userInput.addEventListener('keypress', (e) => {
-                // Check if Enter key is pressed without the Shift key
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault(); // Prevent newline in textarea
-                    sendButton.click(); // Trigger the send button logic
-                }
-            });
-
-            userInput.addEventListener('input', () => {
+                // Initialize the size of the textarea
                 autoResizeTextarea(userInput);
             });
+            // Function to generate the sub-menu buttons and attach listeners
+            function populateMenus() {
+                const createButton = (text, menuElement) => {
+                    const button = document.createElement('button');
+                    button.classList.add('sub-menu-btn');
+                    button.textContent = text;
+                    button.title = PROMPT_MAP[text] || text; // Use the prompt text as a tooltip
+                    button.onclick = () => {
+                        userInput.value = PROMPT_MAP[text];
+                        // Trigger resize after populating content
+                        autoResizeTextarea(userInput);
+                        // Hide all menus when a selection is made
+                        initialSetupMenu.classList.add('hidden');
+                        analysisMenu.classList.add('hidden');
+                        solutionDesignMenu.classList.add('hidden');
+                        executionMenu.classList.add('hidden');
+                        // Focus on the input field
+                        userInput.focus();
+                    };
+                    menuElement.appendChild(button);
+                };
+                // Populate Menus
+                initialSetupMenu.innerHTML = '';
+                INITIAL_SETUP_BUTTONS.forEach(btnText => createButton(btnText, initialSetupMenu));
+                analysisMenu.innerHTML = '';
+                ANALYSIS_BUTTONS.forEach(btnText => createButton(btnText, analysisMenu));
+                solutionDesignMenu.innerHTML = '';
+                SOLUTION_DESIGN_BUTTONS.forEach(btnText => createButton(btnText, solutionDesignMenu));
+                executionMenu.innerHTML = '';
+                EXECUTION_BUTTONS.forEach(btnText => createButton(btnText, executionMenu));
+            }
             
-            clearChatBtn.addEventListener('click', () => {
-                if (confirm('Are you sure you want to clear the entire chat history?')) {
-                    chatArea.innerHTML = `
-                        <div class="flex justify-start">
-                            <div class="bg-emerald-100 text-emerald-700 rounded-xl p-3 max-w-sm shadow-md">
-                                Hi there! I'm Bob. How can I assist you today?
-                            </div>
-                        </div>
-                    `;
+            // Function to create and append a message bubble (MODIFIED FOR BOB V11: COPY)
+            function createMessageBubble(text, sender) {
+                const messageContainer = document.createElement('div');
+                messageContainer.classList.add('flex', sender === 'user' ? 'justify-end' : 'justify-start');
+                
+                const messageBubble = document.createElement('div');
+                messageBubble.classList.add(
+                    'rounded-xl',
+                    'p-3',
+                    'max-w-sm',
+                    'shadow-md',
+                    sender === 'user' ? 'bg-emerald-600' : 'bg-gray-700', 
+                    sender === 'user' ? 'text-white' : 'text-gray-100', 
+                    sender === 'user' ? 'rounded-br-none' : 'rounded-bl-none'
+                );
+                
+                const suggestionsMarker = '---SUGGESTIONS---';
+                let mainText = text; // The raw Markdown text we want to copy
+                let suggestions = [];
+                
+                if (sender === 'model' && text.includes(suggestionsMarker)) {
+                    const parts = text.split(suggestionsMarker);
+                    mainText = parts[0];
+                    suggestions = parts[1].split('|').map(s => s.trim());
                 }
-            });
+                
+                if (sender === 'model') {
+                    // --- BOB V11 MODIFICATION START: Add Copy Button ---
+                    
+                    // 1. Create a wrapper for the content and button (to handle flex layout within the bubble)
+                    const contentWrapper = document.createElement('div');
+                    contentWrapper.classList.add('flex', 'flex-col');
+                    
+                    // 2. Create the content div (the rendered Markdown)
+                    const contentDiv = document.createElement('div');
+                    contentDiv.classList.add('ai-response-content', 'mb-2'); // Added mb-2 for spacing
+                    const htmlContent = marked.parse(mainText);
+                    contentDiv.innerHTML = htmlContent;
 
-            // Dropdown button listeners
+                    // 3. Create the Copy Button
+                    const copyButton = document.createElement('button');
+                    copyButton.classList.add('self-end', 'px-2', 'py-1', 'text-xs', 'bg-gray-600', 'text-gray-300', 'rounded-full', 'hover:bg-gray-500', 'transition', 'duration-150');
+                    copyButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 inline-block align-text-bottom mr-1">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v2.25A2.25 2.25 0 0113.5 22.5h-8.25a2.25 2.25 0 01-2.25-2.25v-8.25a2.25 2.25 0 012.25-2.25H5.25a2.25 2.25 0 012.25-2.25h1.5a.75.75 0 010 1.5H6a.75.75 0 00-.75.75v8.25c0 .414.336.75.75.75H13.5a.75.75 0 00.75-.75V11.25H18a.75.75 0 01.75.75v4.5a.75.75 0 00.75.75h1.5A2.25 2.25 0 0122.5 17.25v2.25a.75.75 0 001.5 0V17.25A2.25 2.25 0 0021.75 15h-1.5a.75.75 0 01-.75-.75V9.75a2.25 2.25 0 00-2.25-2.25H15z" />
+                                            </svg>
+                                            Copy Markdown`;
+
+                    // 4. Copy Logic
+                    copyButton.onclick = () => {
+                        // Use the raw Markdown text (mainText) for copying
+                        navigator.clipboard.writeText(mainText)
+                            .then(() => {
+                                const originalText = copyButton.innerHTML;
+                                // Provide visual feedback for 1.5 seconds
+                                copyButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 inline-block align-text-bottom mr-1">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                                        </svg>
+                                                        Copied!`;
+                                setTimeout(() => {
+                                    copyButton.innerHTML = originalText;
+                                }, 1500);
+                            })
+                            .catch(err => {
+                                console.error('Failed to copy text: ', err);
+                                alert('Failed to copy text. Please check your browser permissions.');
+                            });
+                    };
+
+                    // 5. Append to bubble
+                    contentWrapper.appendChild(contentDiv);
+                    contentWrapper.appendChild(copyButton);
+                    messageBubble.appendChild(contentWrapper);
+                    
+                    // --- BOB V11 MODIFICATION END ---
+                } else {
+                    messageBubble.textContent = mainText;
+                }
+                
+                messageContainer.appendChild(messageBubble);
+                chatArea.appendChild(messageContainer);
+                
+                // Add suggestion buttons if they exist
+                if (suggestions.length > 0) {
+                    const suggestionsContainer = document.createElement('div');
+                    suggestionsContainer.classList.add('flex', 'flex-wrap', 'gap-2', 'mt-2', 'justify-start');
+                    
+                    suggestions.forEach(suggestion => {
+                        if (suggestion) { 
+                            const suggestionButton = document.createElement('button');
+                            suggestionButton.classList.add('bg-gray-200', 'hover:bg-gray-300', 'text-gray-700', 'rounded-full', 'px-3', 'py-1', 'text-sm', 'shadow-md');
+                            suggestionButton.textContent = suggestion;
+                            suggestionButton.onclick = () => {
+                                userInput.value = suggestion;
+                                autoResizeTextarea(userInput);
+                            };
+                            suggestionsContainer.appendChild(suggestionButton);
+                        }
+                    });
+                    chatArea.appendChild(suggestionsContainer);
+                }
+                
+                chatArea.scrollTop = chatArea.scrollHeight; // Scroll to bottom
+            }
+            
+            // Function to handle sending the message
+            async function sendMessage() {
+                const prompt = userInput.value.trim();
+                const apiKey = apiKeyInput.value.trim();
+                
+                if (!prompt) {
+                    return;
+                }
+                
+                if (!apiKey) {
+                    createMessageBubble("Please enter your Gemini API key to proceed.", "assistant");
+                    return;
+                }
+                
+                // Save the API key to local storage
+                localStorage.setItem('geminiApiKey', apiKey);
+                
+                // Add user message to chat history and display it
+                chatHistory.push({
+                    role: "user",
+                    parts: [{ text: prompt }]
+                });
+                createMessageBubble(prompt, "user");
+                userInput.value = ''; // Clear input
+                autoResizeTextarea(userInput); // Reset textarea height
+                // Disable input and send button
+                userInput.disabled = true;
+                sendButton.disabled = true;
+                
+                // Add a loading indicator
+                const loadingBubble = document.createElement('div');
+                loadingBubble.classList.add('flex', 'justify-start');
+                
+                loadingBubble.innerHTML = `
+                    <div class="bg-gray-700 text-gray-300 rounded-xl rounded-bl-none p-3 max-w-sm shadow-md">
+                        <div class="flex items-center">
+                            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Thinking...
+                        </div>
+                    </div>
+                `;
+                chatArea.appendChild(loadingBubble);
+                chatArea.scrollTop = chatArea.scrollHeight;
+                
+                // Exponential backoff retry logic
+                const MAX_RETRIES = 3;
+                let retryCount = 0;
+                while (retryCount < MAX_RETRIES) {
+                    try {
+                        const apiKey = apiKeyInput.value.trim();
+                        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                        
+                        const payload = {
+                            systemInstruction: {
+                                parts: [{ text: `You are a professional business consultant named Bob. Your role is to provide clear, actionable, and well-structured responses to business-related queries. Be concise and to the point while providing high-quality analysis. Use Markdown to format your output. A typical response should follow this structure: a main title (#), followed by a short summary or introduction, then several distinct sections. Each section should begin with a **subheading (##)**, followed by a short descriptive sentence. For subsections within a section, use a level three heading (###). For individual points within a list, use a bolded phrase followed by a bulleted list.For structured analyses (like SWOT, Market Entry, or Competitor Benchmarking), you must create a relevant, professional-grade Markdown table that is appropriate for the requested analysis.ONLY when generating a PESTLE analysis, you MUST use the following specific Markdown format, ensuring the "Key Findings" column uses bullet points with spacing:\`\`\`markdown| Factor | Key Findings ||---|---|| Political | * [concise finding 1] <br> * [concise finding 2] || Economic | * [concise finding 1] <br> * [concise finding 2] || Social | * [concise finding 1] <br> * [concise finding 2] || Technological | * [concise finding 1] <br> * [concise finding 2] || Legal | * [concise finding 1] <br> * [concise finding 2] || Environmental | * [concise finding 1] <br> * [concise finding 2] |\`\`\`The table must be the last piece of content before the suggestions. Ensure clarity and professionalism by using Markdown for titles, subheadings, bold text, bullet points, and the summary table. The content must be grounded in real-time information. You must use the Google Search tool for every query to get the most accurate and up-to-date data. At the end of every response, suggest 2-3 short, relevant follow-up questions. Format these suggestions as a single line, separated by a pipe symbol, and preceded by the text \`---SUGGESTIONS---\`. For example: \`---SUGGESTIONS---What is a PESTLE analysis?|How can I improve my marketing plan?|What is a market entry strategy?\`` }]
+                            },
+                            contents: chatHistory,
+                            tools: [{ "google_search": {} }],
+                        };
+                        
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        
+                        if (response.status === 429) { // Handle rate limiting
+                            if (retryCount < MAX_RETRIES - 1) {
+                                retryCount++;
+                                const delay = Math.pow(2, retryCount) * 1000; // Exponential backoff (2s, 4s, 8s)
+                                await new Promise(resolve => setTimeout(resolve, delay));
+                                continue; // Retry the loop
+                            } else {
+                                throw new Error("Rate limit exceeded after multiple retries.");
+                            }
+                        }
+                        if (!response.ok) {
+                            const errorText = await response.text();
+                            throw new Error(`API call failed with status ${response.status}: ${errorText}`);
+                        }
+                        
+                        const result = await response.json();
+                        const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                        
+                        // Remove loading indicator
+                        chatArea.removeChild(loadingBubble);
+                        
+                        if (text) {
+                            // Add the assistant's response to the chat history and display it
+                            chatHistory.push({
+                                role: "model",
+                                parts: [{ text: text }]
+                            });
+                            createMessageBubble(text, "model");
+                        } else {
+                            createMessageBubble("Sorry, I couldn't generate a response. Please try again.", "assistant");
+                        }
+                        break; // Exit the retry loop on success
+                    } catch (error) {
+                        console.error("API Error:", error);
+                        if (retryCount >= MAX_RETRIES - 1) {
+                            // Remove loading indicator and show error
+                            if (chatArea.contains(loadingBubble)) {
+                                chatArea.removeChild(loadingBubble);
+                            }
+                            createMessageBubble(`An error occurred: ${error.message}`, "assistant");
+                            break; // Exit the loop if max retries reached
+                        }
+                        retryCount++;
+                        const delay = Math.pow(2, retryCount) * 1000; // Exponential backoff
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                    }
+                }
+                
+                // Re-enable input and send button
+                userInput.disabled = false;
+                sendButton.disabled = false;
+                userInput.focus();
+            }
+            
+            // Event listener for button click
+            sendButton.addEventListener('click', sendMessage);
+            // Event listener for input/typing to automatically resize the textarea
+            userInput.addEventListener('input', () => autoResizeTextarea(userInput));
+            
+            // Event listener for keyboard input: Enter sends, Shift+Enter adds newline.
+            userInput.addEventListener('keydown', (event) => {
+                // If Enter is pressed AND Shift is NOT pressed, send the message.
+                if (event.key === 'Enter' && !event.shiftKey) {
+                    event.preventDefault(); // Stop the default (newline) action
+                    sendMessage();
+                }
+                // If Shift + Enter is pressed, the default action (newline) is permitted, and the 'input' event will handle the resize.
+            });
+            
+            // New event listener for the "Clear Chat" button
+            clearChatBtn.addEventListener('click', () => {
+                chatArea.innerHTML = '';
+                
+                chatHistory.length = 0;
+                const welcomeMessage = "Hi there! I'm Bob. How can I assist you today?";
+                chatHistory.push({
+                    role: "model",
+                    parts: [{ text: welcomeMessage }]
+                });
+                createMessageBubble(welcomeMessage, "assistant");
+                userInput.placeholder = "Ask a question... (Enter to Send, Shift + Enter for Newline)";
+                autoResizeTextarea(userInput); // Reset height on clear
+            });
+            // --- DROPDOWN TOGGLE LOGIC ---
+            function toggleMenu(menuElement, buttonElement) {
+                // Determine if any *other* menus are open and close them
+                [initialSetupMenu, analysisMenu, solutionDesignMenu, executionMenu].forEach(menu => {
+                    if (menu !== menuElement) {
+                        menu.classList.add('hidden');
+                    }
+                });
+                // Toggle the current menu
+                menuElement.classList.toggle('hidden');
+            }
+            // Click listeners for the main dropdown buttons
             initialSetupDropdownBtn.addEventListener('click', (e) => {
                 e.stopPropagation(); 
                 toggleMenu(initialSetupMenu, initialSetupDropdownBtn);
@@ -970,15 +1031,9 @@ The "Acceptance Criteria" section must be the last element of the response befor
                 e.stopPropagation(); 
                 toggleMenu(executionMenu, executionDropdownBtn);
             });
-            // NEW: Listener for My Prompts
-            myPromptsDropdownBtn.addEventListener('click', (e) => { 
-                e.stopPropagation(); 
-                toggleMenu(myPromptsMenu, myPromptsDropdownBtn);
-            });
-            
-            // Listener to close menus when clicking anywhere else on the document (UPDATED)
+            // Listener to close menus when clicking anywhere else on the document
             document.addEventListener('click', (e) => {
-                const menus = [initialSetupMenu, analysisMenu, solutionDesignMenu, executionMenu, myPromptsMenu]; 
+                const menus = [initialSetupMenu, analysisMenu, solutionDesignMenu, executionMenu];
                 
                 let clickedInsideMenu = false;
                 for (const menu of menus) {
@@ -992,10 +1047,6 @@ The "Acceptance Criteria" section must be the last element of the response befor
                     menus.forEach(menu => menu.classList.add('hidden'));
                 }
             });
-
-            // Initial setup calls
-            populateDropdowns();
-            autoResizeTextarea(userInput); // Initialize textarea height
         })(); // End of IIFE
     </script>
 </body>
