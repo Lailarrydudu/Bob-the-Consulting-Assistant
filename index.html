@@ -253,22 +253,20 @@
                 <div id="executionMenu" class="absolute hidden top-full mt-2 w-56 bg-gray-800 rounded-lg shadow-2xl z-10 border border-emerald-500 p-2">
                     </div>
             </div>
-
-                </div>
-        
-        <div class="flex justify-between items-center mb-4">
+            
             <div class="relative">
-                <button id="myPromptsDropdownBtn" class="px-3 py-1.5 text-xs bg-purple-100 text-purple-700 rounded-lg shadow-md hover:bg-purple-200 flex items-center justify-center">
-                    My Prompts
-                    <svg class="w-3 h-3 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                <button id="myPromptsDropdownBtn" class="dropdown-btn flex items-center justify-center">
+                    My Prompts ⭐
+                    <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
-                <div id="myPromptsMenu" class="absolute hidden top-full mt-2 w-56 bg-gray-800 rounded-lg shadow-2xl z-10 border border-purple-500 p-2">
-                    <!-- Saved prompts will appear here -->
-                </div>
+                <div id="myPromptsMenu" class="absolute hidden top-full mt-2 w-56 bg-gray-800 rounded-lg shadow-2xl z-10 border border-emerald-500 p-2">
+                    </div>
             </div>
+            </div>
+        
+        <div class="mb-4 text-right">
             <button id="clearChatBtn" class="px-4 py-2 text-sm bg-red-200 text-red-700 rounded-lg shadow-md hover:bg-red-300">Clear Chat</button>
         </div>
-
         
         <div id="chatArea" class="space-y-4 max-h-96 overflow-y-auto mb-6">
             <div class="flex justify-start">
@@ -300,6 +298,9 @@
             const solutionDesignMenu = document.getElementById('solutionDesignMenu');
             const executionDropdownBtn = document.getElementById('executionDropdownBtn');
             const executionMenu = document.getElementById('executionMenu');
+            // NEW PROMPT ELEMENTS
+            const myPromptsDropdownBtn = document.getElementById('myPromptsDropdownBtn'); // NEW
+            const myPromptsMenu = document.getElementById('myPromptsMenu'); // NEW
             let MIN_HEIGHT = 0; // Calculated minimum height (1 line)
             
             // --- PROMPT DEFINITIONS ---
@@ -725,6 +726,99 @@ The table must be the last element of the response before the suggestions block.
                 // Initialize the size of the textarea
                 autoResizeTextarea(userInput);
             });
+
+            // --- NEW FUNCTION: Custom Prompts Logic (BOB V12) ---
+            function loadCustomPrompts() {
+                // 1. Clear the menu before repopulating
+                myPromptsMenu.innerHTML = ''; 
+                
+                // 2. Add the fixed 'Save' utility button
+                const saveButton = document.createElement('button');
+                saveButton.classList.add('sub-menu-btn');
+                saveButton.textContent = "⭐ Save Current Input";
+                saveButton.onclick = () => {
+                    const promptText = userInput.value.trim();
+                    if (!promptText) {
+                        alert("The input box is empty. Please type a prompt before saving.");
+                        return;
+                    }
+                    // Prompt user for the name
+                    const promptName = prompt("Enter a name for this custom prompt (e.g., 'Quarterly Report Structure'):");
+                    if (promptName) {
+                        // Store the prompt data in localStorage using a prefix
+                        localStorage.setItem(`customPrompt:${promptName}`, promptText);
+                        alert(`Prompt "${promptName}" saved successfully!`);
+                        loadCustomPrompts(); // Reload the menu to show the new button
+                        myPromptsMenu.classList.remove('hidden'); // Keep the menu open
+                    }
+                };
+                myPromptsMenu.appendChild(saveButton);
+                
+                // 3. Add the fixed 'Clear' utility button
+                const clearButton = document.createElement('button');
+                clearButton.classList.add('sub-menu-btn');
+                clearButton.textContent = "🗑️ Clear All Saved Prompts";
+                clearButton.style.backgroundColor = '#6d28d9'; // Violet-700 for distinct look
+                clearButton.style.color = 'white'; 
+                clearButton.style.marginTop = '0.5rem'; // Add spacing
+                clearButton.onclick = () => {
+                    if (confirm("Are you sure you want to delete ALL your custom saved prompts? This action cannot be undone.")) {
+                        // Iterate over all localStorage keys and remove only those prefixed with 'customPrompt:'
+                        Object.keys(localStorage).forEach(key => {
+                            if (key.startsWith('customPrompt:')) {
+                                localStorage.removeItem(key);
+                            }
+                        });
+                        alert("All custom prompts have been cleared.");
+                        loadCustomPrompts(); // Reload the menu
+                    }
+                };
+                myPromptsMenu.appendChild(clearButton);
+                
+                // 4. Add a visual separator
+                const separator = document.createElement('hr');
+                separator.classList.add('border-t', 'border-gray-600', 'my-2');
+                myPromptsMenu.appendChild(separator);
+                
+                // 5. Load and create dynamic buttons
+                let foundPrompts = false;
+                Object.keys(localStorage).forEach(key => {
+                    if (key.startsWith('customPrompt:')) {
+                        foundPrompts = true;
+                        const promptName = key.replace('customPrompt:', '');
+                        const promptText = localStorage.getItem(key);
+                        
+                        const customButton = document.createElement('button');
+                        customButton.classList.add('sub-menu-btn');
+                        customButton.textContent = promptName;
+                        customButton.title = promptText; // Use the prompt text as a tooltip
+                        customButton.style.backgroundColor = '#4b5563'; // Darker gray for custom
+                        customButton.style.borderColor = '#9ca3af'; 
+                        customButton.onclick = () => {
+                            userInput.value = promptText;
+                            autoResizeTextarea(userInput);
+                            myPromptsMenu.classList.add('hidden'); // Close menu
+                            userInput.focus();
+                        };
+                        customButton.ondblclick = (e) => { // Double-click to delete
+                            e.stopPropagation();
+                            if (confirm(`Are you sure you want to delete the custom prompt: "${promptName}"?`)) {
+                                localStorage.removeItem(key);
+                                loadCustomPrompts();
+                            }
+                        };
+                        myPromptsMenu.appendChild(customButton);
+                    }
+                });
+                
+                if (!foundPrompts) {
+                    const message = document.createElement('p');
+                    message.classList.add('text-xs', 'text-gray-400', 'p-2');
+                    message.textContent = "No prompts saved yet. Type a prompt, click 'Save Current Input' to add one! (Double-click saved prompts to delete.)";
+                    myPromptsMenu.appendChild(message);
+                }
+            }
+
             // Function to generate the sub-menu buttons and attach listeners
             function populateMenus() {
                 const createButton = (text, menuElement) => {
@@ -755,7 +849,10 @@ The table must be the last element of the response before the suggestions block.
                 SOLUTION_DESIGN_BUTTONS.forEach(btnText => createButton(btnText, solutionDesignMenu));
                 executionMenu.innerHTML = '';
                 EXECUTION_BUTTONS.forEach(btnText => createButton(btnText, executionMenu));
-            }
+                
+                // NEW: Populate Custom Prompts Menu
+                loadCustomPrompts();
+            } // end of populateMenus
             
             // Function to create and append a message bubble (MODIFIED FOR BOB V11: COPY)
             function createMessageBubble(text, sender) {
@@ -1016,7 +1113,7 @@ The table must be the last element of the response before the suggestions block.
             // --- DROPDOWN TOGGLE LOGIC ---
             function toggleMenu(menuElement, buttonElement) {
                 // Determine if any *other* menus are open and close them
-                [initialSetupMenu, analysisMenu, solutionDesignMenu, executionMenu].forEach(menu => {
+                [initialSetupMenu, analysisMenu, solutionDesignMenu, executionMenu, myPromptsMenu].forEach(menu => {
                     if (menu !== menuElement) {
                         menu.classList.add('hidden');
                     }
@@ -1037,25 +1134,20 @@ The table must be the last element of the response before the suggestions block.
                 e.stopPropagation(); 
                 toggleMenu(solutionDesignMenu, solutionDesignDropdownBtn);
             });
-                        executionDropdownBtn.addEventListener('click', (e) => {
+            executionDropdownBtn.addEventListener('click', (e) => {
                 e.stopPropagation(); 
                 toggleMenu(executionMenu, executionDropdownBtn);
             });
-            
-            // My Prompts dropdown handler
-            const myPromptsDropdownBtn = document.getElementById('myPromptsDropdownBtn');
-            const myPromptsMenu = document.getElementById('myPromptsMenu');
-            
-            myPromptsDropdownBtn.addEventListener('click', (e) => {
+            // NEW: Listener for My Prompts
+            myPromptsDropdownBtn.addEventListener('click', (e) => { // NEW CODE
                 e.stopPropagation(); 
                 toggleMenu(myPromptsMenu, myPromptsDropdownBtn);
             });
             
-            // Listener to close menus when clicking anywhere else on the document
+            // Listener to close menus when clicking anywhere else on the document (UPDATED)
             document.addEventListener('click', (e) => {
-
-                const menus = [initialSetupMenu, analysisMenu, solutionDesignMenu, executionMenu, myPromptsMenu];
-
+                // ADD myPromptsMenu to the array of menus
+                const menus = [initialSetupMenu, analysisMenu, solutionDesignMenu, executionMenu, myPromptsMenu]; // CHANGED
                 
                 let clickedInsideMenu = false;
                 for (const menu of menus) {
