@@ -181,6 +181,11 @@
             transform: translateY(-1px); /* Subtle lift effect */
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
         }
+
+        .initial-greeting {
+            font-size: 0.9rem; /* Reduced font size */
+            padding-top: 0.5rem !important; /* Adjust padding if needed, or remove for default */
+        }
         
         /* Added active state for a physical "press" effect */
         .prompt-btn:active, .dropdown-btn:active {
@@ -311,12 +316,14 @@
             </div>
         </div>
         
-        <div id="chatArea" class="space-y-4 max-h-96 overflow-y-auto mb-6">
+        <div id="chatArea" class="space-y-4 max-h-96 overflow-y-auto mb-6 mt-8">
+            
             <div class="flex justify-start">
-                <div class="bg-emerald-100 text-emerald-700 rounded-xl p-3 max-w-sm shadow-md">
-                    Hi there! I'm Bob. How can I assist you today?
+                <div class="bg-gray-700 text-white p-3 rounded-tr-xl rounded-bl-xl rounded-br-xl max-w-lg shadow-lg initial-greeting">
+                    <p>Hi there! I'm Bob. How can I assist you today?</p>
                 </div>
             </div>
+
         </div>
         
         <div class="flex items-center space-x-2">
