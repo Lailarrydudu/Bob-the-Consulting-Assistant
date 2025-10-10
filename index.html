@@ -144,11 +144,40 @@
             /* Ensure dropdown buttons inherit base style but can be overridden */
             cursor: pointer;
         }
-        
+
         .prompt-btn:hover, .dropdown-btn:hover {
             background-color: #d1fae5; /* Hover:bg-emerald-100 */
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1); /* Hover:shadow-xl */
             transform: translateY(-2px); /* Subtle lift effect */
+        }
+        
+        /* === Custom Button Style (Half-Height Utility Buttons) === */
+        .utility-btn {
+            /* Inherit the primary button font/look */
+            font-family: 'Roboto Slab', serif; 
+            font-size: 0.75rem; /* Smaller font for half height */
+            font-weight: 700;
+            
+            /* Reduced height and padding */
+            height: 1.5rem; 
+            padding-top: 0.25rem; 
+            padding-bottom: 0.25rem; 
+            
+            /* Standard styles for consistency */
+            border-radius: 0.5rem; /* Slightly less rounded */
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1); 
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            
+            /* Ensure text is vertically centered */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .utility-btn:hover {
+            transform: translateY(-1px); /* Subtle lift effect */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
         }
         
         /* Added active state for a physical "press" effect */
@@ -216,65 +245,69 @@
             <input type="password" id="apiKeyInput" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-700 text-white" placeholder="Paste your API key here...">
         </div>
         
-        <div class="flex justify-between mb-4">
+        <div class="grid grid-cols-3 gap-4 mb-4 grid-rows-[3rem_1.5rem] items-start">
             
-            <div class="grid grid-cols-2 gap-4">
-                
-                <div class="flex flex-col gap-4">
-                    <div class="relative">
-                        <button id="initialSetupDropdownBtn" class="dropdown-btn flex items-center justify-center">
-                            Initial Setup
-                            <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </button>
-                        <div id="initialSetupMenu" class="absolute hidden top-full mt-2 w-56 bg-gray-800 rounded-lg shadow-2xl z-10 border border-emerald-500 p-2">
-                            </div>
-                    </div>
-                    <div class="relative">
-                        <button id="solutionDesignDropdownBtn" class="dropdown-btn flex items-center justify-center">
-                            Solution Design
-                            <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </button>
-                        <div id="solutionDesignMenu" class="absolute hidden top-full mt-2 w-56 bg-gray-800 rounded-lg shadow-2xl z-10 border border-emerald-500 p-2">
-                            </div>
-                    </div>
+            <div class="flex flex-col justify-between gap-4 h-full">
+                <div class="relative">
+                    <button id="initialSetupDropdownBtn" class="dropdown-btn flex items-center justify-center">
+                        Initial Setup
+                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div id="initialSetupMenu" class="absolute hidden top-full mt-2 w-56 bg-gray-800 rounded-lg shadow-2xl z-10 border border-emerald-500 p-2">
+                        </div>
                 </div>
-                
-                <div class="flex flex-col gap-4">
-                    <div class="relative">
-                        <button id="analysisDropdownBtn" class="dropdown-btn flex items-center justify-center">
-                            Analysis
-                            <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </button>
-                        <div id="analysisMenu" class="absolute hidden top-full mt-2 w-56 bg-gray-800 rounded-lg shadow-2xl z-10 border border-emerald-500 p-2">
-                            </div>
-                    </div>
-                    <div class="relative">
-                        <button id="executionDropdownBtn" class="dropdown-btn flex items-center justify-center">
-                            Execution
-                            <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </button>
-                        <div id="executionMenu" class="absolute hidden top-full mt-2 w-56 bg-gray-800 rounded-lg shadow-2xl z-10 border border-emerald-500 p-2">
-                            </div>
-                    </div>
+                <div class="relative">
+                    <button id="solutionDesignDropdownBtn" class="dropdown-btn flex items-center justify-center">
+                        Solution Design
+                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div id="solutionDesignMenu" class="absolute hidden top-full mt-2 w-56 bg-gray-800 rounded-lg shadow-2xl z-10 border border-emerald-500 p-2">
+                        </div>
                 </div>
-            </div> 
-
-            <div class="relative self-start">
-                <button id="myPromptsDropdownBtn" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200 flex items-center justify-center font-bold text-sm">
-                    My Prompts
-                    <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                </button>
-                <div id="myPromptsMenu" class="absolute hidden top-full mt-2 w-56 bg-gray-800 rounded-lg shadow-2xl z-10 border border-emerald-500 p-2">
-                    </div>
             </div>
-        </div> 
-        
-        <div class="mb-4 text-right flex justify-end gap-3">
-            <button id="summarizeThreadBtn" class="px-4 py-2 bg-purple-600 text-white rounded-lg shadow-md hover:bg-purple-700 transition duration-200 font-bold text-sm">
-                Generate Key Takeaways
-            </button>
-            <button id="clearChatBtn" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-200 font-bold text-sm">Clear Chat</button>
+            
+            <div class="flex flex-col justify-between gap-4 h-full">
+                <div class="relative">
+                    <button id="analysisDropdownBtn" class="dropdown-btn flex items-center justify-center">
+                        Analysis
+                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div id="analysisMenu" class="absolute hidden top-full mt-2 w-56 bg-gray-800 rounded-lg shadow-2xl z-10 border border-emerald-500 p-2">
+                        </div>
+                </div>
+                <div class="relative">
+                    <button id="executionDropdownBtn" class="dropdown-btn flex items-center justify-center">
+                        Execution
+                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div id="executionMenu" class="absolute hidden top-full mt-2 w-56 bg-gray-800 rounded-lg shadow-2xl z-10 border border-emerald-500 p-2">
+                        </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col justify-between h-full">
+                <div class="relative w-full">
+                    <button id="myPromptsDropdownBtn" class="utility-btn bg-blue-500 text-white hover:bg-blue-600 transition duration-200 w-full">
+                        My Prompts
+                        <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div id="myPromptsMenu" class="absolute hidden top-full mt-2 w-56 bg-gray-800 rounded-lg shadow-2xl z-10 border border-emerald-500 p-2">
+                        </div>
+                </div>
+
+                <div class="flex justify-between gap-4 col-span-1">
+                    <button id="summarizeThreadBtn" class="utility-btn bg-purple-600 text-white hover:bg-purple-700 transition duration-200 w-1/2">
+                        Generate Takeaways
+                    </button>
+                    <button id="clearChatBtn" class="utility-btn bg-red-500 text-white hover:bg-red-600 transition duration-200 w-1/2">
+                        Clear Chat
+                    </button>
+                </div>
+            </div>
+            
         </div>
+        
+        <div id="chatArea" class="space-y-4 max-h-96 overflow-y-auto mb-6">
         <div id="chatArea" class="space-y-4 max-h-96 overflow-y-auto mb-6">
             <div class="flex justify-start">
                 <div class="bg-emerald-100 text-emerald-700 rounded-xl p-3 max-w-sm shadow-md">
@@ -712,7 +745,7 @@ The "Acceptance Criteria" section must be the last element of the response befor
                     
                     // ADDED: Re-enable Summarize Button
                     summarizeThreadBtn.disabled = false;
-                    summarizeThreadBtn.textContent = 'Generate Key Takeaways'; 
+                    summarizeThreadBtn.textContent = 'Generate Takeaways'; 
                     
                     initialSetupDropdownBtn.disabled = false;
                     analysisDropdownBtn.disabled = false;
@@ -837,8 +870,8 @@ The "Acceptance Criteria" section must be the last element of the response befor
                              // Use innerText to preserve line breaks and list structure from rendered content
                             const content = contentElement.innerText.trim();
                             
-                            // Prevent including the "Generate Key Takeaways" click itself in the history sent to the API
-                            if (content && content !== "Generate Key Takeaways") {
+                            // Prevent including the "Generate Takeaways" click itself in the history sent to the API
+                            if (content && content !== "Generate Takeaways") {
                                 fullHistory += `${sender}:\n${content}\n--\n`;
                             }
                         }
