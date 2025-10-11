@@ -1125,19 +1125,124 @@ The table must be the last element of the response before the suggestions block.
             });
             
             // Generate Takeaways button functionality
-            generateTakeawaysBtn.addEventListener('click', function() {
+            generateTakeawaysBtn.addEventListener('click', async function() {
                 // Generate Takeaways functionality
                 console.log('Generate Takeaways clicked');
-                
+    
                 // Check if there's content in the chat
                 if (chatHistory.length <= 1) {
                     alert('No conversation to generate takeaways from. Please have a conversation first.');
                     return;
                 }
-                
-                // TODO: Add your Generate Takeaways logic here
+    
+                // Show the activation alert
                 alert('Generate Takeaways feature activated!');
+    
+                // Disable the button while processing
+                generateTakeawaysBtn.disabled = true;
+                const originalButtonText = generateTakeawaysBtn.textContent;
+                generateTakeawaysBtn.textContent = 'Processing...';
+    
+                // Add a "Generating Takeaways..." loading indicator (just like "Thinking...")
+                const loadingBubble = document.createElement('div');
+                loadingBubble.classList.add('flex', 'justify-start');
+    
+                loadingBubble.innerHTML = `
+                    <div class="bg-gray-700 text-gray-300 rounded-xl rounded-bl-none p-3 max-w-sm shadow-md">
+                        <div class="flex items-center">
+                            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Generating Takeaways...
+                        </div>
+                    </div>
+                `;
+                chatArea.appendChild(loadingBubble);
+                chatArea.scrollTop = chatArea.scrollHeight;
+    
+                try {
+                    const apiKey = apiKeyInput.value.trim();
+        
+                    // Create the special takeaways prompt
+                    const takeawayPrompt = `Based on our entire conversation above, please generate a comprehensive summary with the following structure:
+
+            # Conversation Summary
+
+            ## Key Takeaways
+            Provide 3-5 main points or insights from our discussion. Each point should be clear, concise, and actionable.
+
+            ## Action Items
+            List any specific tasks, next steps, or recommendations that were discussed or implied.
+
+            ## Important Insights
+            Highlight notable conclusions, decisions, or strategic considerations from the conversation.
+
+            Use clear formatting with bullet points for easy readability. Be professional and concise.`;
+        
+                    // Create temporary history with the takeaway request
+                    const tempHistory = [...chatHistory, {
+                        role: "user",
+                        parts: [{ text: takeawayPrompt }]
+                    }];
+        
+                    // Make API call to Gemini
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+        
+                    const payload = {
+                        systemInstruction: {
+                            parts: [{ text: `You are Bob, a professional business consultant. Generate a clear, well-structured conversation summary using Markdown formatting. Focus on clarity, professionalism, and readability.` }]
+                        },
+                        contents: tempHistory
+                    };
+        
+                    const response = await fetch(apiUrl, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
+        
+                    if (!response.ok) {
+                        throw new Error(`API call failed with status ${response.status}`);
+                    }
+        
+                    const result = await response.json();
+                    const takeawaysText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+        
+                    // Remove loading indicator
+                    chatArea.removeChild(loadingBubble);
+        
+                    if (takeawaysText) {
+                        // Display the takeaways in the chat
+                        createMessageBubble(takeawaysText, 'model');
+            
+                        // Optionally add to chat history
+                        chatHistory.push({
+                            role: "user",
+                            parts: [{ text: "[Generated Takeaways Request]" }]
+                        });
+                        chatHistory.push({
+                            role: "model",
+                            parts: [{ text: takeawaysText }]
+                        });
+                    } else {
+                        createMessageBubble('Sorry, I couldn\'t generate takeaways. Please try again.', 'model');
+                    }
+        
+                } catch (error) {
+                    // Remove loading indicator if still present
+                    if (chatArea.contains(loadingBubble)) {
+                        chatArea.removeChild(loadingBubble);
+                    }
+                    console.error('Error generating takeaways:', error);
+                    createMessageBubble('An error occurred while generating takeaways. Please try again.', 'model');
+                } finally {
+                    // Re-enable the button
+                    generateTakeawaysBtn.disabled = false;
+                    generateTakeawaysBtn.textContent = originalButtonText;
+                }
             });
+
             
             // --- DROPDOWN TOGGLE LOGIC ---
 
