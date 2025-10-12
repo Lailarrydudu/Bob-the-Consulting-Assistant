@@ -274,6 +274,27 @@
                 Generate Takeaways 📝
             </button>
         </div>
+
+                
+        <div class="mb-4 text-right">
+            <div class="relative inline-block">
+                <button id="workflowBtn" class="px-3 py-1.5 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-200 font-bold text-xs inline-flex items-center">
+                    Run Workflow 🔄
+                    <svg class="w-3 h-3 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div id="workflowMenu" class="absolute hidden top-full right-0 mt-2 w-64 bg-gray-800 rounded-lg shadow-2xl z-10 border border-green-500 p-2">
+                    <button class="workflow-option w-full text-left px-3 py-2 text-sm text-gray-100 hover:bg-gray-700 rounded" data-workflow="market-entry-strategy">
+                        📊 Market Entry Strategy
+                    </button>
+                    <button class="workflow-option w-full text-left px-3 py-2 text-sm text-gray-100 hover:bg-gray-700 rounded" data-workflow="business-health-check">
+                        💼 Business Health Check
+                    </button>
+                    <button class="workflow-option w-full text-left px-3 py-2 text-sm text-gray-100 hover:bg-gray-700 rounded" data-workflow="competitive-analysis">
+                        🎯 Competitive Analysis
+                    </button>
+                </div>
+            </div>
+        </div>
         
         <div class="mb-4 text-right">
             <button id="clearChatBtn" class="px-3 py-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-200 font-bold text-xs">Clear Chat</button>
@@ -315,6 +336,275 @@
             const myPromptsDropdownBtn = document.getElementById('myPromptsDropdownBtn'); // NEW
             const myPromptsMenu = document.getElementById('myPromptsMenu'); // NEW
             let MIN_HEIGHT = 0; // Calculated minimum height (1 line)
+
+                        // ===== PHASE 1 FEATURE: PERSISTENT MEMORY SYSTEM =====
+            
+            // User Profile Storage
+            const USER_PROFILE_KEY = 'bobUserProfile';
+            
+            // Initialize or load user profile
+            let userProfile = JSON.parse(localStorage.getItem(USER_PROFILE_KEY)) || {
+                industry: '',
+                consultingAreas: [],
+                previousTopics: [],
+                conversationSummaries: [],
+                preferences: {
+                    preferredAnalysisTypes: [],
+                    favoritePrompts: []
+                },
+                lastVisit: null,
+                totalInteractions: 0,
+                createdAt: new Date().toISOString()
+            };
+            
+            // Save user profile to localStorage
+            function saveUserProfile() {
+                userProfile.lastVisit = new Date().toISOString();
+                localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(userProfile));
+            }
+            
+            // Extract topics from conversation
+            function extractTopicsFromConversation() {
+                const topics = [];
+                chatHistory.forEach(entry => {
+                    if (entry.role === 'user') {
+                        const text = entry.parts[0].text.toLowerCase();
+                        // Simple keyword extraction
+                        if (text.includes('market')) topics.push('market analysis');
+                        if (text.includes('swot')) topics.push('SWOT analysis');
+                        if (text.includes('competitor')) topics.push('competitor analysis');
+                        if (text.includes('financial')) topics.push('financial analysis');
+                        if (text.includes('strategy')) topics.push('strategy');
+                    }
+                });
+                return [...new Set(topics)]; // Remove duplicates
+            }
+            
+            // Add conversation summary to profile
+            function saveConversationSummary() {
+                if (chatHistory.length > 1) {
+                    const topics = extractTopicsFromConversation();
+                    const summary = {
+                        date: new Date().toISOString(),
+                        topics: topics,
+                        messageCount: chatHistory.length - 1,
+                        id: Date.now()
+                    };
+                    
+                    userProfile.conversationSummaries.push(summary);
+                    userProfile.previousTopics = [
+                        ...new Set([...userProfile.previousTopics, ...topics])
+                    ].slice(0, 20); // Keep last 20 unique topics
+                    
+                    userProfile.totalInteractions++;
+                    saveUserProfile();
+                }
+            }
+
+                        // ===== PHASE 1 FEATURE: PROACTIVE CHECK-INS =====
+            
+            // Check if returning user and show personalized welcome
+            function checkForProactiveWelcome() {
+                const lastVisit = userProfile.lastVisit ? new Date(userProfile.lastVisit) : null;
+                const now = new Date();
+                
+                if (lastVisit) {
+                    const hoursSinceLastVisit = (now - lastVisit) / (1000 * 60 * 60);
+                    
+                    // If more than 24 hours since last visit
+                    if (hoursSinceLastVisit > 24 && userProfile.previousTopics.length > 0) {
+                        setTimeout(() => {
+                            const daysSince = Math.floor(hoursSinceLastVisit / 24);
+                            const topicsText = userProfile.previousTopics.slice(0, 3).join(', ');
+                            
+                            const welcomeBackMessage = `Welcome back! It's been ${daysSince} day${daysSince > 1 ? 's' : ''} since your last visit. 
+
+I see we previously discussed: **${topicsText}**. 
+
+Would you like to:
+• Continue where we left off?
+• Get updates on these topics?
+• Start a new analysis?
+
+How can I assist you today?`;
+                            
+                            createMessageBubble(welcomeBackMessage, 'model');
+                        }, 1500); // Show after 1.5 seconds
+                    } else if (hoursSinceLastVisit > 1 && userProfile.totalInteractions > 3) {
+                        // Short absence but active user
+                        setTimeout(() => {
+                            const recentTopics = userProfile.previousTopics.slice(0, 2).join(' and ');
+                            const quickWelcome = `Welcome back! Ready to continue with ${recentTopics || 'your consulting questions'}?`;
+                            
+                            createMessageBubble(quickWelcome, 'model');
+                        }, 1000);
+                    }
+                }
+                
+                // Update last visit
+                userProfile.lastVisit = now.toISOString();
+                saveUserProfile();
+            }
+            
+            // Call proactive welcome on page load
+            setTimeout(() => {
+                checkForProactiveWelcome();
+            }, 500); // Wait 500ms after page loads
+
+                        
+            // ===== PHASE 1 FEATURE: MULTI-STEP TASK TEMPLATES =====
+            
+            // Define multi-step workflows
+            const WORKFLOWS = {
+                'market-entry-strategy': {
+                    name: 'Complete Market Entry Strategy',
+                    steps: [
+                        'Industry Trends Snapshot',
+                        'Competitor Benchmarking',
+                        'SWOT Analysis',
+                        'Market Entry Strategy Framework'
+                    ],
+                    description: 'Full market entry analysis with trends, competitors, SWOT, and strategy'
+                },
+                'business-health-check': {
+                    name: 'Business Health Check',
+                    steps: [
+                        'SWOT Analysis',
+                        'Financial Health Snapshot',
+                        'Operational Efficiency Review'
+                    ],
+                    description: 'Comprehensive business health assessment'
+                },
+                'competitive-analysis': {
+                    name: 'Competitive Analysis Package',
+                    steps: [
+                        'Competitor Benchmarking',
+                        'Market Positioning Map',
+                        'Competitive Advantage Analysis'
+                    ],
+                    description: 'Deep dive into competitive landscape'
+                }
+            };
+            
+            // Execute multi-step workflow
+            async function executeWorkflow(workflowKey, context = '') {
+                const workflow = WORKFLOWS[workflowKey];
+                if (!workflow) {
+                    alert('Workflow not found');
+                    return;
+                }
+                
+                // Show workflow initiation message
+                const initiationMessage = `Starting **${workflow.name}** workflow...
+
+This will execute ${workflow.steps.length} analysis steps:
+${workflow.steps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
+
+${context ? `\nContext: ${context}` : ''}`;
+                
+                createMessageBubble(initiationMessage, 'model');
+                
+                // Execute each step
+                for (let i = 0; i < workflow.steps.length; i++) {
+                    const step = workflow.steps[i];
+                    
+                    // Add user message for this step
+                    const stepMessage = `[Workflow Step ${i + 1}/${workflow.steps.length}] ${step}${context ? ': ' + context : ''}`;
+                    createMessageBubble(stepMessage, 'user');
+                    
+                    chatHistory.push({
+                        role: "user",
+                        parts: [{ text: stepMessage }]
+                    });
+                    
+                    // Execute the prompt using sendMessage logic
+                    await executePromptStep(PROMPT_MAP[step], context);
+                    
+                    // Small delay between steps
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+                
+                // Completion message
+                const completionMessage = `✅ **${workflow.name}** complete! 
+
+I've generated ${workflow.steps.length} comprehensive analyses. Review the insights above and let me know if you'd like to:
+• Deep dive into any specific area
+• Generate takeaways
+• Start another workflow`;
+                
+                createMessageBubble(completionMessage, 'model');
+                
+                // Save this workflow execution to user profile
+                userProfile.preferences.preferredAnalysisTypes.push(workflowKey);
+                saveUserProfile();
+            }
+            
+            // Execute individual prompt step (reuses existing API call logic)
+            async function executePromptStep(promptTemplate, userContext) {
+                const apiKey = apiKeyInput.value.trim();
+                
+                // Show "Thinking..." indicator
+                const loadingBubble = document.createElement('div');
+                loadingBubble.classList.add('flex', 'justify-start');
+                loadingBubble.innerHTML = `
+                    <div class="bg-gray-700 text-gray-300 rounded-xl rounded-bl-none p-3 max-w-sm shadow-md">
+                        <div class="flex items-center">
+                            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Thinking...
+                        </div>
+                    </div>
+                `;
+                chatArea.appendChild(loadingBubble);
+                chatArea.scrollTop = chatArea.scrollHeight;
+                
+                try {
+                    const finalPrompt = promptTemplate.replace(/\[input[^\]]*\]/gi, userContext || '[No specific context provided]');
+                    
+                    chatHistory.push({
+                        role: "user",
+                        parts: [{ text: finalPrompt }]
+                    });
+                    
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                    
+                    const payload = {
+                        systemInstruction: {
+                            parts: [{ text: `You are a professional business consultant named Bob. Your role is to provide clear, actionable, and well-structured responses to business-related queries. Use Markdown formatting.` }]
+                        },
+                        contents: chatHistory,
+                        tools: [{ "google_search": {} }],
+                    };
+                    
+                    const response = await fetch(apiUrl, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    const result = await response.json();
+                    const aiText = result?.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't process that request.";
+                    
+                    chatArea.removeChild(loadingBubble);
+                    
+                    chatHistory.push({
+                        role: "model",
+                        parts: [{ text: aiText }]
+                    });
+                    
+                    createMessageBubble(aiText, 'model');
+                    
+                } catch (error) {
+                    if (chatArea.contains(loadingBubble)) {
+                        chatArea.removeChild(loadingBubble);
+                    }
+                    console.error('Error in workflow step:', error);
+                    createMessageBubble('Error processing this step. Moving to next...', 'model');
+                }
+            }
+            
             
             // --- PROMPT DEFINITIONS ---
             const PROMPT_MAP = {
@@ -1110,7 +1400,10 @@ The table must be the last element of the response before the suggestions block.
             });
             
             // New event listener for the "Clear Chat" button
-                        clearChatBtn.addEventListener('click', () => {
+                                    clearChatBtn.addEventListener('click', () => {
+                // Save conversation before clearing
+                saveConversationSummary();
+                
                 chatArea.innerHTML = '';
                 
                 chatHistory.length = 0;
@@ -1243,7 +1536,50 @@ The table must be the last element of the response before the suggestions block.
                 }
             });
 
+                        
+            // ===== WORKFLOW BUTTON HANDLERS =====
             
+            const workflowBtn = document.getElementById('workflowBtn');
+            const workflowMenu = document.getElementById('workflowMenu');
+            
+            if (workflowBtn && workflowMenu) {
+                // Toggle workflow dropdown
+                workflowBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    workflowMenu.classList.toggle('hidden');
+                    
+                    // Close other dropdowns
+                    const allMenus = [initialSetupMenu, analysisMenu, solutionDesignMenu, executionMenu, myPromptsMenu];
+                    allMenus.forEach(menu => {
+                        if (menu) menu.classList.add('hidden');
+                    });
+                });
+                
+                // Workflow option handlers
+                document.querySelectorAll('.workflow-option').forEach(option => {
+                    option.addEventListener('click', async () => {
+                        const workflowKey = option.getAttribute('data-workflow');
+                        workflowMenu.classList.add('hidden');
+                        
+                        // Ask for context
+                        const context = prompt('Enter context for this workflow (e.g., "Tech Industry", "Coffee Shop Business", "SaaS Product"):');
+                        
+                        if (context !== null && context.trim() !== '') {
+                            await executeWorkflow(workflowKey, context.trim());
+                        } else if (context !== null) {
+                            alert('Please provide context to run the workflow');
+                        }
+                    });
+                });
+                
+                // Close workflow menu when clicking elsewhere
+                document.addEventListener('click', (e) => {
+                    if (!workflowBtn.contains(e.target) && !workflowMenu.contains(e.target)) {
+                        workflowMenu.classList.add('hidden');
+                    }
+                });
+            }
+
             // --- DROPDOWN TOGGLE LOGIC ---
 
             function toggleMenu(menuElement, buttonElement) {
