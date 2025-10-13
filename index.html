@@ -750,42 +750,45 @@ I've generated ${workflow.steps.length} comprehensive analyses. Review the insig
             function decomposeGoal(goalStatement) {
                 const goal = goalStatement.toLowerCase();
                 const subGoals = [];
-                
+    
                 // Pattern matching for common business goals
-                if (goal.includes('launch') || goal.includes('start') || goal.includes('new business')) {
+                if (goal.includes('launch') || goal.includes('start') || goal.includes('new business') || goal.includes('open')) {
                     subGoals.push(
-                        { task: 'Market Research', priority: 'high' },
-                        { task: 'Competitive Analysis', priority: 'high' },
-                        { task: 'Business Plan Development', priority: 'high' },
-                        { task: 'Financial Projections', priority: 'medium' },
-                        { task: 'Marketing Strategy', priority: 'medium' }
+                        { task: 'Industry Trends Snapshot', priority: 'high' },
+                        { task: 'Market Analysis', priority: 'high' },
+                        { task: 'Competitor Benchmarking', priority: 'high' },
+                        { task: 'Business Plan Outline', priority: 'medium' },
+                        { task: 'Go-to-market Strategy', priority: 'medium' }
                     );
-                } else if (goal.includes('expand') || goal.includes('growth') || goal.includes('scale')) {
+                } else if (goal.includes('expand') || goal.includes('growth') || goal.includes('scale') || goal.includes('grow')) {
                     subGoals.push(
-                        { task: 'Current Performance Analysis', priority: 'high' },
-                        { task: 'Market Opportunity Assessment', priority: 'high' },
-                        { task: 'Resource Planning', priority: 'medium' },
-                        { task: 'Risk Assessment', priority: 'medium' }
+                        { task: 'Market Analysis', priority: 'high' },
+                        { task: 'SWOT Analysis', priority: 'high' },
+                        { task: 'Ansoff Matrix', priority: 'high' },
+                        { task: 'Market Entry Strategy', priority: 'medium' },
+                        { task: 'Implementation Plan Outline', priority: 'medium' }
                     );
-                } else if (goal.includes('improve') || goal.includes('optimize')) {
+                } else if (goal.includes('improve') || goal.includes('optimize') || goal.includes('enhance')) {
                     subGoals.push(
-                        { task: 'Current State Analysis', priority: 'high' },
-                        { task: 'Identify Bottlenecks', priority: 'high' },
-                        { task: 'Improvement Recommendations', priority: 'high' },
-                        { task: 'Implementation Roadmap', priority: 'medium' }
+                        { task: 'SWOT Analysis', priority: 'high' },
+                        { task: '5 Forces Analysis', priority: 'high' },
+                        { task: 'Risk Analysis', priority: 'medium' },
+                        { task: 'KPI Dashboard Mockup', priority: 'medium' },
+                        { task: 'Implementation Plan Outline', priority: 'medium' }
                     );
                 } else {
                     // Generic goal breakdown
                     subGoals.push(
-                        { task: 'Situation Analysis', priority: 'high' },
-                        { task: 'Define Objectives', priority: 'high' },
-                        { task: 'Strategy Development', priority: 'medium' },
-                        { task: 'Action Plan', priority: 'medium' }
+                        { task: 'SWOT Analysis', priority: 'high' },
+                        { task: 'Market Analysis', priority: 'high' },
+                        { task: 'Risk Analysis', priority: 'medium' },
+                        { task: 'Implementation Plan Outline', priority: 'medium' }
                     );
                 }
-                
+    
                 return subGoals;
             }
+
             
             // Create execution plan from sub-goals
             function createExecutionPlan(subGoals) {
