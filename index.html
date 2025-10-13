@@ -1012,9 +1012,426 @@ ${suggestion.message}`;
             // Start context-aware suggestions on page load
             setTimeout(() => {
                 startContextAwareSuggestions();
-            }, 60000); // Start checking after 1 minute of use
+                        }, 60000); // Start checking after 1 minute of use
+            
+            // ===== PHASE 3 FEATURE: AUTONOMOUS RESEARCH AGENT =====
+            
+            let activeResearchSession = null;
+            
+            const RESEARCH_FRAMEWORK = {
+                phases: ['Discovery', 'Deep Dive', 'Synthesis', 'Validation'],
+                maxQueries: 5,
+                timeout: 180000
+            };
+            
+            async function startAutonomousResearch(topic, depth = 'standard') {
+                const sessionId = Date.now();
+                activeResearchSession = {
+                    id: sessionId,
+                    topic: topic,
+                    depth: depth,
+                    findings: [],
+                    phase: 0,
+                    startTime: new Date()
+                };
+                
+                createMessageBubble(`🔬 **Autonomous Research Initiated**
+
+Topic: "${topic}"
+Depth: ${depth}
+
+I'll conduct comprehensive research across multiple phases:
+1. **Discovery** - Identifying key aspects
+2. **Deep Dive** - Gathering detailed information
+3. **Synthesis** - Connecting insights
+4. **Validation** - Cross-referencing findings
+
+Starting research...`, 'assistant');
+                
+                await executeResearchPhase('Discovery', topic);
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                await executeResearchPhase('Deep Dive', topic);
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                await executeResearchPhase('Synthesis', topic);
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                await executeResearchPhase('Validation', topic);
+                
+                await generateResearchReport(topic);
+                
+                activeResearchSession = null;
+            }
+            
+            async function executeResearchPhase(phase, topic) {
+                createMessageBubble(`📊 **Phase: ${phase}**
+
+Analyzing ${topic}...`, 'assistant');
+                
+                let phasePrompt = '';
+                
+                switch(phase) {
+                    case 'Discovery':
+                        phasePrompt = `Identify the 5 most important aspects to understand about "${topic}" from a business consulting perspective. List them briefly.`;
+                        break;
+                    case 'Deep Dive':
+                        phasePrompt = `Provide detailed analysis of "${topic}" including current trends, key players, challenges, and opportunities. Use Google Search to find recent information.`;
+                        break;
+                    case 'Synthesis':
+                        phasePrompt = `Synthesize insights about "${topic}" by identifying patterns, connections, and strategic implications for businesses.`;
+                        break;
+                    case 'Validation':
+                        phasePrompt = `Validate and cross-reference key findings about "${topic}". Highlight any contradictions or areas needing further investigation.`;
+                        break;
+                }
+                
+                try {
+                    const apiKey = apiKeyInput.value.trim();
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`;
                     
+                    const payload = {
+                        systemInstruction: {
+                            parts: [{ text: `You are Bob, an autonomous research consultant conducting independent research. Provide thorough, well-researched insights.` }]
+                        },
+                        contents: [{
+                            role: "user",
+                            parts: [{ text: phasePrompt }]
+                        }],
+                        tools: [{ "google_search": {} }]
+                    };
+                    
+                    const response = await fetch(apiUrl, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    const result = await response.json();
+                    const findings = result?.candidates?.[0]?.content?.parts?.[0]?.text || "Research phase incomplete.";
+                    
+                    activeResearchSession.findings.push({
+                        phase: phase,
+                        content: findings
+                    });
+                    
+                    createMessageBubble(`✅ ${phase} complete`, 'assistant');
+                    
+                } catch (error) {
+                    console.error(`Research phase ${phase} error:`, error);
+                    createMessageBubble(`⚠️ ${phase} encountered issues, continuing...`, 'assistant');
+                }
+            }
+            
+            async function generateResearchReport(topic) {
+                const findings = activeResearchSession.findings
+                    .map(f => `**${f.phase}:**\n${f.content}`)
+                    .join('\n\n---\n\n');
+                
+                createMessageBubble(`📑 **Comprehensive Research Report: ${topic}**
+
+${findings}
+
+---
+
+**Research Summary:**
+- Total Phases: ${activeResearchSession.findings.length}
+- Research Duration: ${Math.round((new Date() - activeResearchSession.startTime) / 1000)}s
+- Findings Synthesized: ${activeResearchSession.findings.length} phases
+
+**Next Steps:**
+• Ask me to elaborate on any specific finding
+• Request actionable recommendations
+• Start implementation planning`, 'assistant');
+                
+                userProfile.conversationSummaries.push({
+                    date: new Date().toISOString(),
+                    type: 'research',
+                    topic: topic,
+                    findings: activeResearchSession.findings.length
+                });
+                saveUserProfile();
+            }
+            
+            function isResearchRequest(message) {
+                const researchKeywords = [
+                    'research', 'investigate', 'study', 'analyze deeply',
+                    'comprehensive analysis', 'deep dive', 'explore',
+                    'find information about', 'gather data on'
+                ];
+                
+                const lowerMessage = message.toLowerCase();
+                return researchKeywords.some(keyword => lowerMessage.includes(keyword));
+            }
+            
+            // ===== PHASE 3 FEATURE: LEARNING & ADAPTATION SYSTEM =====
+            
+            const LEARNING_DB_KEY = 'bobLearningDatabase';
+            
+            let learningDB = JSON.parse(localStorage.getItem(LEARNING_DB_KEY)) || {
+                successfulPrompts: [],
+                userPreferences: {},
+                performanceMetrics: {
+                    totalInteractions: 0,
+                    successfulWorkflows: 0,
+                    averageSessionLength: 0
+                },
+                adaptations: [],
+                lastUpdated: new Date().toISOString()
+            };
+            
+            function saveLearningDB() {
+                learningDB.lastUpdated = new Date().toISOString();
+                localStorage.setItem(LEARNING_DB_KEY, JSON.stringify(learningDB));
+            }
+            
+            function recordSuccessfulInteraction(type, details) {
+                learningDB.successfulPrompts.push({
+                    type: type,
+                    details: details,
+                    timestamp: new Date().toISOString(),
+                    context: chatHistory.slice(-3)
+                });
+                
+                if (learningDB.successfulPrompts.length > 50) {
+                    learningDB.successfulPrompts = learningDB.successfulPrompts.slice(-50);
+                }
+                
+                learningDB.performanceMetrics.totalInteractions++;
+                saveLearningDB();
+            }
+            
+            function learnFromInteraction(userMessage, bobResponse) {
+                const messageLength = userMessage.length;
+                if (!learningDB.userPreferences.preferredMessageLength) {
+                    learningDB.userPreferences.preferredMessageLength = [];
+                }
+                learningDB.userPreferences.preferredMessageLength.push(messageLength);
+                
+                if (learningDB.userPreferences.preferredMessageLength.length > 20) {
+                    learningDB.userPreferences.preferredMessageLength.shift();
+                }
+                
+                const analysisTypes = ['SWOT', 'Market', 'Competitor', 'Financial', 'Risk'];
+                analysisTypes.forEach(type => {
+                    if (userMessage.toLowerCase().includes(type.toLowerCase())) {
+                        if (!learningDB.userPreferences.preferredAnalyses) {
+                            learningDB.userPreferences.preferredAnalyses = {};
+                        }
+                        learningDB.userPreferences.preferredAnalyses[type] = 
+                            (learningDB.userPreferences.preferredAnalyses[type] || 0) + 1;
+                    }
+                });
+                
+                saveLearningDB();
+            }
+            
+            function generateAdaptiveRecommendations() {
+                const recommendations = [];
+                
+                if (learningDB.userPreferences.preferredAnalyses) {
+                    const topAnalysis = Object.entries(learningDB.userPreferences.preferredAnalyses)
+                        .sort((a, b) => b[1] - a[1])[0];
+                    
+                    if (topAnalysis && topAnalysis[1] > 3) {
+                        recommendations.push(`You frequently use ${topAnalysis[0]} analysis. Would you like me to create a custom workflow combining ${topAnalysis[0]} with related analyses?`);
+                    }
+                }
+                
+                if (learningDB.performanceMetrics.successfulWorkflows > 5) {
+                    recommendations.push(`I've noticed you've completed ${learningDB.performanceMetrics.successfulWorkflows} workflows successfully. I'm learning your preferred approach and can suggest optimized workflows.`);
+                }
+                
+                return recommendations;
+            }
+            
+            function showLearningInsights() {
+                const avgMsgLength = learningDB.userPreferences.preferredMessageLength?.length > 0
+                    ? Math.round(learningDB.userPreferences.preferredMessageLength.reduce((a, b) => a + b, 0) / learningDB.userPreferences.preferredMessageLength.length)
+                    : 0;
+                
+                const topAnalyses = learningDB.userPreferences.preferredAnalyses
+                    ? Object.entries(learningDB.userPreferences.preferredAnalyses)
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 3)
+                        .map(([type, count]) => `${type} (${count}x)`)
+                        .join(', ')
+                    : 'None yet';
+                
+                const insights = `🧠 **Learning Insights**
+
+**Your Interaction Patterns:**
+- Total Interactions: ${learningDB.performanceMetrics.totalInteractions}
+- Successful Workflows: ${learningDB.performanceMetrics.successfulWorkflows}
+- Average Message Length: ${avgMsgLength} characters
+- Top Analyses: ${topAnalyses}
+
+**Adaptive Recommendations:**
+${generateAdaptiveRecommendations().map((r, i) => `${i + 1}. ${r}`).join('\n') || 'Keep using me to unlock personalized recommendations!'}
+
+**Learning Status:**
+I'm continuously adapting to your consulting style and preferences.`;
+                
+                createMessageBubble(insights, 'assistant');
+            }
+            
+            // ===== PHASE 3 FEATURE: MULTI-AGENT COLLABORATION =====
+            
+            const EXPERT_AGENTS = {
+                strategist: {
+                    name: 'Strategy Expert',
+                    icon: '🎯',
+                    expertise: 'Long-term planning, competitive positioning, growth strategies',
+                    systemPrompt: 'You are a senior strategy consultant specializing in long-term business planning and competitive positioning.'
+                },
+                financial: {
+                    name: 'Financial Analyst',
+                    icon: '💰',
+                    expertise: 'Financial modeling, ROI analysis, cost optimization',
+                    systemPrompt: 'You are a financial analyst expert in business economics, financial modeling, and investment analysis.'
+                },
+                operations: {
+                    name: 'Operations Specialist',
+                    icon: '⚙️',
+                    expertise: 'Process optimization, efficiency, implementation',
+                    systemPrompt: 'You are an operations management specialist focused on efficiency, process optimization, and execution.'
+                },
+                marketing: {
+                    name: 'Marketing Strategist',
+                    icon: '📢',
+                    expertise: 'Brand positioning, customer acquisition, market penetration',
+                    systemPrompt: 'You are a marketing strategy expert specializing in brand building, customer acquisition, and market expansion.'
+                }
+            };
+            
+            async function executeMultiAgentCollaboration(topic, agents = ['strategist', 'financial', 'operations']) {
+                createMessageBubble(`👥 **Multi-Agent Collaboration Initiated**
+
+Topic: "${topic}"
+
+Consulting with ${agents.length} expert agents:
+${agents.map(id => `${EXPERT_AGENTS[id].icon} ${EXPERT_AGENTS[id].name}`).join('\n')}
+
+Each expert will provide their specialized perspective...`, 'assistant');
+                
+                const expertInsights = [];
+                
+                for (let i = 0; i < agents.length; i++) {
+                    const agentId = agents[i];
+                    const agent = EXPERT_AGENTS[agentId];
+                    
+                    createMessageBubble(`${agent.icon} **Consulting ${agent.name}...**`, 'assistant');
+                    
+                    const insight = await getAgentPerspective(agent, topic);
+                    expertInsights.push({
+                        agent: agent,
+                        insight: insight
+                    });
+                    
+                    createMessageBubble(`${agent.icon} **${agent.name}'s Perspective:**
+
+${insight}`, 'assistant');
+                    
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                }
+                
+                await synthesizeAgentInsights(topic, expertInsights);
+            }
+            
+            async function getAgentPerspective(agent, topic) {
+                try {
+                    const apiKey = apiKeyInput.value.trim();
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`;
+                    
+                    const payload = {
+                        systemInstruction: {
+                            parts: [{ text: agent.systemPrompt }]
+                        },
+                        contents: [{
+                            role: "user",
+                            parts: [{ text: `Provide your expert perspective on: "${topic}". Focus on your specialty: ${agent.expertise}. Be concise but insightful (3-5 key points).` }]
+                        }],
+                        tools: [{ "google_search": {} }]
+                    };
+                    
+                    const response = await fetch(apiUrl, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    const result = await response.json();
+                    return result?.candidates?.[0]?.content?.parts?.[0]?.text || "Perspective unavailable.";
+                    
+                } catch (error) {
+                    console.error(`Agent ${agent.name} error:`, error);
+                    return `${agent.name} perspective temporarily unavailable.`;
+                }
+            }
+            
+            async function synthesizeAgentInsights(topic, expertInsights) {
+                createMessageBubble(`🔄 **Synthesizing Expert Perspectives...**`, 'assistant');
+                
+                const synthesisPrompt = `Based on these expert perspectives about "${topic}":
+
+${expertInsights.map(ei => `**${ei.agent.name}:**\n${ei.insight}`).join('\n\n')}
+
+Synthesize these perspectives into:
+1. **Key Consensus Points** - What all experts agree on
+2. **Complementary Insights** - How different perspectives strengthen each other
+3. **Potential Conflicts** - Any contradictions to address
+4. **Integrated Recommendation** - A unified strategic recommendation`;
+                
+                try {
+                    const apiKey = apiKeyInput.value.trim();
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`;
+                    
+                    const payload = {
+                        systemInstruction: {
+                            parts: [{ text: 'You are Bob, synthesizing insights from multiple expert consultants into cohesive recommendations.' }]
+                        },
+                        contents: [{
+                            role: "user",
+                            parts: [{ text: synthesisPrompt }]
+                        }]
+                    };
+                    
+                    const response = await fetch(apiUrl, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    const result = await response.json();
+                    const synthesis = result?.candidates?.[0]?.content?.parts?.[0]?.text || "Synthesis incomplete.";
+                    
+                    createMessageBubble(`🎯 **Integrated Expert Analysis**
+
+${synthesis}
+
+---
+
+**Collaboration Complete**: ${expertInsights.length} expert perspectives synthesized into actionable recommendations.`, 'assistant');
+                    
+                } catch (error) {
+                    console.error('Synthesis error:', error);
+                    createMessageBubble('⚠️ Synthesis encountered issues.', 'assistant');
+                }
+            }
+            
+            function isMultiAgentRequest(message) {
+                const keywords = [
+                    'expert panel', 'multiple perspectives', 'different experts',
+                    'consult experts', 'expert opinions', 'panel discussion',
+                    'multi-agent', 'collaborate', 'expert team'
+                ];
+                
+                const lowerMessage = message.toLowerCase();
+                return keywords.some(keyword => lowerMessage.includes(keyword));
+            }
+            
             // --- PROMPT DEFINITIONS ---
+
             const PROMPT_MAP = {
                 // Initial Setup (Phase I)
                 'Industry Trends Snapshot': `Generate a **rapid, high-level Industry Trends Snapshot** for [input SPECIFIED INDUSTRY]. 
@@ -1744,10 +2161,47 @@ The table must be the last element of the response before the suggestions block.
                 
                 return; // Exit sendMessage
             }
-            // ===== END EXECUTION PLAN RESPONSE HANDLER =====
+                        // ===== END EXECUTION PLAN RESPONSE HANDLER =====
+            
+            // ===== AUTONOMOUS RESEARCH TRIGGER =====
+            if (isResearchRequest(prompt) && !prompt.includes('plan') && !prompt.includes('goal')) {
+                chatHistory.push({
+                    role: "user",
+                    parts: [{ text: prompt }]
+                });
+                createMessageBubble(prompt, 'user');
+                
+                userInput.value = '';
+                autoResizeTextarea(userInput);
+                
+                const topic = prompt.replace(/(research|investigate|study|analyze|explore|find information about|gather data on)/gi, '').trim();
+                
+                await startAutonomousResearch(topic, 'standard');
+                return;
+            }
+            // ===== END AUTONOMOUS RESEARCH TRIGGER =====
+            
+            // ===== MULTI-AGENT COLLABORATION TRIGGER =====
+            if (isMultiAgentRequest(prompt)) {
+                chatHistory.push({
+                    role: "user",
+                    parts: [{ text: prompt }]
+                });
+                createMessageBubble(prompt, 'user');
+                
+                userInput.value = '';
+                autoResizeTextarea(userInput);
+                
+                const topic = prompt.replace(/(expert panel|multiple perspectives|different experts|consult experts|expert opinions|panel discussion|multi-agent|collaborate|expert team)/gi, '').replace(/on|about|for/gi, '').trim();
+                
+                await executeMultiAgentCollaboration(topic, ['strategist', 'financial', 'operations']);
+                return;
+            }
+            // ===== END MULTI-AGENT COLLABORATION TRIGGER =====
             
             // Save the API key to local storage
             localStorage.setItem('geminiApiKey', apiKey);
+
 
             
             // Save the API key to local storage
@@ -1837,6 +2291,10 @@ The table must be the last element of the response before the suggestions block.
                         } else {
                             createMessageBubble("Sorry, I couldn't generate a response. Please try again.", "assistant");
                         }
+
+                        // PHASE 3: Learn from this interaction
+                        learnFromInteraction(prompt, text);
+                        
                         break; // Exit the retry loop on success
                     } catch (error) {
                         console.error("API Error:", error);
