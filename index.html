@@ -1627,22 +1627,52 @@ The table must be the last element of the response before the suggestions block.
                 chatArea.scrollTop = chatArea.scrollHeight; // Scroll to bottom
             }
             
-            // Function to handle sending the message
-            async function sendMessage() {
-                const prompt = userInput.value.trim();
-                const apiKey = apiKeyInput.value.trim();
+                    // Function to handle sending the message
+        async function sendMessage() {
+            const prompt = userInput.value.trim();
+            const apiKey = apiKeyInput.value.trim();
+            
+            if (!prompt) return;
+            if (!apiKey) {
+                createMessageBubble("Please enter your Gemini API key to proceed.", "assistant");
+                return;
+            }
+            
+            // ===== GOAL-BASED REASONING TRIGGER =====
+            // Check if user is expressing a complex goal
+            const goalKeywords = [
+                'i want to launch', 'i want to start', 'i want to create', 'i want to open',
+                'help me launch', 'help me start', 'help me create', 'help me open',
+                'i need to launch', 'i need to start', 'i need to expand', 'i need to grow',
+                'i want to expand', 'i want to grow', 'i want to scale',
+                'i want to improve', 'i want to optimize', 'help me improve', 'help me optimize'
+            ];
+            
+            const messageLC = prompt.toLowerCase();
+            const isGoalStatement = goalKeywords.some(keyword => messageLC.includes(keyword));
+            
+            // If it's a goal statement, use Goal-Based Reasoning instead
+            if (isGoalStatement) {
+                // Add user message to chat history and display it
+                chatHistory.push({
+                    role: "user",
+                    parts: [{ text: prompt }]
+                });
+                createMessageBubble(prompt, 'user');
                 
-                if (!prompt) {
-                    return;
-                }
+                // Clear input
+                userInput.value = '';
+                autoResizeTextarea(userInput);
                 
-                if (!apiKey) {
-                    createMessageBubble("Please enter your Gemini API key to proceed.", "assistant");
-                    return;
-                }
-                
-                // Save the API key to local storage
-                localStorage.setItem('geminiApiKey', apiKey);
+                // Process as goal instead of regular message
+                await processGoal(prompt);
+                return; // Exit sendMessage, don't continue with normal API call
+            }
+            // ===== END GOAL-BASED REASONING TRIGGER =====
+            
+            // Save the API key to local storage
+            localStorage.setItem('geminiApiKey', apiKey);
+
                 
                 // Add user message to chat history and display it
                 chatHistory.push({
