@@ -295,6 +295,12 @@
                 </div>
             </div>
         </div>
+                
+        <div class="mb-4 text-right">
+            <button id="exportBtn" class="px-3 py-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200 font-bold text-xs">
+                Export Chat 📄
+            </button>
+        </div>
         
         <div class="mb-4 text-right">
             <button id="clearChatBtn" class="px-3 py-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-200 font-bold text-xs">Clear Chat</button>
@@ -485,7 +491,139 @@ How can I assist you today?`;
                     description: 'Deep dive into competitive landscape'
                 }
             };
+                        
+            // ===== PHASE 2 FEATURE: TOOL ORCHESTRATION FRAMEWORK =====
             
+            // Available tools Bob can use
+            const BOB_TOOLS = {
+                googleSearch: {
+                    enabled: true,
+                    name: 'Google Search',
+                    description: 'Search the web for current information',
+                    icon: '🔍'
+                },
+                dataAnalysis: {
+                    enabled: true,
+                    name: 'Data Analysis',
+                    description: 'Perform calculations and analyze data',
+                    icon: '📊'
+                },
+                documentExport: {
+                    enabled: true,
+                    name: 'Document Export',
+                    description: 'Export conversation or analysis as text file',
+                    icon: '📄'
+                },
+                chartGeneration: {
+                    enabled: true,
+                    name: 'Chart Generation',
+                    description: 'Create visual charts and graphs',
+                    icon: '📈'
+                }
+            };
+            
+            // Tool usage tracking
+            let toolUsageHistory = [];
+            
+            // Determine which tools are needed for a query
+            function determineRequiredTools(userQuery) {
+                const query = userQuery.toLowerCase();
+                const tools = [];
+                
+                // Check for search needs
+                if (query.includes('latest') || query.includes('current') || 
+                    query.includes('recent') || query.includes('trend')) {
+                    tools.push('googleSearch');
+                }
+                
+                // Check for data analysis needs
+                if (query.includes('calculate') || query.includes('analyze data') || 
+                    query.includes('numbers') || query.includes('statistics')) {
+                    tools.push('dataAnalysis');
+                }
+                
+                // Check for export needs
+                if (query.includes('export') || query.includes('download') || 
+                    query.includes('save as file')) {
+                    tools.push('documentExport');
+                }
+                
+                // Check for visualization needs
+                if (query.includes('chart') || query.includes('graph') || 
+                    query.includes('visualize') || query.includes('plot')) {
+                    tools.push('chartGeneration');
+                }
+                
+                return tools;
+            }
+            
+            // Execute document export tool
+            function executeDocumentExport() {
+                let exportText = 'BOB CONSULTING SESSION EXPORT\n';
+                exportText += '='.repeat(50) + '\n';
+                exportText += `Date: ${new Date().toLocaleString()}\n`;
+                exportText += `Total Messages: ${chatHistory.length - 1}\n`;
+                exportText += '='.repeat(50) + '\n\n';
+                
+                chatHistory.forEach((entry, index) => {
+                    if (index > 0) {
+                        const role = entry.role === 'user' ? 'YOU' : 'BOB';
+                        const text = entry.parts[0].text;
+                        exportText += `[${role}]\n${text}\n\n`;
+                        exportText += '-'.repeat(50) + '\n\n';
+                    }
+                });
+                
+                const blob = new Blob([exportText], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `bob-session-${Date.now()}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                // Track tool usage
+                toolUsageHistory.push({
+                    tool: 'documentExport',
+                    timestamp: new Date().toISOString()
+                });
+                
+                return 'Document exported successfully!';
+            }
+            
+            // Execute data analysis tool (simple implementation)
+            function executeDataAnalysis(data) {
+                // This is a simplified version - can be expanded
+                try {
+                    const numbers = data.match(/\d+(\.\d+)?/g)?.map(Number) || [];
+                    
+                    if (numbers.length === 0) {
+                        return 'No numerical data found to analyse.';
+                    }
+                    
+                    const sum = numbers.reduce((a, b) => a + b, 0);
+                    const avg = sum / numbers.length;
+                    const max = Math.max(...numbers);
+                    const min = Math.min(...numbers);
+                    
+                    toolUsageHistory.push({
+                        tool: 'dataAnalysis',
+                        timestamp: new Date().toISOString()
+                    });
+                    
+                    return `Data Analysis Results:
+- Count: ${numbers.length} values
+- Sum: ${sum.toFixed(2)}
+- Average: ${avg.toFixed(2)}
+- Maximum: ${max}
+- Minimum: ${min}`;
+                } catch (error) {
+                    return 'Error analyzing data.';
+                }
+            }
+
             // Execute multi-step workflow
             async function executeWorkflow(workflowKey, context = '') {
                 const workflow = WORKFLOWS[workflowKey];
@@ -604,8 +742,236 @@ I've generated ${workflow.steps.length} comprehensive analyses. Review the insig
                     createMessageBubble('Error processing this step. Moving to next...', 'model');
                 }
             }
+
+                        
+            // ===== PHASE 2 FEATURE: GOAL-BASED REASONING =====
             
+            // Decompose complex goals into sub-goals
+            function decomposeGoal(goalStatement) {
+                const goal = goalStatement.toLowerCase();
+                const subGoals = [];
+                
+                // Pattern matching for common business goals
+                if (goal.includes('launch') || goal.includes('start') || goal.includes('new business')) {
+                    subGoals.push(
+                        { task: 'Market Research', priority: 'high' },
+                        { task: 'Competitive Analysis', priority: 'high' },
+                        { task: 'Business Plan Development', priority: 'high' },
+                        { task: 'Financial Projections', priority: 'medium' },
+                        { task: 'Marketing Strategy', priority: 'medium' }
+                    );
+                } else if (goal.includes('expand') || goal.includes('growth') || goal.includes('scale')) {
+                    subGoals.push(
+                        { task: 'Current Performance Analysis', priority: 'high' },
+                        { task: 'Market Opportunity Assessment', priority: 'high' },
+                        { task: 'Resource Planning', priority: 'medium' },
+                        { task: 'Risk Assessment', priority: 'medium' }
+                    );
+                } else if (goal.includes('improve') || goal.includes('optimize')) {
+                    subGoals.push(
+                        { task: 'Current State Analysis', priority: 'high' },
+                        { task: 'Identify Bottlenecks', priority: 'high' },
+                        { task: 'Improvement Recommendations', priority: 'high' },
+                        { task: 'Implementation Roadmap', priority: 'medium' }
+                    );
+                } else {
+                    // Generic goal breakdown
+                    subGoals.push(
+                        { task: 'Situation Analysis', priority: 'high' },
+                        { task: 'Define Objectives', priority: 'high' },
+                        { task: 'Strategy Development', priority: 'medium' },
+                        { task: 'Action Plan', priority: 'medium' }
+                    );
+                }
+                
+                return subGoals;
+            }
             
+            // Create execution plan from sub-goals
+            function createExecutionPlan(subGoals) {
+                const plan = {
+                    highPriority: subGoals.filter(g => g.priority === 'high'),
+                    mediumPriority: subGoals.filter(g => g.priority === 'medium'),
+                    steps: subGoals.map((g, i) => ({
+                        step: i + 1,
+                        task: g.task,
+                        priority: g.priority,
+                        status: 'pending'
+                    }))
+                };
+                
+                return plan;
+            }
+            
+            // Process and execute a complex goal
+            async function processGoal(userGoal) {
+                // Show goal analysis message
+                const analysisMessage = `🎯 **Goal Analysis**
+
+I'm breaking down your goal: "${userGoal}"
+
+Let me identify the key steps needed...`;
+                
+                createMessageBubble(analysisMessage, 'model');
+                
+                // Small delay for effect
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Decompose the goal
+                const subGoals = decomposeGoal(userGoal);
+                const plan = createExecutionPlan(subGoals);
+                
+                // Show the execution plan
+                const planMessage = `📋 **Execution Plan**
+
+I've identified ${plan.steps.length} key steps to achieve your goal:
+
+**High Priority:**
+${plan.highPriority.map((g, i) => `${i + 1}. ${g.task}`).join('\n')}
+
+**Medium Priority:**
+${plan.mediumPriority.map((g, i) => `${i + 1}. ${g.task}`).join('\n')}
+
+Would you like me to:
+1. Execute this plan automatically (runs all steps)
+2. Walk through it step-by-step with you
+3. Modify the plan first
+
+Reply with 1, 2, or 3.`;
+                
+                createMessageBubble(planMessage, 'model');
+                
+                // Store the plan for potential execution
+                window.currentGoalPlan = plan;
+                window.currentGoal = userGoal;
+                
+                return plan;
+            }
+
+                        
+            // ===== PHASE 2 FEATURE: CONTEXT-AWARE SUGGESTIONS =====
+            
+            // Analyze conversation patterns
+            function identifyConversationPatterns(history) {
+                const patterns = [];
+                const recentMessages = history.slice(-6); // Last 6 messages
+                
+                // Pattern: Multiple questions about same topic
+                const topics = {};
+                recentMessages.forEach(msg => {
+                    if (msg.role === 'user') {
+                        const text = msg.parts[0].text.toLowerCase();
+                        if (text.includes('market')) topics.market = (topics.market || 0) + 1;
+                        if (text.includes('financial')) topics.financial = (topics.financial || 0) + 1;
+                        if (text.includes('competitor')) topics.competitor = (topics.competitor || 0) + 1;
+                        if (text.includes('strategy')) topics.strategy = (topics.strategy || 0) + 1;
+                    }
+                });
+                
+                Object.keys(topics).forEach(topic => {
+                    if (topics[topic] >= 2) {
+                        patterns.push(`deep-dive-${topic}`);
+                    }
+                });
+                
+                // Pattern: Incomplete analysis (SWOT without implementation)
+                const hasSWOT = history.some(msg => 
+                    msg.parts[0].text.toLowerCase().includes('swot')
+                );
+                const hasImplementation = history.some(msg => 
+                    msg.parts[0].text.toLowerCase().includes('implementation') ||
+                    msg.parts[0].text.toLowerCase().includes('action plan')
+                );
+                
+                if (hasSWOT && !hasImplementation) {
+                    patterns.push('swot-without-implementation');
+                }
+                
+                // Pattern: Analysis without next steps
+                const hasAnalysis = history.some(msg =>
+                    msg.parts[0].text.toLowerCase().includes('analysis') ||
+                    msg.parts[0].text.toLowerCase().includes('trends')
+                );
+                const hasNextSteps = history.some(msg =>
+                    msg.parts[0].text.toLowerCase().includes('next step') ||
+                    msg.parts[0].text.toLowerCase().includes('action')
+                );
+                
+                if (hasAnalysis && !hasNextSteps && history.length > 4) {
+                    patterns.push('analysis-without-action');
+                }
+                
+                return patterns;
+            }
+            
+            // Generate proactive suggestions based on patterns
+            function generateProactiveSuggestions(patterns) {
+                const suggestions = [];
+                
+                patterns.forEach(pattern => {
+                    if (pattern === 'swot-without-implementation') {
+                        suggestions.push({
+                            message: "I notice we completed a SWOT analysis. Would you like me to create an implementation roadmap based on those insights?",
+                            action: 'create-implementation-plan'
+                        });
+                    }
+                    
+                    if (pattern === 'analysis-without-action') {
+                        suggestions.push({
+                            message: "We've done some great analysis! Would you like me to convert these insights into concrete action items?",
+                            action: 'generate-action-items'
+                        });
+                    }
+                    
+                    if (pattern.startsWith('deep-dive-')) {
+                        const topic = pattern.replace('deep-dive-', '');
+                        suggestions.push({
+                            message: `You seem very interested in ${topic} analysis. Would you like me to run a comprehensive ${topic} workflow?`,
+                            action: `workflow-${topic}`
+                        });
+                    }
+                });
+                
+                return suggestions;
+            }
+            
+            // Check and show proactive suggestions periodically
+            let suggestionCheckInterval = null;
+            
+            function startContextAwareSuggestions() {
+                // Check every 30 seconds if there are relevant suggestions
+                suggestionCheckInterval = setInterval(() => {
+                    if (chatHistory.length > 4) {
+                        const patterns = identifyConversationPatterns(chatHistory);
+                        
+                        if (patterns.length > 0) {
+                            const suggestions = generateProactiveSuggestions(patterns);
+                            
+                            if (suggestions.length > 0 && Math.random() > 0.7) { // 30% chance to show
+                                const suggestion = suggestions[0]; // Show first suggestion
+                                
+                                const proactiveMessage = `💡 **Proactive Suggestion**
+
+${suggestion.message}`;
+                                
+                                createMessageBubble(proactiveMessage, 'model');
+                                
+                                // Stop checking for a while after showing suggestion
+                                clearInterval(suggestionCheckInterval);
+                                setTimeout(() => {
+                                    startContextAwareSuggestions();
+                                }, 120000); // Resume after 2 minutes
+                            }
+                        }
+                    }
+                }, 30000); // Check every 30 seconds
+            }
+            
+            // Start context-aware suggestions on page load
+            setTimeout(() => {
+                startContextAwareSuggestions();
+            }, 60000); // Start checking after 1 minute of use
+                    
             // --- PROMPT DEFINITIONS ---
             const PROMPT_MAP = {
                 // Initial Setup (Phase I)
@@ -1580,6 +1946,25 @@ The table must be the last element of the response before the suggestions block.
                 });
             }
 
+                        
+            // ===== EXPORT BUTTON HANDLER =====
+            
+            const exportBtn = document.getElementById('exportBtn');
+            if (exportBtn) {
+                exportBtn.addEventListener('click', () => {
+                    if (chatHistory.length <= 1) {
+                        alert('No conversation to export yet!');
+                        return;
+                    }
+                    
+                    executeDocumentExport();
+                    
+                    // Show confirmation
+                    createMessageBubble('✅ Conversation exported successfully! Check your downloads folder.', 'model');
+                });
+            }
+            
+            
             // --- DROPDOWN TOGGLE LOGIC ---
 
             function toggleMenu(menuElement, buttonElement) {
