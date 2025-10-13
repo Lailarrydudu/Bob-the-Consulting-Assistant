@@ -802,6 +802,41 @@ I've generated ${workflow.steps.length} comprehensive analyses. Review the insig
                 
                 return plan;
             }
+
+            
+// Track if we're waiting for execution plan response
+let awaitingPlanResponse = false;
+
+// Execute goal plan automatically
+async function executeGoalPlanAutomatically(goal, plan) {
+    createMessageBubble(`🚀 Starting automatic execution of your goal plan...`, 'model');
+    
+    for (let i = 0; i < plan.steps.length; i++) {
+        const step = plan.steps[i];
+        
+        // Show which step is being executed
+        createMessageBubble(`\n**Step ${i + 1}/${plan.steps.length}: ${step.task}**\n*Priority: ${step.priority}*`, 'model');
+        
+        // Small delay between steps
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // Find matching prompt in PROMPT_MAP
+        const promptKey = step.task;
+        if (PROMPT_MAP[promptKey]) {
+            await executePromptStep(PROMPT_MAP[promptKey], goal);
+        } else {
+            createMessageBubble(`⚠️ Prompt template not found for "${step.task}". Skipping...`, 'model');
+        }
+        
+        // Delay before next step
+        await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+    
+    createMessageBubble(`\n✅ **Goal Plan Complete!**\n\nI've executed all ${plan.steps.length} steps for your goal: "${goal}"\n\nReview the analyses above and let me know if you'd like to:\n• Deep dive into any specific area\n• Generate takeaways\n• Start a new goal`, 'model');
+    
+    // Reset flag
+    awaitingPlanResponse = false;
+}
             
             // Process and execute a complex goal
             async function processGoal(userGoal) {
@@ -844,8 +879,12 @@ Reply with 1, 2, or 3.`;
                 // Store the plan for potential execution
                 window.currentGoalPlan = plan;
                 window.currentGoal = userGoal;
-                
+
+                // Set flag to intercept next user message
+                awaitingPlanResponse = true;
+
                 return plan;
+
             }
 
                         
@@ -1669,6 +1708,44 @@ The table must be the last element of the response before the suggestions block.
                 return; // Exit sendMessage, don't continue with normal API call
             }
             // ===== END GOAL-BASED REASONING TRIGGER =====
+
+                        // ===== END GOAL-BASED REASONING TRIGGER =====
+            
+            // ===== EXECUTION PLAN RESPONSE HANDLER =====
+            // Check if we're waiting for user's choice (1, 2, or 3)
+            if (awaitingPlanResponse && (prompt === '1' || prompt === '2' || prompt === '3')) {
+                // Add user message to display
+                chatHistory.push({
+                    role: "user",
+                    parts: [{ text: prompt }]
+                });
+                createMessageBubble(prompt, 'user');
+                
+                // Clear input
+                userInput.value = '';
+                autoResizeTextarea(userInput);
+                
+                const plan = window.currentGoalPlan;
+                const goal = window.currentGoal;
+                
+                if (prompt === '1') {
+                    createMessageBubble(`Great! I'll execute the entire plan automatically.`, 'model');
+                    await executeGoalPlanAutomatically(goal, plan);
+                } else if (prompt === '2') {
+                    createMessageBubble(`I'll walk you through each step. Let's start with Step 1: ${plan.steps[0].task}\n\nAsk me to proceed when you're ready.`, 'model');
+                    awaitingPlanResponse = false;
+                } else if (prompt === '3') {
+                    createMessageBubble(`Plan modification feature coming soon! For now, I'll execute the plan as-is. Would you like to proceed? (Reply 'yes')`, 'model');
+                    awaitingPlanResponse = false;
+                }
+                
+                return; // Exit sendMessage
+            }
+            // ===== END EXECUTION PLAN RESPONSE HANDLER =====
+            
+            // Save the API key to local storage
+            localStorage.setItem('geminiApiKey', apiKey);
+
             
             // Save the API key to local storage
             localStorage.setItem('geminiApiKey', apiKey);
