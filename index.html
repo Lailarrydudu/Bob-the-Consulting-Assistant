@@ -1125,24 +1125,28 @@ Analyzing ${topic}...`, 'assistant');
             
             async function generateResearchReport(topic) {
                 const findings = activeResearchSession.findings
-                    .map(f => `**${f.phase}:**\n${f.content}`)
+                    .map(f => `## ${f.phase} Phase\n\n${f.content}`)
                     .join('\n\n---\n\n');
-                
-                createMessageBubble(`📑 **Comprehensive Research Report: ${topic}**
+    
+                createMessageBubble(`# 📑 Comprehensive Research Report: ${topic}
 
-${findings}
+            ${findings}
 
----
+            ---
 
-**Research Summary:**
-- Total Phases: ${activeResearchSession.findings.length}
-- Research Duration: ${Math.round((new Date() - activeResearchSession.startTime) / 1000)}s
-- Findings Synthesized: ${activeResearchSession.findings.length} phases
+            ## 📊 Research Summary
 
-**Next Steps:**
-• Ask me to elaborate on any specific finding
-• Request actionable recommendations
-• Start implementation planning`, 'assistant');
+            - **Total Phases Completed:** ${activeResearchSession.findings.length}
+            - **Research Duration:** ${Math.round((new Date() - activeResearchSession.startTime) / 1000)} seconds
+            - **Findings Synthesized:** ${activeResearchSession.findings.length} comprehensive phases
+
+            ## 🎯 Recommended Next Steps
+
+            • **Deep Dive:** Ask me to elaborate on any specific finding
+            • **Action Plan:** Request actionable recommendations  
+            • **Implementation:** Start implementation planning
+            • **Export:** Use "Export Chat" to save this research report`, 'assistant');
+
                 
                 userProfile.conversationSummaries.push({
                     date: new Date().toISOString(),
@@ -1247,33 +1251,52 @@ ${findings}
             
             function showLearningInsights() {
                 const avgMsgLength = learningDB.userPreferences.preferredMessageLength?.length > 0
-                    ? Math.round(learningDB.userPreferences.preferredMessageLength.reduce((a, b) => a + b, 0) / learningDB.userPreferences.preferredMessageLength.length)
-                    : 0;
-                
+                ? Math.round(learningDB.userPreferences.preferredMessageLength.reduce((a, b) => a + b, 0) / learningDB.userPreferences.preferredMessageLength.length)
+                : 0;
+    
                 const topAnalyses = learningDB.userPreferences.preferredAnalyses
                     ? Object.entries(learningDB.userPreferences.preferredAnalyses)
                         .sort((a, b) => b[1] - a[1])
                         .slice(0, 3)
-                        .map(([type, count]) => `${type} (${count}x)`)
-                        .join(', ')
-                    : 'None yet';
-                
-                const insights = `🧠 **Learning Insights**
+                        .map(([type, count]) => `• **${type} Analysis:** ${count} times`)
+                        .join('\n')
+                    : '• No analysis patterns detected yet';
+    
+                const recommendations = generateAdaptiveRecommendations();
+                const adaptiveSection = recommendations.length > 0 
+                    ? recommendations.map((r, i) => `${i + 1}. ${r}`).join('\n\n')
+                    : '🌱 Keep using me to unlock personalized recommendations!\n\nI need more interactions to identify your patterns and preferences.';
+    
+                const insights = `# 🧠 Learning & Adaptation Insights
 
-**Your Interaction Patterns:**
-- Total Interactions: ${learningDB.performanceMetrics.totalInteractions}
-- Successful Workflows: ${learningDB.performanceMetrics.successfulWorkflows}
-- Average Message Length: ${avgMsgLength} characters
-- Top Analyses: ${topAnalyses}
+            ## 📊 Your Interaction Patterns
 
-**Adaptive Recommendations:**
-${generateAdaptiveRecommendations().map((r, i) => `${i + 1}. ${r}`).join('\n') || 'Keep using me to unlock personalized recommendations!'}
+            - **Total Interactions:** ${learningDB.performanceMetrics.totalInteractions} conversations
+            - **Successful Workflows:** ${learningDB.performanceMetrics.successfulWorkflows} completed
+            - **Average Message Length:** ${avgMsgLength} characters
+            - **Session Duration:** Tracking across multiple sessions
 
-**Learning Status:**
-I'm continuously adapting to your consulting style and preferences.`;
-                
+            ## 🎯 Most Frequently Used Analyses
+
+            ${topAnalyses}
+
+            ## 💡 Adaptive Recommendations
+
+            ${adaptiveSection}
+
+            ## 🔄 Learning Status
+
+            ✅ **Active Learning:** I'm continuously adapting to your consulting style and preferences
+            ✅ **Pattern Recognition:** Analyzing your communication patterns and analysis preferences  
+            ✅ **Recommendation Engine:** Building personalized suggestions based on your usage
+
+            ---
+
+            *💡 The more you interact with me, the better I become at anticipating your needs and providing tailored recommendations!*`;
+    
                 createMessageBubble(insights, 'assistant');
             }
+
             
             // ===== PHASE 3 FEATURE: MULTI-AGENT COLLABORATION =====
             
@@ -1328,9 +1351,14 @@ Each expert will provide their specialized perspective...`, 'assistant');
                         insight: insight
                     });
                     
-                    createMessageBubble(`${agent.icon} **${agent.name}'s Perspective:**
+                    createMessageBubble(`## ${agent.icon} ${agent.name}'s Analysis
 
-${insight}`, 'assistant');
+                    **Expertise:** ${agent.expertise}
+
+                    ${insight}
+
+                    ---`, 'assistant');
+
                     
                     await new Promise(resolve => setTimeout(resolve, 1500));
                 }
@@ -1405,13 +1433,21 @@ Synthesize these perspectives into:
                     const result = await response.json();
                     const synthesis = result?.candidates?.[0]?.content?.parts?.[0]?.text || "Synthesis incomplete.";
                     
-                    createMessageBubble(`🎯 **Integrated Expert Analysis**
+                    createMessageBubble(`# 🎯 Integrated Expert Analysis
 
-${synthesis}
+                    ${synthesis}
 
----
+                    ---
 
-**Collaboration Complete**: ${expertInsights.length} expert perspectives synthesized into actionable recommendations.`, 'assistant');
+                    ## ✅ Multi-Agent Collaboration Summary
+
+                    - **Expert Consultants:** ${expertInsights.length} specialists consulted
+                    - **Perspectives Analyzed:** Strategy, Financial, and Operations viewpoints
+                    - **Synthesis Status:** Complete - All insights integrated into unified recommendations
+                    - **Ready for:** Strategic planning and implementation
+
+                    **💡 Tip:** Export this analysis for your strategic planning sessions!`, 'assistant');
+
                     
                 } catch (error) {
                     console.error('Synthesis error:', error);
@@ -2198,15 +2234,25 @@ The table must be the last element of the response before the suggestions block.
                 return;
             }
             // ===== END MULTI-AGENT COLLABORATION TRIGGER =====
-            
+
+            // ===== LEARNING INSIGHTS TRIGGER =====
+            if (prompt.toLowerCase().includes('show learning insights') || prompt.toLowerCase().includes('learning insights')) {
+                chatHistory.push({
+                    role: "user",
+                    parts: [{ text: prompt }]
+                });
+                createMessageBubble(prompt, 'user');
+    
+                userInput.value = '';
+                autoResizeTextarea(userInput);
+    
+                showLearningInsights();
+                return;
+            }
+            // ===== END LEARNING INSIGHTS TRIGGER =====
+
             // Save the API key to local storage
             localStorage.setItem('geminiApiKey', apiKey);
-
-
-            
-            // Save the API key to local storage
-            localStorage.setItem('geminiApiKey', apiKey);
-
                 
                 // Add user message to chat history and display it
                 chatHistory.push({
