@@ -1064,85 +1064,85 @@ Starting research...`, 'assistant');
                 activeResearchSession = null;
             }
             
-            async function executeResearchPhase(phase, topic) {
-                createMessageBubble(`📊 **Phase: ${phase}**
-
-Analyzing ${topic}...`, 'assistant');
-                
-                let phasePrompt = '';
-                
                 switch(phase) {
                     case 'Discovery':
-                        phasePrompt = `Analyze "${topic}" and provide EXACTLY 5 key aspects in this format:
-
-                1. [Aspect Name]: [One sentence description]
-                2. [Aspect Name]: [One sentence description]
-                3. [Aspect Name]: [One sentence description]
-                4. [Aspect Name]: [One sentence description]
-                5. [Aspect Name]: [One sentence description]
-
-                Keep each point to ONE sentence maximum. Be concise and specific.`;
+                        phasePrompt = `Research topic: "${topic}"
+            
+            OUTPUT FORMAT (follow exactly, no introduction):
+            
+            1. [Aspect Name]: [One sentence]
+            2. [Aspect Name]: [One sentence]
+            3. [Aspect Name]: [One sentence]
+            4. [Aspect Name]: [One sentence]
+            5. [Aspect Name]: [One sentence]
+            
+            Start with "1." immediately. No other text.`;
                         break;
-        
+                        
                     case 'Deep Dive':
-                        phasePrompt = `Analyze "${topic}" in this EXACT format:
-
-                **Current Trends:**
-                • [Trend 1]
-                • [Trend 2]
-                • [Trend 3]
-
-                **Key Players:**
-                • [Player 1 and their role]
-                • [Player 2 and their role]
-
-                **Main Challenges:**
-                • [Challenge 1]
-                • [Challenge 2]
-
-                **Key Opportunities:**
-                • [Opportunity 1]
-                • [Opportunity 2]
-
-                Use bullet points. Keep each point to 1-2 sentences maximum.`;
+                        phasePrompt = `Research topic: "${topic}"
+            
+            OUTPUT FORMAT (follow exactly, no introduction):
+            
+            **Current Trends:**
+            • [Trend 1]
+            • [Trend 2]
+            • [Trend 3]
+            
+            **Key Players:**
+            • [Player 1 and role]
+            • [Player 2 and role]
+            
+            **Main Challenges:**
+            • [Challenge 1]
+            • [Challenge 2]
+            
+            **Key Opportunities:**
+            • [Opportunity 1]
+            • [Opportunity 2]
+            
+            Start with "**Current Trends:**" immediately. No other text.`;
                         break;
-        
+                        
                     case 'Synthesis':
-                        phasePrompt = `Synthesize insights about "${topic}" in this EXACT format:
-
-                **Key Patterns Identified:**
-                • [Pattern 1]
-                • [Pattern 2]
-
-                **Strategic Connections:**
-                 • [Connection 1]
-                 • [Connection 2]
-
-                **Business Implications:**
-                • [Implication 1]
-                • [Implication 2]
-
-                Keep each point concise (1-2 sentences).`;
+                        phasePrompt = `Research topic: "${topic}"
+            
+            OUTPUT FORMAT (follow exactly, no introduction):
+            
+            **Key Patterns Identified:**
+            • [Pattern 1]
+            • [Pattern 2]
+            
+            **Strategic Connections:**
+            • [Connection 1]
+            • [Connection 2]
+            
+            **Business Implications:**
+            • [Implication 1]
+            • [Implication 2]
+            
+            Start with "**Key Patterns Identified:**" immediately. No other text.`;
                         break;
-        
+                        
                     case 'Validation':
-                        phasePrompt = `Validate findings about "${topic}" in this EXACT format:
-
-                **Validated Key Findings:**
-                • [Finding 1]
-                • [Finding 2]
-                • [Finding 3]
-
-                **Areas Requiring Further Investigation:**
-                • [Area 1]
-                • [Area 2]
-
-                **Confidence Level:** [High/Medium/Low]
-
-                Keep each point to 1-2 sentences.`;
+                        phasePrompt = `Research topic: "${topic}"
+            
+            OUTPUT FORMAT (follow exactly, no introduction):
+            
+            **Validated Key Findings:**
+            • [Finding 1]
+            • [Finding 2]
+            • [Finding 3]
+            
+            **Areas Requiring Further Investigation:**
+            • [Area 1]
+            • [Area 2]
+            
+            **Confidence Level:** [High/Medium/Low]
+            
+            Start with "**Validated Key Findings:**" immediately. No other text.`;
                         break;
                 }
-
                 
                 try {
                     const apiKey = apiKeyInput.value.trim();
@@ -1150,7 +1150,15 @@ Analyzing ${topic}...`, 'assistant');
                     
                     const payload = {
                         systemInstruction: {
-                            parts: [{ text: `You are Bob, an autonomous research consultant conducting independent research. Provide thorough, well-researched insights.` }]
+                            parts: [{ text: `You are Bob, a business research consultant. 
+                    
+                    CRITICAL FORMATTING RULES:
+                    - You MUST follow the exact format provided in the user prompt
+                    - Do NOT add introductory phrases like "Okay, here are..." or "I will analyze..."
+                    - Do NOT acknowledge the format instructions
+                    - Start DIRECTLY with the requested content
+                    - Use the exact structure: numbered lists, bullet points, and bold headers as specified
+                    - Keep responses concise (1-2 sentences per point)` }]
                         },
                         contents: [{
                             role: "user",
