@@ -1073,18 +1073,76 @@ Analyzing ${topic}...`, 'assistant');
                 
                 switch(phase) {
                     case 'Discovery':
-                        phasePrompt = `Identify the 5 most important aspects to understand about "${topic}" from a business consulting perspective. List them briefly.`;
+                        phasePrompt = `Analyze "${topic}" and provide EXACTLY 5 key aspects in this format:
+
+                1. [Aspect Name]: [One sentence description]
+                2. [Aspect Name]: [One sentence description]
+                3. [Aspect Name]: [One sentence description]
+                4. [Aspect Name]: [One sentence description]
+                5. [Aspect Name]: [One sentence description]
+
+                Keep each point to ONE sentence maximum. Be concise and specific.`;
                         break;
+        
                     case 'Deep Dive':
-                        phasePrompt = `Provide detailed analysis of "${topic}" including current trends, key players, challenges, and opportunities. Use Google Search to find recent information.`;
+                        phasePrompt = `Analyze "${topic}" in this EXACT format:
+
+                **Current Trends:**
+                • [Trend 1]
+                • [Trend 2]
+                • [Trend 3]
+
+                **Key Players:**
+                • [Player 1 and their role]
+                • [Player 2 and their role]
+
+                **Main Challenges:**
+                • [Challenge 1]
+                • [Challenge 2]
+
+                **Key Opportunities:**
+                • [Opportunity 1]
+                • [Opportunity 2]
+
+                Use bullet points. Keep each point to 1-2 sentences maximum.`;
                         break;
+        
                     case 'Synthesis':
-                        phasePrompt = `Synthesize insights about "${topic}" by identifying patterns, connections, and strategic implications for businesses.`;
+                        phasePrompt = `Synthesize insights about "${topic}" in this EXACT format:
+
+                **Key Patterns Identified:**
+                • [Pattern 1]
+                • [Pattern 2]
+
+                **Strategic Connections:**
+                 • [Connection 1]
+                 • [Connection 2]
+
+                **Business Implications:**
+                • [Implication 1]
+                • [Implication 2]
+
+                Keep each point concise (1-2 sentences).`;
                         break;
+        
                     case 'Validation':
-                        phasePrompt = `Validate and cross-reference key findings about "${topic}". Highlight any contradictions or areas needing further investigation.`;
+                        phasePrompt = `Validate findings about "${topic}" in this EXACT format:
+
+                **Validated Key Findings:**
+                • [Finding 1]
+                • [Finding 2]
+                • [Finding 3]
+
+                **Areas Requiring Further Investigation:**
+                • [Area 1]
+                • [Area 2]
+
+                **Confidence Level:** [High/Medium/Low]
+
+                Keep each point to 1-2 sentences.`;
                         break;
                 }
+
                 
                 try {
                     const apiKey = apiKeyInput.value.trim();
@@ -1377,7 +1435,21 @@ Each expert will provide their specialized perspective...`, 'assistant');
                         },
                         contents: [{
                             role: "user",
-                            parts: [{ text: `Provide your expert perspective on: "${topic}". Focus on your specialty: ${agent.expertise}. Be concise but insightful (3-5 key points).` }]
+                            parts: [{ text: `As a ${agent.name}, analyze "${topic}" in this EXACT format:
+
+                            **Key Recommendations:**
+                            1. [Specific recommendation related to ${agent.expertise}]
+                            2. [Specific recommendation related to ${agent.expertise}]
+                            3. [Specific recommendation related to ${agent.expertise}]
+                            
+                            **Critical Considerations:**
+                            • [Important factor 1]
+                            • [Important factor 2]
+                            
+                            **Expected Impact:** [One sentence about potential outcomes]
+                            
+                            Keep ALL points to 1-2 sentences maximum. Be specific and actionable.` }]
+
                         }],
                         tools: [{ "google_search": {} }]
                     };
@@ -1402,13 +1474,28 @@ Each expert will provide their specialized perspective...`, 'assistant');
                 
                 const synthesisPrompt = `Based on these expert perspectives about "${topic}":
 
-${expertInsights.map(ei => `**${ei.agent.name}:**\n${ei.insight}`).join('\n\n')}
-
-Synthesize these perspectives into:
-1. **Key Consensus Points** - What all experts agree on
-2. **Complementary Insights** - How different perspectives strengthen each other
-3. **Potential Conflicts** - Any contradictions to address
-4. **Integrated Recommendation** - A unified strategic recommendation`;
+                ${expertInsights.map(ei => `**${ei.agent.name}:**\n${ei.insight}`).join('\n\n')}
+                
+                Synthesize in this EXACT format:
+                
+                **Consensus Points:**
+                • [What all experts agree on - point 1]
+                • [What all experts agree on - point 2]
+                
+                **Complementary Insights:**
+                • [How perspectives strengthen each other - point 1]
+                • [How perspectives strengthen each other - point 2]
+                
+                **Priority Actions:**
+                1. [Immediate action item]
+                2. [Short-term action item]
+                3. [Long-term strategic action]
+                
+                **Success Metrics:**
+                • [How to measure success - metric 1]
+                • [How to measure success - metric 2]
+                
+                Keep ALL points to 1-2 sentences maximum. Be specific and actionable.`;
                 
                 try {
                     const apiKey = apiKeyInput.value.trim();
