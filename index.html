@@ -2579,67 +2579,59 @@ The table must be the last element of the response before the suggestions block.
             }
             
             
-        // Ensure DOM is loaded before attaching event listeners
-document.addEventListener('DOMContentLoaded', function() {
-    
-    // --- DROPDOWN TOGGLE LOGIC ---
-    function toggleMenu(menuElement, buttonElement) {
-        // Determine if any *other* menus are open and close them
-        [initialSetupMenu, analysisMenu, solutionDesignMenu, executionMenu, myPromptsMenu].forEach(menu => {
-            if (menu !== menuElement) {
-                menu.classList.add('hidden');
-            }
-        });
-        // Toggle the current menu
-        menuElement.classList.toggle('hidden');
-    }
-    
-    // Click listeners for the main dropdown buttons
-    initialSetupDropdownBtn.addEventListener('click', (e) => {
-        e.stopPropagation(); 
-        toggleMenu(initialSetupMenu, initialSetupDropdownBtn);
-    });
-    
-    analysisDropdownBtn.addEventListener('click', (e) => {
-        e.stopPropagation(); 
-        toggleMenu(analysisMenu, analysisDropdownBtn);
-    });
-    
-    solutionDesignDropdownBtn.addEventListener('click', (e) => {
-        e.stopPropagation(); 
-        toggleMenu(solutionDesignMenu, solutionDesignDropdownBtn);
-    });
-    
-    executionDropdownBtn.addEventListener('click', (e) => {
-        e.stopPropagation(); 
-        toggleMenu(executionMenu, executionDropdownBtn);
-    });
-    
-    // NEW: Listener for My Prompts
-    myPromptsDropdownBtn.addEventListener('click', (e) => {
-        e.stopPropagation(); 
-        toggleMenu(myPromptsMenu, myPromptsDropdownBtn);
-    });
-    
-    // Listener to close menus when clicking anywhere else on the document
-    document.addEventListener('click', (e) => {
-        const menus = [initialSetupMenu, analysisMenu, solutionDesignMenu, executionMenu, myPromptsMenu];
-        
-        let clickedInsideMenu = false;
-        for (const menu of menus) {
-            if (menu.contains(e.target)) {
-                clickedInsideMenu = true;
-                break;
-            }
-        }
-        if (!clickedInsideMenu) {
-            // If the click was not inside any menu, hide all menus
-            menus.forEach(menu => menu.classList.add('hidden'));
-        }
-    });
-    
-}); // End of DOMContentLoaded
+            // --- DROPDOWN TOGGLE LOGIC ---
 
-</script>
+            function toggleMenu(menuElement, buttonElement) {
+                // Determine if any *other* menus are open and close them
+                [initialSetupMenu, analysisMenu, solutionDesignMenu, executionMenu, myPromptsMenu].forEach(menu => {
+                    if (menu !== menuElement) {
+                        menu.classList.add('hidden');
+                    }
+                });
+                // Toggle the current menu
+                menuElement.classList.toggle('hidden');
+            }
+            // Click listeners for the main dropdown buttons
+            initialSetupDropdownBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); 
+                toggleMenu(initialSetupMenu, initialSetupDropdownBtn);
+            });
+            analysisDropdownBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); 
+                toggleMenu(analysisMenu, analysisDropdownBtn);
+            });
+            solutionDesignDropdownBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); 
+                toggleMenu(solutionDesignMenu, solutionDesignDropdownBtn);
+            });
+            executionDropdownBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); 
+                toggleMenu(executionMenu, executionDropdownBtn);
+            });
+            // NEW: Listener for My Prompts
+            myPromptsDropdownBtn.addEventListener('click', (e) => { // NEW CODE
+                e.stopPropagation(); 
+                toggleMenu(myPromptsMenu, myPromptsDropdownBtn);
+            });
+            
+            // Listener to close menus when clicking anywhere else on the document (UPDATED)
+            document.addEventListener('click', (e) => {
+                // ADD myPromptsMenu to the array of menus
+                const menus = [initialSetupMenu, analysisMenu, solutionDesignMenu, executionMenu, myPromptsMenu]; // CHANGED
+                
+                let clickedInsideMenu = false;
+                for (const menu of menus) {
+                    if (menu.contains(e.target)) {
+                        clickedInsideMenu = true;
+                        break;
+                    }
+                }
+                if (!clickedInsideMenu) {
+                    // If the click was not inside any menu, hide all menus
+                    menus.forEach(menu => menu.classList.add('hidden'));
+                }
+            });
+        })(); // End of IIFE
+    </script>
 </body>
 </html>
