@@ -210,10 +210,24 @@
                 <p class="sub-title">You ask. Bob answers.</p>
             </div>
         </div>
-        
-        <div class="mb-6">
-            <label for="apiKeyInput" class="block text-sm font-medium text-gray-100 mb-1">Enter your Gemini API Key:</label>
-            <input type="password" id="apiKeyInput" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-700 text-white" placeholder="Paste your API key here...">
+                
+        <div id="authSection" class="mb-6 bg-gray-800 p-4 rounded-lg" style="display: none;">
+            <div id="loginForm">
+                <h3 class="text-xl font-bold mb-4 text-lime-400">Login to Bob</h3>
+                <input type="email" id="emailInput" placeholder="Email" class="w-full p-2 mb-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none">
+                <input type="password" id="passwordInput" placeholder="Password" class="w-full p-2 mb-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none">
+                <button id="loginBtn" class="w-full p-2 bg-lime-400 text-gray-900 rounded font-bold mb-2 hover:bg-lime-500">Login</button>
+                <button id="signupBtn" class="w-full p-2 bg-gray-600 text-white rounded font-bold hover:bg-gray-500">Sign Up</button>
+            </div>
+            <div id="userInfo" style="display: none;">
+                <p class="text-lime-400 font-bold">✅ Logged in as: <span id="userEmail"></span></p>
+                <button id="logoutBtn" class="p-2 bg-red-500 text-white rounded font-bold mt-2 hover:bg-red-600">Logout</button>
+            </div>
+        </div>
+       
+        <div class="mb-6" style="display: none;"> 
+    <label for="apiKeyInput" class="block text-sm font-medium text-gray-100 mb-1">Enter your Gemini API Key:</label>
+    <input type="password" id="apiKeyInput" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-700 text-white" placeholder="Paste your API key here...">
         </div>
         
         <div class="flex justify-between mb-4">
@@ -714,24 +728,47 @@ I've generated ${workflow.steps.length} comprehensive analyses. Review the insig
                         parts: [{ text: finalPrompt }]
                     });
                     
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-                    
-                    const payload = {
-                        systemInstruction: {
-                            parts: [{ text: `You are a professional business consultant named Bob. Your role is to provide clear, actionable, and well-structured responses to business-related queries. Use Markdown formatting.` }]
-                        },
-                        contents: chatHistory,
-                        tools: [{ "google_search": {} }],
-                    };
-                    
-                    const response = await fetch(apiUrl, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(payload)
-                    });
-                    
-                    const result = await response.json();
-                    const aiText = result?.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't process that request.";
+                    // Get current user session
+                const { data: { session } } = await supabase.auth.getSession();
+                const userId = session?.user?.id || 'anonymous';
+                
+                // Prepare the message data for Worker
+                const workerPayload = {
+                    message: prompt,
+                    userId: userId,
+                    chatHistory: chatHistory,
+                    systemInstruction: "You are a professional business consultant named Bob. Your role is to provide clear, actionable, and well-structured responses to business-related queries. Use Markdown formatting."
+                };
+                
+                // Call Worker backend instead of direct Gemini API
+                const response = await fetch(`${WORKER_URL}/chat`, {
+                    method: "POST",
+                    headers: { 
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${session?.access_token || ''}`
+                    },
+                    body: JSON.stringify(workerPayload)
+                });
+                
+                const result = await response.json();
+                
+                // Check for rate limit
+                if (response.status === 429) {
+                    chatArea.removeChild(loadingBubble);
+                    alert("You've reached your daily limit. Please try again tomorrow.");
+                    return;
+                }
+                
+                // Extract AI response from Worker
+                const aiText = result?.response || result?.text || "Sorry, I couldn't process that request.";
+                
+                // Update rate limit display
+                if (result.usage) {
+                    document.getElementById('requestCount').textContent = `${result.usage.count} / ${result.usage.limit}`;
+                    const percentage = (result.usage.count / result.usage.limit) * 100;
+                    document.getElementById('usageBar').style.width = `${percentage}%`;
+                }
+
                     
                     chatArea.removeChild(loadingBubble);
                     
