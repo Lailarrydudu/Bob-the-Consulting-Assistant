@@ -1424,20 +1424,31 @@ Each expert will provide their specialized perspective...`, 'assistant');
             }
             
             async function getAgentPerspective(agent, topic) {
-                try {
-                    const apiKey = apiKeyInput.value.trim();
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`;
-                    
-                    const payload = {
-                        systemInstruction: {
-                            parts: [{ text: agent.systemPrompt }]
-                        },
-                        contents: [{
-                            role: "user",
-                            parts: [{ text: `Provide your expert perspective on: "${topic}". Focus on your specialty: ${agent.expertise}. Be concise but insightful (3-5 key points).` }]
-                        }],
-                        tools: [{ "google_search": {} }]
-                    };
+    try {
+        // Get current user session
+        const { data: { session } } = await supabase.auth.getSession();
+        const userId = session?.user?.id || 'anonymous';
+        
+        const workerPayload = {
+            userId: userId,
+            messages: [{
+                role: "user",
+                parts: [{ text: `Analyze this topic from your perspective: ${topic}` }]
+            }],
+            systemInstruction: {
+                parts: [{ text: agent.systemPrompt }]
+            }
+        };
+        
+        const response = await fetch(`${WORKER_URL}/api/chat`, {
+            method: "POST",
+            headers: { 
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${session?.access_token || ''}`
+            },
+            body: JSON.stringify(workerPayload)
+        });
+
                     
                     const response = await fetch(apiUrl, {
                         method: "POST",
@@ -1468,18 +1479,30 @@ Synthesize these perspectives into:
 4. **Integrated Recommendation** - A unified strategic recommendation`;
                 
                 try {
-                    const apiKey = apiKeyInput.value.trim();
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`;
-                    
-                    const payload = {
-                        systemInstruction: {
-                            parts: [{ text: 'You are Bob, synthesizing insights from multiple expert consultants into cohesive recommendations.' }]
-                        },
-                        contents: [{
-                            role: "user",
-                            parts: [{ text: synthesisPrompt }]
-                        }]
-                    };
+                    // Get current user session
+const { data: { session } } = await supabase.auth.getSession();
+const userId = session?.user?.id || 'anonymous';
+
+const workerPayload = {
+    userId: userId,
+    messages: [{
+        role: "user",
+        parts: [{ text: synthesisPrompt }]
+    }],
+    systemInstruction: {
+        parts: [{ text: 'You are Bob, synthesizing insights from multiple expert consultants into cohesive recommendations.' }]
+    }
+};
+
+const response = await fetch(`${WORKER_URL}/api/chat`, {
+    method: "POST",
+    headers: { 
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${session?.access_token || ''}`
+    },
+    body: JSON.stringify(workerPayload)
+});
+
                     
                     const response = await fetch(apiUrl, {
                         method: "POST",
