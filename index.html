@@ -2538,33 +2538,42 @@ The table must be the last element of the response before the suggestions block.
             Use clear formatting with bullet points for easy readability. Be professional and concise.`;
         
                     // Create temporary history with the takeaway request
-                    const tempHistory = [...chatHistory, {
-                        role: "user",
-                        parts: [{ text: takeawayPrompt }]
-                    }];
-        
-                    // Make API call to Gemini
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-        
-                    const payload = {
-                        systemInstruction: {
-                            parts: [{ text: `You are Bob, a professional business consultant. Generate a clear, well-structured conversation summary using Markdown formatting. Focus on clarity, professionalism, and readability.` }]
-                        },
-                        contents: tempHistory
-                    };
-        
-                    const response = await fetch(apiUrl, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(payload)
-                    });
-        
-                    if (!response.ok) {
-                        throw new Error(`API call failed with status ${response.status}`);
+                const tempHistory = [...chatHistory, {
+                    role: "user",
+                    parts: [{ text: takeawayPrompt }]
+                }];
+                
+                // Get current user session
+                const { data: { session } } = await supabase.auth.getSession();
+                const userId = session?.user?.id || 'anonymous';
+                
+                // Prepare Worker payload for takeaway
+                const workerPayload = {
+                    userId: userId,
+                    messages: tempHistory,
+                    systemInstruction: {
+                        parts: [{ text: `You are Bob, a professional business consultant. Generate a clear, well-structured conversation summary using Markdown formatting. Focus on clarity, professionalism, and readability.` }]
                     }
-        
-                    const result = await response.json();
-                    const takeawaysText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                };
+                
+                // Call Worker backend
+                const response = await fetch(`${WORKER_URL}/api/chat`, {
+                    method: "POST",
+                    headers: { 
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${session?.access_token || ''}`
+                    },
+                    body: JSON.stringify(workerPayload)
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`API call failed: ${errorData.error || response.status}`);
+                }
+                
+                const result = await response.json();
+                const takeawaysText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+
         
                     // Remove loading indicator
                     chatArea.removeChild(loadingBubble);
