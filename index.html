@@ -1064,83 +1064,25 @@ Starting research...`, 'assistant');
                 activeResearchSession = null;
             }
             
+            async function executeResearchPhase(phase, topic) {
+                createMessageBubble(`📊 **Phase: ${phase}**
+
+Analyzing ${topic}...`, 'assistant');
+                
+                let phasePrompt = '';
+                
                 switch(phase) {
                     case 'Discovery':
-                        phasePrompt = `Research topic: "${topic}"
-            
-            OUTPUT FORMAT (follow exactly, no introduction):
-            
-            1. [Aspect Name]: [One sentence]
-            2. [Aspect Name]: [One sentence]
-            3. [Aspect Name]: [One sentence]
-            4. [Aspect Name]: [One sentence]
-            5. [Aspect Name]: [One sentence]
-            
-            Start with "1." immediately. No other text.`;
+                        phasePrompt = `Identify the 5 most important aspects to understand about "${topic}" from a business consulting perspective. List them briefly.`;
                         break;
-                        
                     case 'Deep Dive':
-                        phasePrompt = `Research topic: "${topic}"
-            
-            OUTPUT FORMAT (follow exactly, no introduction):
-            
-            **Current Trends:**
-            • [Trend 1]
-            • [Trend 2]
-            • [Trend 3]
-            
-            **Key Players:**
-            • [Player 1 and role]
-            • [Player 2 and role]
-            
-            **Main Challenges:**
-            • [Challenge 1]
-            • [Challenge 2]
-            
-            **Key Opportunities:**
-            • [Opportunity 1]
-            • [Opportunity 2]
-            
-            Start with "**Current Trends:**" immediately. No other text.`;
+                        phasePrompt = `Provide detailed analysis of "${topic}" including current trends, key players, challenges, and opportunities. Use Google Search to find recent information.`;
                         break;
-                        
                     case 'Synthesis':
-                        phasePrompt = `Research topic: "${topic}"
-            
-            OUTPUT FORMAT (follow exactly, no introduction):
-            
-            **Key Patterns Identified:**
-            • [Pattern 1]
-            • [Pattern 2]
-            
-            **Strategic Connections:**
-            • [Connection 1]
-            • [Connection 2]
-            
-            **Business Implications:**
-            • [Implication 1]
-            • [Implication 2]
-            
-            Start with "**Key Patterns Identified:**" immediately. No other text.`;
+                        phasePrompt = `Synthesize insights about "${topic}" by identifying patterns, connections, and strategic implications for businesses.`;
                         break;
-                        
                     case 'Validation':
-                        phasePrompt = `Research topic: "${topic}"
-            
-            OUTPUT FORMAT (follow exactly, no introduction):
-            
-            **Validated Key Findings:**
-            • [Finding 1]
-            • [Finding 2]
-            • [Finding 3]
-            
-            **Areas Requiring Further Investigation:**
-            • [Area 1]
-            • [Area 2]
-            
-            **Confidence Level:** [High/Medium/Low]
-            
-            Start with "**Validated Key Findings:**" immediately. No other text.`;
+                        phasePrompt = `Validate and cross-reference key findings about "${topic}". Highlight any contradictions or areas needing further investigation.`;
                         break;
                 }
                 
@@ -1150,15 +1092,7 @@ Starting research...`, 'assistant');
                     
                     const payload = {
                         systemInstruction: {
-                            parts: [{ text: `You are Bob, a business research consultant. 
-                    
-                    CRITICAL FORMATTING RULES:
-                    - You MUST follow the exact format provided in the user prompt
-                    - Do NOT add introductory phrases like "Okay, here are..." or "I will analyze..."
-                    - Do NOT acknowledge the format instructions
-                    - Start DIRECTLY with the requested content
-                    - Use the exact structure: numbered lists, bullet points, and bold headers as specified
-                    - Keep responses concise (1-2 sentences per point)` }]
+                            parts: [{ text: `You are Bob, an autonomous research consultant conducting independent research. Provide thorough, well-researched insights.` }]
                         },
                         contents: [{
                             role: "user",
@@ -1443,21 +1377,7 @@ Each expert will provide their specialized perspective...`, 'assistant');
                         },
                         contents: [{
                             role: "user",
-                            parts: [{ text: `As a ${agent.name}, analyze "${topic}" in this EXACT format:
-
-                            **Key Recommendations:**
-                            1. [Specific recommendation related to ${agent.expertise}]
-                            2. [Specific recommendation related to ${agent.expertise}]
-                            3. [Specific recommendation related to ${agent.expertise}]
-                            
-                            **Critical Considerations:**
-                            • [Important factor 1]
-                            • [Important factor 2]
-                            
-                            **Expected Impact:** [One sentence about potential outcomes]
-                            
-                            Keep ALL points to 1-2 sentences maximum. Be specific and actionable.` }]
-
+                            parts: [{ text: `Provide your expert perspective on: "${topic}". Focus on your specialty: ${agent.expertise}. Be concise but insightful (3-5 key points).` }]
                         }],
                         tools: [{ "google_search": {} }]
                     };
@@ -1482,28 +1402,13 @@ Each expert will provide their specialized perspective...`, 'assistant');
                 
                 const synthesisPrompt = `Based on these expert perspectives about "${topic}":
 
-                ${expertInsights.map(ei => `**${ei.agent.name}:**\n${ei.insight}`).join('\n\n')}
-                
-                Synthesize in this EXACT format:
-                
-                **Consensus Points:**
-                • [What all experts agree on - point 1]
-                • [What all experts agree on - point 2]
-                
-                **Complementary Insights:**
-                • [How perspectives strengthen each other - point 1]
-                • [How perspectives strengthen each other - point 2]
-                
-                **Priority Actions:**
-                1. [Immediate action item]
-                2. [Short-term action item]
-                3. [Long-term strategic action]
-                
-                **Success Metrics:**
-                • [How to measure success - metric 1]
-                • [How to measure success - metric 2]
-                
-                Keep ALL points to 1-2 sentences maximum. Be specific and actionable.`;
+${expertInsights.map(ei => `**${ei.agent.name}:**\n${ei.insight}`).join('\n\n')}
+
+Synthesize these perspectives into:
+1. **Key Consensus Points** - What all experts agree on
+2. **Complementary Insights** - How different perspectives strengthen each other
+3. **Potential Conflicts** - Any contradictions to address
+4. **Integrated Recommendation** - A unified strategic recommendation`;
                 
                 try {
                     const apiKey = apiKeyInput.value.trim();
