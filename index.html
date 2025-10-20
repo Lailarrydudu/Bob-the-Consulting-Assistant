@@ -1132,28 +1132,40 @@ Analyzing ${topic}...`, 'assistant');
                 }
                 
                 try {
-                    const apiKey = apiKeyInput.value.trim();
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`;
-                    
-                    const payload = {
-                        systemInstruction: {
-                            parts: [{ text: `You are Bob, an autonomous research consultant conducting independent research. Provide thorough, well-researched insights.` }]
-                        },
-                        contents: [{
-                            role: "user",
-                            parts: [{ text: phasePrompt }]
-                        }],
-                        tools: [{ "google_search": {} }]
-                    };
-                    
-                    const response = await fetch(apiUrl, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(payload)
-                    });
-                    
-                    const result = await response.json();
-                    const findings = result?.candidates?.[0]?.content?.parts?.[0]?.text || "Research phase incomplete.";
+                                    // Get current user session
+                const { data: { session } } = await supabase.auth.getSession();
+                const userId = session?.user?.id || 'anonymous';
+                
+                // Prepare Worker payload for research
+                const workerPayload = {
+                    userId: userId,
+                    messages: [{
+                        role: "user",
+                        parts: [{ text: phasePrompt }]
+                    }],
+                    systemInstruction: {
+                        parts: [{ text: `You are Bob, an autonomous research consultant conducting independent research. Provide thorough, well-researched insights.` }]
+                    },
+                    tools: [{ "google_search": {} }]
+                };
+                
+                // Call Worker backend
+                const response = await fetch(`${WORKER_URL}/api/chat`, {
+                    method: "POST",
+                    headers: { 
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${session?.access_token || ''}`
+                    },
+                    body: JSON.stringify(workerPayload)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Worker API error: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                const findings = result?.candidates?.[0]?.content?.parts?.[0]?.text || "Research phase incomplete.";
+
                     
                     activeResearchSession.findings.push({
                         phase: phase,
@@ -2334,22 +2346,49 @@ The table must be the last element of the response before the suggestions block.
                 let retryCount = 0;
                 while (retryCount < MAX_RETRIES) {
                     try {
-                        const apiKey = apiKeyInput.value.trim();
-                        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-                        
-                        const payload = {
-                            systemInstruction: {
-                                parts: [{ text: `You are a professional business consultant named Bob. Your role is to provide clear, actionable, and well-structured responses to business-related queries. Be concise and to the point while providing high-quality analysis. Use Markdown to format your output. A typical response should follow this structure: a main title (#), followed by a short summary or introduction, then several distinct sections. Each section should begin with a **subheading (##)**, followed by a short descriptive sentence. For subsections within a section, use a level three heading (###). For individual points within a list, use a bolded phrase followed by a bulleted list.For structured analyses (like SWOT, Market Entry, or Competitor Benchmarking), you must create a relevant, professional-grade Markdown table that is appropriate for the requested analysis.ONLY when generating a PESTLE analysis, you MUST use the following specific Markdown format, ensuring the "Key Findings" column uses bullet points with spacing:\`\`\`markdown| Factor | Key Findings ||---|---|| Political | * [concise finding 1] <br> * [concise finding 2] || Economic | * [concise finding 1] <br> * [concise finding 2] || Social | * [concise finding 1] <br> * [concise finding 2] || Technological | * [concise finding 1] <br> * [concise finding 2] || Legal | * [concise finding 1] <br> * [concise finding 2] || Environmental | * [concise finding 1] <br> * [concise finding 2] |\`\`\`The table must be the last piece of content before the suggestions. Ensure clarity and professionalism by using Markdown for titles, subheadings, bold text, bullet points, and the summary table. The content must be grounded in real-time information. You must use the Google Search tool for every query to get the most accurate and up-to-date data. At the end of every response, suggest 2-3 short, relevant follow-up questions. Format these suggestions as a single line, separated by a pipe symbol, and preceded by the text \`---SUGGESTIONS---\`. For example: \`---SUGGESTIONS---What is a PESTLE analysis?|How can I improve my marketing plan?|What is a market entry strategy?\`` }]
-                            },
-                            contents: chatHistory,
-                            tools: [{ "google_search": {} }],
-                        };
-                        
-                        const response = await fetch(apiUrl, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(payload)
-                        });
+                                        // Get current user session
+                const { data: { session } } = await supabase.auth.getSession();
+                const userId = session?.user?.id || 'anonymous';
+                
+                // Prepare Worker payload
+                const workerPayload = {
+                    userId: userId,
+                    messages: chatHistory,
+                    systemInstruction: {
+                        parts: [{ text: `You are a professional business consultant named Bob. Your role is to provide clear, actionable, and well-structured responses to business-related queries. Be concise and to the point while providing high-quality analysis. Use Markdown to format your output. A typical response should follow this structure: a main title (#), followed by a short summary or introduction, then several distinct sections. Each section should begin with a **subheading (##)**, followed by a short descriptive sentence. For subsections within a section, use a level three heading (###). For individual points within a list, use a bolded phrase followed by a bulleted list.For structured analyses (like SWOT, Market Entry, or Competitor Benchmarking), you must create a relevant, professional-grade Markdown table that is appropriate for the requested analysis.ONLY when generating a PESTLE analysis, you MUST use the following specific Markdown format, ensuring the \"Key Findings\" column uses bullet points with spacing:\\`\\`\\`markdown| Factor | Key Findings ||---|---|| Political | * [concise finding 1] <br> * [concise finding 2] || Economic | * [concise finding 1] <br> * [concise finding 2] || Social | * [concise finding 1] <br> * [concise finding 2] || Technological | * [concise finding 1] <br> * [concise finding 2] || Legal | * [concise finding 1] <br> * [concise finding 2] || Environmental | * [concise finding 1] <br> * [concise finding 2] |\\`\\`\\`The table must be the last piece of content before the suggestions. Ensure clarity and professionalism by using Markdown for titles, subheadings, bold text, bullet points, and the summary table. The content must be grounded in real-time information. You must use google_search tool when relevant.` }]
+                    },
+                    tools: [{ "google_search": {} }]
+                };
+                
+                // Call Worker backend
+                const response = await fetch(`${WORKER_URL}/api/chat`, {
+                    method: "POST",
+                    headers: { 
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${session?.access_token || ''}`
+                    },
+                    body: JSON.stringify(workerPayload)
+                });
+                
+                // Handle rate limit error
+                if (response.status === 429) {
+                    chatArea.removeChild(loadingBubble);
+                    const errorData = await response.json();
+                    alert(`You've reached your daily limit (${errorData.limit} requests). Please try again tomorrow.`);
+                    return;
+                }
+                
+                // Check if response is OK
+                if (!response.ok) {
+                    chatArea.removeChild(loadingBubble);
+                    const errorData = await response.json();
+                    alert(`Error: ${errorData.error || 'Failed to get response from Bob'}`);
+                    return;
+                }
+                
+                const result = await response.json();
+                const aiText = result?.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't process that request.";
+
                         
                         if (response.status === 429) { // Handle rate limiting
                             if (retryCount < MAX_RETRIES - 1) {
