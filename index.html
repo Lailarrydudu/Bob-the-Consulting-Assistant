@@ -2400,25 +2400,21 @@ The table must be the last element of the response before the suggestions block.
                 
                 const result = await response.json();
                 const aiText = result?.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't process that request.";
-
-                        
-                        if (response.status === 429) { // Handle rate limiting
-                            if (retryCount < MAX_RETRIES - 1) {
-                                retryCount++;
-                                const delay = Math.pow(2, retryCount) * 1000; // Exponential backoff (2s, 4s, 8s)
-                                await new Promise(resolve => setTimeout(resolve, delay));
-                                continue; // Retry the loop
-                            } else {
-                                throw new Error("Rate limit exceeded after multiple retries.");
-                            }
-                        }
-                        if (!response.ok) {
-                            const errorText = await response.text();
-                            throw new Error(`API call failed with status ${response.status}: ${errorText}`);
-                        }
-
-                        // PHASE 3: Learn from this interaction
-                        learnFromInteraction(prompt, text);
+                
+                                // Add AI response to chat history
+                                chatHistory.push({
+                                    role: "model",
+                                    parts: [{ text: aiText }]
+                                });
+                                
+                                // Remove loading indicator
+                                chatArea.removeChild(loadingBubble);
+                                
+                                // Display AI response
+                                createMessageBubble(aiText, "model");
+                                
+                                // PHASE 3: Learn from this interaction
+                                learnFromInteraction(prompt, aiText);
                         
                         break; // Exit the retry loop on success
                     } catch (error) {
