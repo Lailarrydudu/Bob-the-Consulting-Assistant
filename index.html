@@ -1489,18 +1489,33 @@ const workerPayload = {
     }
 };
 
-                    ${synthesis}
+const response = await fetch(`${WORKER_URL}/api/chat`, {
+    method: "POST",
+    headers: { 
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${session?.access_token || ''}`
+    },
+    body: JSON.stringify(workerPayload)
+});
 
-                    ---
+const result = await response.json();
+const synthesis = result?.candidates?.[0]?.content?.parts?.[0]?.text || "Synthesis incomplete.";
 
-                    ## ✅ Multi-Agent Collaboration Summary
+createMessageBubble(`# 🎯 Integrated Expert Analysis
 
-                    - **Expert Consultants:** ${expertInsights.length} specialists consulted
-                    - **Perspectives Analyzed:** Strategy, Financial, and Operations viewpoints
-                    - **Synthesis Status:** Complete - All insights integrated into unified recommendations
-                    - **Ready for:** Strategic planning and implementation
+${synthesis}
 
-                    **💡 Tip:** Export this analysis for your strategic planning sessions!`, 'assistant');
+---
+
+## ✅ Multi-Agent Collaboration Summary
+
+- **Expert Consultants:** ${expertInsights.length} specialists consulted
+- **Perspectives Analyzed:** Strategy, Financial, and Operations viewpoints
+- **Synthesis Status:** Complete - All insights integrated into unified recommendations
+- **Ready for:** Strategic planning and implementation
+
+**💡 Tip:** Export this analysis for your strategic planning sessions!`, 'assistant');
+
 
                     
                 } catch (error) {
