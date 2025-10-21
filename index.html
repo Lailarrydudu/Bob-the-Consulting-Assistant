@@ -210,7 +210,37 @@
             <div>
                 <h1 class="main-title">Bob, Your Consulting Assistant</h1>
                 <p class="sub-title">You ask. Bob answers.</p>
-            </div>
+                </div>
+                
+                <!-- Authentication Section (Change 3) -->
+                <div id="authSection" class="mb-6 bg-gray-800 p-4 rounded-lg">
+                  <div id="loginForm">
+                    <h3 class="text-xl font-bold mb-4 text-lime-400">Login to Bob</h3>
+                    <input type="email"    id="emailInput"    placeholder="Email"
+                           class="w-full p-2 mb-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none">
+                    <input type="password" id="passwordInput" placeholder="Password"
+                           class="w-full p-2 mb-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none">
+                    <button id="loginBtn"
+                            class="w-full p-2 bg-lime-400 text-gray-900 rounded font-bold mb-2 hover:bg-lime-500">
+                      Login
+                    </button>
+                    <button id="signupBtn"
+                            class="w-full p-2 bg-gray-600 text-white rounded font-bold hover:bg-gray-500">
+                      Sign Up
+                    </button>
+                  </div>
+                  <div id="userInfo" style="display:none;">
+                    <p class="text-lime-400 font-bold">
+                      ✅ Logged in as: <span id="userEmail"></span>
+                    </p>
+                    <button id="logoutBtn"
+                            class="p-2 bg-red-500 text-white rounded font-bold mt-2 hover:bg-red-600">
+                      Logout
+                    </button>
+                  </div>
+                </div>
+                <!-- End Authentication Section -->
+
         </div>
                 
         <div id="authSection" class="mb-6 bg-gray-800 p-4 rounded-lg" style="display: none;">
@@ -341,11 +371,60 @@
             const SUPABASE_URL = 'https://lzssreqisczildjyycgs.supabase.co';
             const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6c3NyZXFpc2N6aWxkanl5Y2dzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5NzA3ODYsImV4cCI6MjA3NjU0Njc4Nn0.CWBqzi-U5AWtekrrXUMcFnCMYJkHYJg1fO5ShK03kM0';
             const WORKER_URL = 'https://bob-backend.a0968336791.workers.dev';
-            
+
             // Initialize Supabase client
             const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             
-            (function() {
+            // ---------- Change 3: Supabase Auth Handlers ----------
+            const authSection   = document.getElementById('authSection');
+            const loginForm     = document.getElementById('loginForm');
+            const emailInput    = document.getElementById('emailInput');
+            const passwordInput = document.getElementById('passwordInput');
+            const loginBtn      = document.getElementById('loginBtn');
+            const signupBtn     = document.getElementById('signupBtn');
+            const userInfoBox   = document.getElementById('userInfo');
+            const userEmailSpan = document.getElementById('userEmail');
+            const logoutBtn     = document.getElementById('logoutBtn');
+            
+            async function refreshAuthUI() {
+              const { data: { session } } = await supabase.auth.getSession();
+              if (session?.user) {
+                loginForm.style.display  = 'none';
+                userInfoBox.style.display = 'block';
+                userEmailSpan.textContent = session.user.email;
+              } else {
+                loginForm.style.display  = 'block';
+                userInfoBox.style.display = 'none';
+              }
+            }
+            
+            loginBtn.addEventListener('click', async () => {
+              const { error } = await supabase.auth.signInWithPassword({
+                email:    emailInput.value.trim(),
+                password: passwordInput.value.trim()
+              });
+              if (error) alert(error.message);
+              await refreshAuthUI();
+            });
+            
+            signupBtn.addEventListener('click', async () => {
+              const { error } = await supabase.auth.signUp({
+                email:    emailInput.value.trim(),
+                password: passwordInput.value.trim()
+              });
+              if (error) alert(error.message);
+              await refreshAuthUI();
+            });
+            
+            logoutBtn.addEventListener('click', async () => {
+              await supabase.auth.signOut();
+              await refreshAuthUI();
+            });
+            
+            // Initialize auth UI on load
+            refreshAuthUI();
+            // ---------- End Change 3 ----------
+
 
             const sendButton = document.getElementById('sendButton');
             const userInput = document.getElementById('userInput');
