@@ -1489,7 +1489,7 @@ const workerPayload = {
     }
 };
 
-const response = await fetch(`${WORKER_URL}/api/chat`, {
+const synthesisResponse = await fetch(`${WORKER_URL}/api/chat`, {
     method: "POST",
     headers: { 
         "Content-Type": "application/json",
@@ -1498,7 +1498,7 @@ const response = await fetch(`${WORKER_URL}/api/chat`, {
     body: JSON.stringify(workerPayload)
 });
 
-const result = await response.json();
+const result = await synthesisResponse.json();
 const synthesis = result?.candidates?.[0]?.content?.parts?.[0]?.text || "Synthesis incomplete.";
 
 createMessageBubble(`# 🎯 Integrated Expert Analysis
