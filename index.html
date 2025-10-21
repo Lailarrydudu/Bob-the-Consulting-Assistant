@@ -1489,20 +1489,6 @@ const workerPayload = {
     }
 };
 
-const response = await fetch(`${WORKER_URL}/api/chat`, {
-    method: "POST",
-    headers: { 
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${session?.access_token || ''}`
-    },
-    body: JSON.stringify(workerPayload)
-});
-                    
-                    const result = await response.json();
-                    const synthesis = result?.candidates?.[0]?.content?.parts?.[0]?.text || "Synthesis incomplete.";
-                    
-                    createMessageBubble(`# 🎯 Integrated Expert Analysis
-
                     ${synthesis}
 
                     ---
@@ -2414,23 +2400,6 @@ The table must be the last element of the response before the suggestions block.
                         if (!response.ok) {
                             const errorText = await response.text();
                             throw new Error(`API call failed with status ${response.status}: ${errorText}`);
-                        }
-                        
-                        const result = await response.json();
-                        const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
-                        
-                        // Remove loading indicator
-                        chatArea.removeChild(loadingBubble);
-                        
-                        if (text) {
-                            // Add the assistant's response to the chat history and display it
-                            chatHistory.push({
-                                role: "model",
-                                parts: [{ text: text }]
-                            });
-                            createMessageBubble(text, "model");
-                        } else {
-                            createMessageBubble("Sorry, I couldn't generate a response. Please try again.", "assistant");
                         }
 
                         // PHASE 3: Learn from this interaction
