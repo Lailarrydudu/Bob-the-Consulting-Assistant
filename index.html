@@ -1450,13 +1450,6 @@ Each expert will provide their specialized perspective...`, 'assistant');
             },
             body: JSON.stringify(workerPayload)
         });
-
-                    
-                    const response = await fetch(apiUrl, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(payload)
-                    });
                     
                     const result = await response.json();
                     return result?.candidates?.[0]?.content?.parts?.[0]?.text || "Perspective unavailable.";
