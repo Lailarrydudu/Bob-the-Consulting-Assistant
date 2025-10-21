@@ -374,7 +374,7 @@
 
             // Initialize Supabase client
             const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            
+
             // ---------- Change 3: Supabase Auth Handlers ----------
             const authSection   = document.getElementById('authSection');
             const loginForm     = document.getElementById('loginForm');
@@ -398,20 +398,22 @@
               }
             }
             
-            loginBtn.addEventListener('click', async () => {
-              const { error } = await supabase.auth.signInWithPassword({
+            loginBtn .addEventListener('click', async () => {
+              const { user, error } = await supabase.auth.signInWithPassword({
                 email:    emailInput.value.trim(),
                 password: passwordInput.value.trim()
               });
+              console.log({ user, error });
               if (error) alert(error.message);
               await refreshAuthUI();
             });
             
             signupBtn.addEventListener('click', async () => {
-              const { error } = await supabase.auth.signUp({
-                email:    emailInput.value.trim(),
+              const { user, error } = await supabase.auth.signUp({
+                email: emailInput.value.trim(),
                 password: passwordInput.value.trim()
               });
+              console.log({ user, error });
               if (error) alert(error.message);
               await refreshAuthUI();
             });
@@ -421,9 +423,10 @@
               await refreshAuthUI();
             });
             
-            // Initialize auth UI on load
+            // initialize on load
             refreshAuthUI();
             // ---------- End Change 3 ----------
+
 
 
             const sendButton = document.getElementById('sendButton');
