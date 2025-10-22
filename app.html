@@ -2680,26 +2680,58 @@ The table must be the last element of the response before the suggestions block.
                 // Toggle the current menu
                 menuElement.classList.toggle('hidden');
             }
-            // Click listeners for the main dropdown buttons
+            // Phase dropdown button listeners - FIXED VERSION
             initialSetupDropdownBtn.addEventListener('click', (e) => {
-                e.stopPropagation(); 
-                toggleMenu(initialSetupMenu, initialSetupDropdownBtn);
+                e.stopPropagation();
+                // Toggle this menu
+                initialSetupMenu.classList.toggle('hidden');
+                // Hide other menus
+                analysisMenu.classList.add('hidden');
+                solutionDesignMenu.classList.add('hidden');
+                executionMenu.classList.add('hidden');
             });
+            
             analysisDropdownBtn.addEventListener('click', (e) => {
-                e.stopPropagation(); 
-                toggleMenu(analysisMenu, analysisDropdownBtn);
+                e.stopPropagation();
+                // Toggle this menu
+                analysisMenu.classList.toggle('hidden');
+                // Hide other menus
+                initialSetupMenu.classList.add('hidden');
+                solutionDesignMenu.classList.add('hidden');
+                executionMenu.classList.add('hidden');
             });
+            
             solutionDesignDropdownBtn.addEventListener('click', (e) => {
-                e.stopPropagation(); 
-                toggleMenu(solutionDesignMenu, solutionDesignDropdownBtn);
+                e.stopPropagation();
+                // Toggle this menu
+                solutionDesignMenu.classList.toggle('hidden');
+                // Hide other menus
+                initialSetupMenu.classList.add('hidden');
+                analysisMenu.classList.add('hidden');
+                executionMenu.classList.add('hidden');
             });
+            
             executionDropdownBtn.addEventListener('click', (e) => {
-                e.stopPropagation(); 
-                toggleMenu(executionMenu, executionDropdownBtn);
-            }); 
-              
+                e.stopPropagation();
+                // Toggle this menu
+                executionMenu.classList.toggle('hidden');
+                // Hide other menus
+                initialSetupMenu.classList.add('hidden');
+                analysisMenu.classList.add('hidden');
+                solutionDesignMenu.classList.add('hidden');
+            });
+            
+            // Close all menus when clicking outside
+            document.addEventListener('click', () => {
+                initialSetupMenu.classList.add('hidden');
+                analysisMenu.classList.add('hidden');
+                solutionDesignMenu.classList.add('hidden');
+                executionMenu.classList.add('hidden');
+            });
+            
             // Initialize dropdown menus with content
             populateMenus();
+
 
             // NEW: Listener for My Prompts
             myPromptsDropdownBtn.addEventListener('click', (e) => { // NEW CODE
