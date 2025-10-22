@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Consulting Assistant</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         /* Import Georgia (Body) and Roboto Slab (Buttons) */
         @import url('https://fonts.googleapis.com/css2?family=Georgia:wght@400;700&family=Roboto+Slab:wght=700&display=swap');
@@ -194,26 +195,58 @@
             box-sizing: border-box; /* Include padding and border in the element's total width and height */
             resize: none; /* Prevent manual resizing */
         }
-    </style>
+        </style>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-900">
     <div class="bg-gray-800 text-gray-100 rounded-2xl shadow-xl w-full max-w-2xl p-6 md:p-8">
         <div class="flex items-center space-x-4 mb-6">
-            <div class="p-3 bg-emerald-100 rounded-full">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="#10b981" viewBox="0 0 24 24" stroke-width="1.5" stroke="#10b981" class="w-6 h-6">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.225 3.658a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.6l-4.725-2.885a.563.563 0 00-.582 0l-4.725 2.885a.562.562 0 01-.84-.6l1.285-5.385a.562.562 0 00-.182-.557L3.991 10.49a.562.562 0 01.32-.988l5.518-.442a.563.563 0 00.475-.345l2.125-5.111z" />
-                </svg>
-            </div>
-            <div>
-                <h1 class="main-title">Bob, Your Consulting Assistant</h1>
-                <p class="sub-title">You ask. Bob answers.</p>
-            </div>
-        </div>
-        
-        <div class="mb-6">
-            <label for="apiKeyInput" class="block text-sm font-medium text-gray-100 mb-1">Enter your Gemini API Key:</label>
-            <input type="password" id="apiKeyInput" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-700 text-white" placeholder="Paste your API key here...">
+    <div class="p-3 bg-emerald-100 rounded-full">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="#10b981" viewBox="...">
+            <path stroke-linecap="round" stroke-linejoin="round" d="..."/>
+        </svg>
+    </div>
+    <div>
+        <h1 class="main-title">Bob, Your Consulting Assistant</h1>
+        <p class="sub-title">You ask. Bob answers.</p>
+    </div>
+</div>
+
+<!-- Authentication Section (Change 3) -->
+<div id="authSection" class="mb-6 bg-gray-800 p-4 rounded-lg">
+
+
+                  <div id="loginForm">
+                    <h3 class="text-xl font-bold mb-4 text-lime-400">Login to Bob</h3>
+                    <input type="email"    id="emailInput"    placeholder="Email"
+                           class="w-full p-2 mb-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none">
+                    <input type="password" id="passwordInput" placeholder="Password"
+                           class="w-full p-2 mb-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none">
+                    <button id="loginBtn"
+                            class="w-full p-2 bg-lime-400 text-gray-900 rounded font-bold mb-2 hover:bg-lime-500">
+                      Login
+                    </button>
+                    <button id="signupBtn"
+                            class="w-full p-2 bg-gray-600 text-white rounded font-bold hover:bg-gray-500">
+                      Sign Up
+                    </button>
+                  </div>
+                  <div id="userInfo" style="display:none;">
+                    <p class="text-lime-400 font-bold">
+                      ✅ Logged in as: <span id="userEmail"></span>
+                    </p>
+                    <button id="logoutBtn"
+                            class="p-2 bg-red-500 text-white rounded font-bold mt-2 hover:bg-red-600">
+                      Logout
+                    </button>
+                  </div>
+                </div>
+                <!-- End Authentication Section -->
+
+        <div class="mb-6" style="display: none;"> 
+    <label for="apiKeyInput" class="block text-sm font-medium text-gray-100 mb-1">Enter your Gemini API Key:</label>
+    <input type="password" id="apiKeyInput" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-700 text-white" placeholder="Paste your API key here...">
         </div>
         
         <div class="flex justify-between mb-4">
@@ -320,9 +353,69 @@
         </div>
     </div>
     
-    <script>
-        (function() {
-            const apiKeyInput = document.getElementById('apiKeyInput');
+            <script>
+            // Supabase Configuration
+            const SUPABASE_URL = 'https://lzssreqisczildjyycgs.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6c3NyZXFpc2N6aWxkanl5Y2dzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5NzA3ODYsImV4cCI6MjA3NjU0Njc4Nn0.CWBqzi-U5AWtekrrXUMcFnCMYJkHYJg1fO5ShK03kM0';
+            const WORKER_URL = 'https://bob-backend.a0968336791.workers.dev';
+
+            // Initialize Supabase client
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+            // ---------- Change 3: Supabase Auth Handlers ----------
+            const authSection   = document.getElementById('authSection');
+            const loginForm     = document.getElementById('loginForm');
+            const emailInput    = document.getElementById('emailInput');
+            const passwordInput = document.getElementById('passwordInput');
+            const loginBtn      = document.getElementById('loginBtn');
+            const signupBtn     = document.getElementById('signupBtn');
+            const userInfoBox   = document.getElementById('userInfo');
+            const userEmailSpan = document.getElementById('userEmail');
+            const logoutBtn     = document.getElementById('logoutBtn');
+            
+            async function refreshAuthUI() {
+              const { data: { session } } = await supabase.auth.getSession();
+              if (session?.user) {
+                loginForm.style.display  = 'none';
+                userInfoBox.style.display = 'block';
+                userEmailSpan.textContent = session.user.email;
+              } else {
+                loginForm.style.display  = 'block';
+                userInfoBox.style.display = 'none';
+              }
+            }
+            
+            loginBtn .addEventListener('click', async () => {
+              const { user, error } = await supabase.auth.signInWithPassword({
+                email:    emailInput.value.trim(),
+                password: passwordInput.value.trim()
+              });
+              console.log({ user, error });
+              if (error) alert(error.message);
+              await refreshAuthUI();
+            });
+            
+            signupBtn.addEventListener('click', async () => {
+              const { user, error } = await supabase.auth.signUp({
+                email: emailInput.value.trim(),
+                password: passwordInput.value.trim()
+              });
+              console.log({ user, error });
+              if (error) alert(error.message);
+              await refreshAuthUI();
+            });
+            
+            logoutBtn.addEventListener('click', async () => {
+              await supabase.auth.signOut();
+              await refreshAuthUI();
+            });
+            
+            // initialize on load
+            refreshAuthUI();
+            // ---------- End Change 3 ----------
+
+
+
             const sendButton = document.getElementById('sendButton');
             const userInput = document.getElementById('userInput');
             const chatArea = document.getElementById('chatArea');
@@ -706,24 +799,47 @@ I've generated ${workflow.steps.length} comprehensive analyses. Review the insig
                         parts: [{ text: finalPrompt }]
                     });
                     
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-                    
-                    const payload = {
-                        systemInstruction: {
-                            parts: [{ text: `You are a professional business consultant named Bob. Your role is to provide clear, actionable, and well-structured responses to business-related queries. Use Markdown formatting.` }]
-                        },
-                        contents: chatHistory,
-                        tools: [{ "google_search": {} }],
-                    };
-                    
-                    const response = await fetch(apiUrl, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(payload)
-                    });
-                    
-                    const result = await response.json();
-                    const aiText = result?.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't process that request.";
+                    // Get current user session
+                const { data: { session } } = await supabase.auth.getSession();
+                const userId = session?.user?.id || 'anonymous';
+                
+                // Prepare the message data for Worker
+                const workerPayload = {
+                    message: prompt,
+                    userId: userId,
+                    chatHistory: chatHistory,
+                    systemInstruction: "You are a professional business consultant named Bob. Your role is to provide clear, actionable, and well-structured responses to business-related queries. Use Markdown formatting."
+                };
+                
+                // Call Worker backend instead of direct Gemini API
+                const response = await fetch(`${WORKER_URL}/chat`, {
+                    method: "POST",
+                    headers: { 
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${session?.access_token || ''}`
+                    },
+                    body: JSON.stringify(workerPayload)
+                });
+                
+                const result = await response.json();
+                
+                // Check for rate limit
+                if (response.status === 429) {
+                    chatArea.removeChild(loadingBubble);
+                    alert("You've reached your daily limit. Please try again tomorrow.");
+                    return;
+                }
+                
+                // Extract AI response from Worker
+                const aiText = result?.response || result?.text || "Sorry, I couldn't process that request.";
+                
+                // Update rate limit display
+                if (result.usage) {
+                    document.getElementById('requestCount').textContent = `${result.usage.count} / ${result.usage.limit}`;
+                    const percentage = (result.usage.count / result.usage.limit) * 100;
+                    document.getElementById('usageBar').style.width = `${percentage}%`;
+                }
+
                     
                     chatArea.removeChild(loadingBubble);
                     
@@ -1087,28 +1203,40 @@ Analyzing ${topic}...`, 'assistant');
                 }
                 
                 try {
-                    const apiKey = apiKeyInput.value.trim();
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`;
-                    
-                    const payload = {
-                        systemInstruction: {
-                            parts: [{ text: `You are Bob, an autonomous research consultant conducting independent research. Provide thorough, well-researched insights.` }]
-                        },
-                        contents: [{
-                            role: "user",
-                            parts: [{ text: phasePrompt }]
-                        }],
-                        tools: [{ "google_search": {} }]
-                    };
-                    
-                    const response = await fetch(apiUrl, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(payload)
-                    });
-                    
-                    const result = await response.json();
-                    const findings = result?.candidates?.[0]?.content?.parts?.[0]?.text || "Research phase incomplete.";
+                                    // Get current user session
+                const { data: { session } } = await supabase.auth.getSession();
+                const userId = session?.user?.id || 'anonymous';
+                
+                // Prepare Worker payload for research
+                const workerPayload = {
+                    userId: userId,
+                    messages: [{
+                        role: "user",
+                        parts: [{ text: phasePrompt }]
+                    }],
+                    systemInstruction: {
+                        parts: [{ text: `You are Bob, an autonomous research consultant conducting independent research. Provide thorough, well-researched insights.` }]
+                    },
+                    tools: [{ "google_search": {} }]
+                };
+                
+                // Call Worker backend
+                const response = await fetch(`${WORKER_URL}/api/chat`, {
+                    method: "POST",
+                    headers: { 
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${session?.access_token || ''}`
+                    },
+                    body: JSON.stringify(workerPayload)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Worker API error: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                const findings = result?.candidates?.[0]?.content?.parts?.[0]?.text || "Research phase incomplete.";
+
                     
                     activeResearchSession.findings.push({
                         phase: phase,
@@ -1367,26 +1495,30 @@ Each expert will provide their specialized perspective...`, 'assistant');
             }
             
             async function getAgentPerspective(agent, topic) {
-                try {
-                    const apiKey = apiKeyInput.value.trim();
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`;
-                    
-                    const payload = {
-                        systemInstruction: {
-                            parts: [{ text: agent.systemPrompt }]
-                        },
-                        contents: [{
-                            role: "user",
-                            parts: [{ text: `Provide your expert perspective on: "${topic}". Focus on your specialty: ${agent.expertise}. Be concise but insightful (3-5 key points).` }]
-                        }],
-                        tools: [{ "google_search": {} }]
-                    };
-                    
-                    const response = await fetch(apiUrl, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(payload)
-                    });
+    try {
+        // Get current user session
+        const { data: { session } } = await supabase.auth.getSession();
+        const userId = session?.user?.id || 'anonymous';
+        
+        const workerPayload = {
+            userId: userId,
+            messages: [{
+                role: "user",
+                parts: [{ text: `Analyze this topic from your perspective: ${topic}` }]
+            }],
+            systemInstruction: {
+                parts: [{ text: agent.systemPrompt }]
+            }
+        };
+        
+        const response = await fetch(`${WORKER_URL}/api/chat`, {
+            method: "POST",
+            headers: { 
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${session?.access_token || ''}`
+            },
+            body: JSON.stringify(workerPayload)
+        });
                     
                     const result = await response.json();
                     return result?.candidates?.[0]?.content?.parts?.[0]?.text || "Perspective unavailable.";
@@ -1411,42 +1543,48 @@ Synthesize these perspectives into:
 4. **Integrated Recommendation** - A unified strategic recommendation`;
                 
                 try {
-                    const apiKey = apiKeyInput.value.trim();
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`;
-                    
-                    const payload = {
-                        systemInstruction: {
-                            parts: [{ text: 'You are Bob, synthesizing insights from multiple expert consultants into cohesive recommendations.' }]
-                        },
-                        contents: [{
-                            role: "user",
-                            parts: [{ text: synthesisPrompt }]
-                        }]
-                    };
-                    
-                    const response = await fetch(apiUrl, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(payload)
-                    });
-                    
-                    const result = await response.json();
-                    const synthesis = result?.candidates?.[0]?.content?.parts?.[0]?.text || "Synthesis incomplete.";
-                    
-                    createMessageBubble(`# 🎯 Integrated Expert Analysis
+                    // Get current user session
+const { data: { session } } = await supabase.auth.getSession();
+const userId = session?.user?.id || 'anonymous';
 
-                    ${synthesis}
+const workerPayload = {
+    userId: userId,
+    messages: [{
+        role: "user",
+        parts: [{ text: synthesisPrompt }]
+    }],
+    systemInstruction: {
+        parts: [{ text: 'You are Bob, synthesizing insights from multiple expert consultants into cohesive recommendations.' }]
+    }
+};
 
-                    ---
+const synthesisResponse = await fetch(`${WORKER_URL}/api/chat`, {
+    method: "POST",
+    headers: { 
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${session?.access_token || ''}`
+    },
+    body: JSON.stringify(workerPayload)
+});
 
-                    ## ✅ Multi-Agent Collaboration Summary
+const result = await synthesisResponse.json();
+const synthesis = result?.candidates?.[0]?.content?.parts?.[0]?.text || "Synthesis incomplete.";
 
-                    - **Expert Consultants:** ${expertInsights.length} specialists consulted
-                    - **Perspectives Analyzed:** Strategy, Financial, and Operations viewpoints
-                    - **Synthesis Status:** Complete - All insights integrated into unified recommendations
-                    - **Ready for:** Strategic planning and implementation
+createMessageBubble(`# 🎯 Integrated Expert Analysis
 
-                    **💡 Tip:** Export this analysis for your strategic planning sessions!`, 'assistant');
+${synthesis}
+
+---
+
+## ✅ Multi-Agent Collaboration Summary
+
+- **Expert Consultants:** ${expertInsights.length} specialists consulted
+- **Perspectives Analyzed:** Strategy, Financial, and Operations viewpoints
+- **Synthesis Status:** Complete - All insights integrated into unified recommendations
+- **Ready for:** Strategic planning and implementation
+
+**💡 Tip:** Export this analysis for your strategic planning sessions!`, 'assistant');
+
 
                     
                 } catch (error) {
@@ -2289,57 +2427,63 @@ The table must be the last element of the response before the suggestions block.
                 let retryCount = 0;
                 while (retryCount < MAX_RETRIES) {
                     try {
-                        const apiKey = apiKeyInput.value.trim();
-                        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-                        
-                        const payload = {
-                            systemInstruction: {
-                                parts: [{ text: `You are a professional business consultant named Bob. Your role is to provide clear, actionable, and well-structured responses to business-related queries. Be concise and to the point while providing high-quality analysis. Use Markdown to format your output. A typical response should follow this structure: a main title (#), followed by a short summary or introduction, then several distinct sections. Each section should begin with a **subheading (##)**, followed by a short descriptive sentence. For subsections within a section, use a level three heading (###). For individual points within a list, use a bolded phrase followed by a bulleted list.For structured analyses (like SWOT, Market Entry, or Competitor Benchmarking), you must create a relevant, professional-grade Markdown table that is appropriate for the requested analysis.ONLY when generating a PESTLE analysis, you MUST use the following specific Markdown format, ensuring the "Key Findings" column uses bullet points with spacing:\`\`\`markdown| Factor | Key Findings ||---|---|| Political | * [concise finding 1] <br> * [concise finding 2] || Economic | * [concise finding 1] <br> * [concise finding 2] || Social | * [concise finding 1] <br> * [concise finding 2] || Technological | * [concise finding 1] <br> * [concise finding 2] || Legal | * [concise finding 1] <br> * [concise finding 2] || Environmental | * [concise finding 1] <br> * [concise finding 2] |\`\`\`The table must be the last piece of content before the suggestions. Ensure clarity and professionalism by using Markdown for titles, subheadings, bold text, bullet points, and the summary table. The content must be grounded in real-time information. You must use the Google Search tool for every query to get the most accurate and up-to-date data. At the end of every response, suggest 2-3 short, relevant follow-up questions. Format these suggestions as a single line, separated by a pipe symbol, and preceded by the text \`---SUGGESTIONS---\`. For example: \`---SUGGESTIONS---What is a PESTLE analysis?|How can I improve my marketing plan?|What is a market entry strategy?\`` }]
-                            },
-                            contents: chatHistory,
-                            tools: [{ "google_search": {} }],
-                        };
-                        
-                        const response = await fetch(apiUrl, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(payload)
-                        });
-                        
-                        if (response.status === 429) { // Handle rate limiting
-                            if (retryCount < MAX_RETRIES - 1) {
-                                retryCount++;
-                                const delay = Math.pow(2, retryCount) * 1000; // Exponential backoff (2s, 4s, 8s)
-                                await new Promise(resolve => setTimeout(resolve, delay));
-                                continue; // Retry the loop
-                            } else {
-                                throw new Error("Rate limit exceeded after multiple retries.");
-                            }
-                        }
-                        if (!response.ok) {
-                            const errorText = await response.text();
-                            throw new Error(`API call failed with status ${response.status}: ${errorText}`);
-                        }
-                        
-                        const result = await response.json();
-                        const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
-                        
-                        // Remove loading indicator
-                        chatArea.removeChild(loadingBubble);
-                        
-                        if (text) {
-                            // Add the assistant's response to the chat history and display it
-                            chatHistory.push({
-                                role: "model",
-                                parts: [{ text: text }]
-                            });
-                            createMessageBubble(text, "model");
-                        } else {
-                            createMessageBubble("Sorry, I couldn't generate a response. Please try again.", "assistant");
-                        }
-
-                        // PHASE 3: Learn from this interaction
-                        learnFromInteraction(prompt, text);
+                                        // Get current user session
+                const { data: { session } } = await supabase.auth.getSession();
+                const userId = session?.user?.id || 'anonymous';
+                
+                // Prepare Worker payload
+                const workerPayload = {
+                    userId: userId,
+                    messages: chatHistory,
+                    systemInstruction: {
+                        parts: [{ text: `You are a professional business consultant named Bob. Your role is to provide clear, actionable, and well-structured responses to business-related queries. Be concise and to the point while providing high-quality analysis. Use Markdown to format your output. A typical response should follow this structure: a main title (#), followed by a short summary or introduction, then several distinct sections. Each section should begin with a **subheading (##)**, followed by a short descriptive sentence. For subsections within a section, use a level three heading (###). For individual points within a list, use a bolded phrase followed by a bulleted list.For structured analyses (like SWOT, Market Entry, or Competitor Benchmarking), you must create a relevant, professional-grade Markdown table that is appropriate for the requested analysis.ONLY when generating a PESTLE analysis, you MUST use the following specific Markdown format, ensuring the \"Key Findings\" column uses bullet points with spacing:\`\`\`markdown| Factor | Key Findings ||---|---|| Political | * [concise finding 1] <br> * [concise finding 2] || Economic | * [concise finding 1] <br> * [concise finding 2] || Social | * [concise finding 1] <br> * [concise finding 2] || Technological | * [concise finding 1] <br> * [concise finding 2] || Legal | * [concise finding 1] <br> * [concise finding 2] || Environmental | * [concise finding 1] <br> * [concise finding 2] |\`\`\`The table must be the last piece of content before the suggestions. Ensure clarity and professionalism by using Markdown for titles, subheadings, bold text, bullet points, and the summary table. The content must be grounded in real-time information. You must use google_search tool when relevant.` }]
+                    },
+                    tools: [{ "google_search": {} }]
+                };
+                
+                // Call Worker backend
+                const response = await fetch(`${WORKER_URL}/api/chat`, {
+                    method: "POST",
+                    headers: { 
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${session?.access_token || ''}`
+                    },
+                    body: JSON.stringify(workerPayload)
+                });
+                
+                // Handle rate limit error
+                if (response.status === 429) {
+                    chatArea.removeChild(loadingBubble);
+                    const errorData = await response.json();
+                    alert(`You've reached your daily limit (${errorData.limit} requests). Please try again tomorrow.`);
+                    return;
+                }
+                
+                // Check if response is OK
+                if (!response.ok) {
+                    chatArea.removeChild(loadingBubble);
+                    const errorData = await response.json();
+                    alert(`Error: ${errorData.error || 'Failed to get response from Bob'}`);
+                    return;
+                }
+                
+                const result = await response.json();
+                const aiText = result?.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't process that request.";
+                
+                                // Add AI response to chat history
+                                chatHistory.push({
+                                    role: "model",
+                                    parts: [{ text: aiText }]
+                                });
+                                
+                                // Remove loading indicator
+                                chatArea.removeChild(loadingBubble);
+                                
+                                // Display AI response
+                                createMessageBubble(aiText, "model");
+                                
+                                // PHASE 3: Learn from this interaction
+                                learnFromInteraction(prompt, aiText);
                         
                         break; // Exit the retry loop on success
                     } catch (error) {
@@ -2454,33 +2598,42 @@ The table must be the last element of the response before the suggestions block.
             Use clear formatting with bullet points for easy readability. Be professional and concise.`;
         
                     // Create temporary history with the takeaway request
-                    const tempHistory = [...chatHistory, {
-                        role: "user",
-                        parts: [{ text: takeawayPrompt }]
-                    }];
-        
-                    // Make API call to Gemini
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-        
-                    const payload = {
-                        systemInstruction: {
-                            parts: [{ text: `You are Bob, a professional business consultant. Generate a clear, well-structured conversation summary using Markdown formatting. Focus on clarity, professionalism, and readability.` }]
-                        },
-                        contents: tempHistory
-                    };
-        
-                    const response = await fetch(apiUrl, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(payload)
-                    });
-        
-                    if (!response.ok) {
-                        throw new Error(`API call failed with status ${response.status}`);
+                const tempHistory = [...chatHistory, {
+                    role: "user",
+                    parts: [{ text: takeawayPrompt }]
+                }];
+                
+                // Get current user session
+                const { data: { session } } = await supabase.auth.getSession();
+                const userId = session?.user?.id || 'anonymous';
+                
+                // Prepare Worker payload for takeaway
+                const workerPayload = {
+                    userId: userId,
+                    messages: tempHistory,
+                    systemInstruction: {
+                        parts: [{ text: `You are Bob, a professional business consultant. Generate a clear, well-structured conversation summary using Markdown formatting. Focus on clarity, professionalism, and readability.` }]
                     }
-        
-                    const result = await response.json();
-                    const takeawaysText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                };
+                
+                // Call Worker backend
+                const response = await fetch(`${WORKER_URL}/api/chat`, {
+                    method: "POST",
+                    headers: { 
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${session?.access_token || ''}`
+                    },
+                    body: JSON.stringify(workerPayload)
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`API call failed: ${errorData.error || response.status}`);
+                }
+                
+                const result = await response.json();
+                const takeawaysText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+
         
                     // Remove loading indicator
                     chatArea.removeChild(loadingBubble);
