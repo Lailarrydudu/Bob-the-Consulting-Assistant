@@ -320,17 +320,9 @@
         </div>
     </div>
     
-            <script>
-            // Supabase Configuration
-            const SUPABASE_URL = 'https://lzssreqisczildjyycgs.supabase.co';
-            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6c3NyZXFpc2N6aWxkanl5Y2dzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5NzA3ODYsImV4cCI6MjA3NjU0Njc4Nn0.CWBqzi-U5AWtekrrXUMcFnCMYJkHYJg1fO5ShK03kM0';
-            const WORKER_URL = 'https://bob-backend.a0968336791.workers.dev';
-            
-            // Initialize Supabase client
-            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            
-            (function() {
-
+    <script>
+        (function() {
+            const apiKeyInput = document.getElementById('apiKeyInput');
             const sendButton = document.getElementById('sendButton');
             const userInput = document.getElementById('userInput');
             const chatArea = document.getElementById('chatArea');
