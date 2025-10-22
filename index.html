@@ -2761,6 +2761,9 @@ The table must be the last element of the response before the suggestions block.
                 e.stopPropagation(); 
                 toggleMenu(executionMenu, executionDropdownBtn);
             });
+
+            populateMenus();
+                
             // NEW: Listener for My Prompts
             myPromptsDropdownBtn.addEventListener('click', (e) => { // NEW CODE
                 e.stopPropagation(); 
