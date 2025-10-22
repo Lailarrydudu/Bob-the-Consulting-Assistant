@@ -275,7 +275,7 @@
                             Initial Setup
                             <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                         </button>
-                        <div id="initialSetupMenu" class="absolute hidden top-full mt-2 w-56 bg-gray-800 rounded-lg shadow-2xl z-10 border border-emerald-500 p-2">
+                        <div id="initialSetupMenu" class="absolute top-full mt-2 w-56 bg-gray-800 rounded-lg shadow-2xl z-10 border border-emerald-500 p-2" style="display:none;">
                             </div>
                     </div>
                     <div class="relative">
@@ -283,7 +283,7 @@
                             Solution Design
                             <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                         </button>
-                        <div id="solutionDesignMenu" class="absolute hidden top-full mt-2 w-56 bg-gray-800 rounded-lg shadow-2xl z-10 border border-emerald-500 p-2">
+                        <div id="solutionDesignMenu" class="absolute top-full mt-2 w-56 bg-gray-800 rounded-lg shadow-2xl z-10 border border-emerald-500 p-2" style="display:none;">
                             </div>
                     </div>
                 </div>
@@ -294,7 +294,7 @@
                             Analysis
                             <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                         </button>
-                        <div id="analysisMenu" class="absolute hidden top-full mt-2 w-56 bg-gray-800 rounded-lg shadow-2xl z-10 border border-emerald-500 p-2">
+                        <div id="analysisMenu" class="absolute top-full mt-2 w-56 bg-gray-800 rounded-lg shadow-2xl z-10 border border-emerald-500 p-2" style="display:none;">
                             </div>
                     </div>
                     <div class="relative">
@@ -302,7 +302,7 @@
                             Execution
                             <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                         </button>
-                        <div id="executionMenu" class="absolute hidden top-full mt-2 w-56 bg-gray-800 rounded-lg shadow-2xl z-10 border border-emerald-500 p-2">
+                        <div id="executionMenu" class="absolute top-full mt-2 w-56 bg-gray-800 rounded-lg shadow-2xl z-10 border border-emerald-500 p-2" style="display:none;">
                             </div>
                     </div>
                 </div>
@@ -2688,22 +2688,22 @@ The table must be the last element of the response before the suggestions block.
             
             // --- DROPDOWN TOGGLE LOGIC ---
 
-                        function toggleMenu(menuElement, buttonElement) {
+                                    function toggleMenu(menuElement, buttonElement) {
                 // Hide ALL menus first
-                initialSetupMenu.classList.add('hidden');
-                analysisMenu.classList.add('hidden');
-                solutionDesignMenu.classList.add('hidden');
-                executionMenu.classList.add('hidden');
+                initialSetupMenu.style.display = 'none';
+                analysisMenu.style.display = 'none';
+                solutionDesignMenu.style.display = 'none';
+                executionMenu.style.display = 'none';
                 
-                // Check if the menu we want to toggle is currently hidden
-                const isHidden = menuElement.classList.contains('hidden');
+                // Check if the menu we want is currently hidden
+                const isHidden = (menuElement.style.display === 'none' || !menuElement.style.display);
                 
                 // If it was hidden, show it
                 if (isHidden) {
-                    menuElement.classList.remove('hidden');
+                    menuElement.style.display = 'block';
                 }
-                // If it was showing, it's now hidden (from the line above)
             }
+
 
                         // Phase dropdown listeners - Use the toggleMenu function
             initialSetupDropdownBtn.addEventListener('click', (e) => {
