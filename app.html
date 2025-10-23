@@ -197,9 +197,10 @@
         }
 
             /* Action buttons - Fixed size and spacing */
-            .action-btn {
-                width: 100% !important;
-                min-width: 200px !important;
+                        .action-btn {
+                width: 220px !important;
+                min-width: 220px !important;
+                max-width: 220px !important;
                 height: 50px !important;
                 background-color: #d1d5db !important;
                 color: #000000 !important;
@@ -213,8 +214,9 @@
                 white-space: nowrap !important;
                 border: none !important;
                 cursor: pointer !important;
+                margin-bottom: 0.75rem !important;
             }
-            
+
             .action-btn:hover {
                 background-color: #9ca3af !important;
             }
@@ -2687,75 +2689,39 @@ The table must be the last element of the response before the suggestions block.
             
             
             // --- DROPDOWN TOGGLE LOGIC ---
-
-                                    function toggleMenu(menuElement, buttonElement) {
-                // Hide ALL menus first
-                initialSetupMenu.style.display = 'none';
-                analysisMenu.style.display = 'none';
-                solutionDesignMenu.style.display = 'none';
-                executionMenu.style.display = 'none';
-                
-                // Check if the menu we want is currently hidden
-                const isHidden = (menuElement.style.display === 'none' || !menuElement.style.display);
-                
-                // If it was hidden, show it
-                if (isHidden) {
-                    menuElement.style.display = 'block';
-                }
+            function toggleMenu(menuElement, buttonElement) {
+                // Determine if any *other* menus are open and close them
+                [initialSetupMenu, analysisMenu, solutionDesignMenu, executionMenu].forEach(menu => {
+                    if (menu !== menuElement) {
+                        menu.classList.add('hidden');
+                    }
+                });
+                // Toggle the current menu
+                menuElement.classList.toggle('hidden');
             }
 
 
                         // Phase dropdown listeners - Use the toggleMenu function
+                        // Click listeners for the main dropdown buttons
             initialSetupDropdownBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                e.preventDefault();
+                e.stopPropagation(); 
                 toggleMenu(initialSetupMenu, initialSetupDropdownBtn);
             });
-            
             analysisDropdownBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                e.preventDefault();
+                e.stopPropagation(); 
                 toggleMenu(analysisMenu, analysisDropdownBtn);
             });
-            
             solutionDesignDropdownBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                e.preventDefault();
+                e.stopPropagation(); 
                 toggleMenu(solutionDesignMenu, solutionDesignDropdownBtn);
             });
-            
             executionDropdownBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                e.preventDefault();
+                e.stopPropagation(); 
                 toggleMenu(executionMenu, executionDropdownBtn);
             });
-            
-            // Close all menus when clicking anywhere else
+            // Listener to close menus when clicking anywhere else on the document
             document.addEventListener('click', (e) => {
-                // Don't close if clicking on a dropdown button or menu
-                if (!e.target.closest('.dropdown-btn') && !e.target.closest('[id$="Menu"]')) {
-                    initialSetupMenu.classList.add('hidden');
-                    analysisMenu.classList.add('hidden');
-                    solutionDesignMenu.classList.add('hidden');
-                    executionMenu.classList.add('hidden');
-                }
-            });
-
-            
-            // Initialize dropdown menus with content
-            populateMenus();
-
-
-            // NEW: Listener for My Prompts
-            myPromptsDropdownBtn.addEventListener('click', (e) => { // NEW CODE
-                e.stopPropagation(); 
-                toggleMenu(myPromptsMenu, myPromptsDropdownBtn);
-            });
-            
-            // Listener to close menus when clicking anywhere else on the document (UPDATED)
-            document.addEventListener('click', (e) => {
-                // ADD myPromptsMenu to the array of menus
-                const menus = [initialSetupMenu, analysisMenu, solutionDesignMenu, executionMenu, myPromptsMenu]; // CHANGED
+                const menus = [initialSetupMenu, analysisMenu, solutionDesignMenu, executionMenu];
                 
                 let clickedInsideMenu = false;
                 for (const menu of menus) {
@@ -2768,6 +2734,15 @@ The table must be the last element of the response before the suggestions block.
                     // If the click was not inside any menu, hide all menus
                     menus.forEach(menu => menu.classList.add('hidden'));
                 }
+            });
+
+            // Initialize dropdown menus with content
+            populateMenus();
+
+            // NEW: Listener for My Prompts
+            myPromptsDropdownBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); 
+                toggleMenu(myPromptsMenu, myPromptsDropdownBtn);
             });
         })(); // End of IIFE
     </script>
