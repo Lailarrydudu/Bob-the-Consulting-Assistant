@@ -259,8 +259,8 @@
                 </div>
             </div> 
 
-                                   <!-- Action Buttons Row -->
-            <div class="flex gap-4 items-start">
+                 <!-- Action Buttons Column (Top-Right) -->
+            <div class="flex flex-col gap-4 items-end">
                 <!-- My Prompts Button with Dropdown -->
                 <div class="relative">
                     <button id="myPromptsDropdownBtn" class="px-3 py-1.5 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition duration-200 inline-flex items-center justify-center font-bold text-xs">
@@ -302,19 +302,19 @@
             </div>
         </div> 
         
-        <!-- Chat Area and Clear Chat Button Container -->
-        <div class="flex justify-between items-start mb-4">
-            <!-- Chat Area -->
-            <div id="chatArea" class="space-y-4 max-h-96 overflow-y-auto flex-1 mr-4">
-                <div class="flex justify-start">
-                    <div class="bg-emerald-100 text-emerald-700 rounded-xl p-3 max-w-sm shadow-md">
-                        Hi there! I'm Bob. How can I assist you today?
-                    </div>
+        <!-- Chat Area -->
+        <div id="chatArea" class="space-y-4 max-h-96 overflow-y-auto mb-4">
+            <div class="flex justify-start">
+                <div class="bg-emerald-100 text-emerald-700 rounded-xl p-3 max-w-sm shadow-md">
+                    Hi there! I'm Bob. How can I assist you today?
                 </div>
             </div>
-            
-            <!-- Clear Chat Button -->
+        </div>
+        
+        <!-- Clear Chat Button (Aligned with Bob's greeting) -->
+        <div class="flex justify-end mb-4">
             <button id="clearChatBtn" class="px-3 py-1.5 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition duration-200 font-bold text-xs border-2 border-red-500">Clear Chat</button>
+        </div>
 
         
         <div class="flex items-center space-x-2">
