@@ -259,11 +259,11 @@
                 </div>
             </div> 
 
-                 <!-- Action Buttons Column (Top-Right) -->
+                <!-- Action Buttons Column (Top-Right) -->
             <div class="flex flex-col gap-4 items-end">
                 <!-- My Prompts Button with Dropdown -->
-                <div class="relative">
-                    <button id="myPromptsDropdownBtn" class="px-3 py-1.5 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition duration-200 inline-flex items-center justify-center font-bold text-xs">
+                <div class="relative w-48">
+                    <button id="myPromptsDropdownBtn" class="w-full px-3 py-1.5 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition duration-200 inline-flex items-center justify-center font-bold text-xs">
                         My Prompts
                         <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
@@ -272,13 +272,13 @@
                 </div>
 
                 <!-- Generate Takeaways Button -->
-                <button id="generateTakeawaysBtn" class="px-3 py-1.5 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition duration-200 font-bold text-xs">
+                <button id="generateTakeawaysBtn" class="w-48 px-3 py-1.5 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition duration-200 font-bold text-xs">
                     Generate Takeaways
                 </button>
 
                 <!-- Run Workflow Button with Dropdown -->
-                <div class="relative">
-                    <button id="workflowBtn" class="px-3 py-1.5 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition duration-200 font-bold text-xs inline-flex items-center">
+                <div class="relative w-48">
+                    <button id="workflowBtn" class="w-full px-3 py-1.5 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition duration-200 font-bold text-xs inline-flex items-center justify-center">
                         Run Workflow
                         <svg class="w-3 h-3 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
@@ -296,23 +296,22 @@
                 </div>
 
                 <!-- Export Chat Button -->
-                <button id="exportBtn" class="px-3 py-1.5 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition duration-200 font-bold text-xs">
+                <button id="exportBtn" class="w-48 px-3 py-1.5 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition duration-200 font-bold text-xs">
                     Export Chat
                 </button>
             </div>
         </div> 
         
-        <!-- Chat Area -->
+                <!-- Chat Area -->
         <div id="chatArea" class="space-y-4 max-h-96 overflow-y-auto mb-4">
-            <div class="flex justify-start">
-                <div class="bg-emerald-100 text-emerald-700 rounded-xl p-3 max-w-sm shadow-md">
-                    Hi there! I'm Bob. How can I assist you today?
-                </div>
-            </div>
         </div>
+
         
-        <!-- Clear Chat Button (Aligned with Bob's greeting) -->
-        <div class="flex justify-end mb-4">
+                <!-- Greeting Message and Clear Chat Button -->
+        <div class="flex justify-between items-start mb-4">
+            <div class="bg-emerald-100 text-emerald-700 rounded-xl p-3 max-w-sm shadow-md">
+                Hi there! I'm Bob. How can I assist you today?
+            </div>
             <button id="clearChatBtn" class="px-3 py-1.5 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition duration-200 font-bold text-xs border-2 border-red-500">Clear Chat</button>
         </div>
 
