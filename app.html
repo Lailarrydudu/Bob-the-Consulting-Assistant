@@ -259,60 +259,63 @@
                 </div>
             </div> 
 
-                        <div class="relative self-start text-right">
-                <button id="myPromptsDropdownBtn" class="px-3 py-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200 inline-flex items-center justify-center font-bold text-xs">
-                    My Prompts
-                    <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                </button>
-                <div id="myPromptsMenu" class="absolute hidden top-full mt-2 w-56 bg-gray-800 rounded-lg shadow-2xl z-10 border border-emerald-500 p-2 right-0">
+                                   <!-- Action Buttons Row -->
+            <div class="flex gap-4 items-start">
+                <!-- My Prompts Button with Dropdown -->
+                <div class="relative">
+                    <button id="myPromptsDropdownBtn" class="px-3 py-1.5 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition duration-200 inline-flex items-center justify-center font-bold text-xs">
+                        My Prompts
+                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div id="myPromptsMenu" class="absolute hidden top-full mt-2 w-56 bg-gray-800 rounded-lg shadow-2xl z-10 border border-emerald-500 p-2 right-0">
                     </div>
+                </div>
+
+                <!-- Generate Takeaways Button -->
+                <button id="generateTakeawaysBtn" class="px-3 py-1.5 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition duration-200 font-bold text-xs">
+                    Generate Takeaways
+                </button>
+
+                <!-- Run Workflow Button with Dropdown -->
+                <div class="relative">
+                    <button id="workflowBtn" class="px-3 py-1.5 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition duration-200 font-bold text-xs inline-flex items-center">
+                        Run Workflow
+                        <svg class="w-3 h-3 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div id="workflowMenu" class="absolute hidden top-full right-0 mt-2 w-64 bg-gray-800 rounded-lg shadow-2xl z-10 border border-green-500 p-2">
+                        <button class="workflow-option w-full text-left px-3 py-2 text-sm text-gray-100 hover:bg-gray-700 rounded" data-workflow="market-entry-strategy">
+                            Market Entry Strategy
+                        </button>
+                        <button class="workflow-option w-full text-left px-3 py-2 text-sm text-gray-100 hover:bg-gray-700 rounded" data-workflow="business-health-check">
+                            Business Health Check
+                        </button>
+                        <button class="workflow-option w-full text-left px-3 py-2 text-sm text-gray-100 hover:bg-gray-700 rounded" data-workflow="competitive-analysis">
+                            Competitive Analysis
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Export Chat Button -->
+                <button id="exportBtn" class="px-3 py-1.5 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition duration-200 font-bold text-xs">
+                    Export Chat
+                </button>
             </div>
         </div> 
         
-        <div class="mb-4 text-right">
-            <button id="generateTakeawaysBtn" class="px-3 py-1.5 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition duration-200 font-bold text-xs">
-                Generate Takeaways
-            </button>
-        </div>
+        <!-- Chat Area and Clear Chat Button Container -->
+        <div class="flex justify-between items-start mb-4">
+            <!-- Chat Area -->
+            <div id="chatArea" class="space-y-4 max-h-96 overflow-y-auto flex-1 mr-4">
+                <div class="flex justify-start">
+                    <div class="bg-emerald-100 text-emerald-700 rounded-xl p-3 max-w-sm shadow-md">
+                        Hi there! I'm Bob. How can I assist you today?
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Clear Chat Button -->
+            <button id="clearChatBtn" class="px-3 py-1.5 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition duration-200 font-bold text-xs border-2 border-red-500">Clear Chat</button>
 
-                
-        <div class="mb-4 text-right">
-            <div class="relative inline-block">
-                <button id="workflowBtn" class="px-3 py-1.5 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-200 font-bold text-xs inline-flex items-center">
-                    Run Workflow
-                    <svg class="w-3 h-3 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                </button>
-                <div id="workflowMenu" class="absolute hidden top-full right-0 mt-2 w-64 bg-gray-800 rounded-lg shadow-2xl z-10 border border-green-500 p-2">
-                    <button class="workflow-option w-full text-left px-3 py-2 text-sm text-gray-100 hover:bg-gray-700 rounded" data-workflow="market-entry-strategy">
-                        Market Entry Strategy
-                    </button>
-                    <button class="workflow-option w-full text-left px-3 py-2 text-sm text-gray-100 hover:bg-gray-700 rounded" data-workflow="business-health-check">
-                        Business Health Check
-                    </button>
-                    <button class="workflow-option w-full text-left px-3 py-2 text-sm text-gray-100 hover:bg-gray-700 rounded" data-workflow="competitive-analysis">
-                        Competitive Analysis
-                    </button>
-                </div>
-            </div>
-        </div>
-                
-        <div class="mb-4 text-right">
-            <button id="exportBtn" class="px-3 py-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200 font-bold text-xs">
-                Export Chat
-            </button>
-        </div>
-        
-        <div class="mb-4 text-right">
-            <button id="clearChatBtn" class="px-3 py-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-200 font-bold text-xs">Clear Chat</button>
-        </div>
-        
-        <div id="chatArea" class="space-y-4 max-h-96 overflow-y-auto mb-6">
-            <div class="flex justify-start">
-                <div class="bg-emerald-100 text-emerald-700 rounded-xl p-3 max-w-sm shadow-md">
-                    Hi there! I'm Bob. How can I assist you today?
-                </div>
-            </div>
-        </div>
         
         <div class="flex items-center space-x-2">
             <textarea id="userInput" placeholder="Ask a question... (Enter to Send, Shift + Enter for Newline)" rows="1" class="flex-grow px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-700 text-white resize-none overflow-y-hidden"></textarea>
