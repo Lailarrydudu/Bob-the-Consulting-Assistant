@@ -1,7 +1,7 @@
 ---
 title: Consulting Assistant Agent
 emoji: ❇️
-colorFrom: green
+colorFrom: blue
 colorTo: blue
 sdk: gradio
 sdk_version: 5.49.1
