@@ -1151,7 +1151,6 @@ Analyzing ${topic}...`, 'assistant');
 
                 
                 try {
-                    const apiKey = apiKeyInput.value.trim();
                     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`;
                     
                     const payload = {
@@ -2213,12 +2212,7 @@ The table must be the last element of the response before the suggestions block.
         async function sendMessage() {
             const prompt = userInput.value.trim();
             const apiKey = apiKeyInput.value.trim();
-            
-            if (!prompt) return;
-            if (!apiKey) {
-                createMessageBubble("Please enter your Gemini API key to proceed.", "assistant");
-                return;
-            }
+
             
             // ===== GOAL-BASED REASONING TRIGGER =====
             // Check if user is expressing a complex goal
@@ -2337,9 +2331,6 @@ The table must be the last element of the response before the suggestions block.
                 return;
             }
             // ===== END LEARNING INSIGHTS TRIGGER =====
-
-            // Save the API key to local storage
-            localStorage.setItem('geminiApiKey', apiKey);
                 
                 // Add user message to chat history and display it
                 chatHistory.push({
