@@ -713,21 +713,7 @@ I've generated ${workflow.steps.length} comprehensive analyses. Review the insig
                         })
                     });
 
-                    
-                    const payload = {
-                        systemInstruction: {
-                            parts: [{ text: `You are a professional business consultant named Bob. Your role is to provide clear, actionable, and well-structured responses to business-related queries. Use Markdown formatting.` }]
-                        },
-                        contents: chatHistory,
-                        tools: [{ "google_search": {} }],
-                    };
-                    
-                    const response = await fetch(apiUrl, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(payload)
-                    });
-                    
+   
                     const result = await response.json();
                     const aiText = result?.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't process that request.";
                     
@@ -1151,24 +1137,18 @@ Analyzing ${topic}...`, 'assistant');
 
                 
                 try {
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`;
                     
-                    const payload = {
-                        systemInstruction: {
-                            parts: [{ text: `You are Bob, an autonomous research consultant conducting independent research. Provide thorough, well-researched insights.` }]
-                        },
-                        contents: [{
-                            role: "user",
-                            parts: [{ text: phasePrompt }]
-                        }],
-                        tools: [{ "google_search": {} }]
-                    };
-                    
-                    const response = await fetch(apiUrl, {
+                                        const response = await fetch('/api/chat', {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(payload)
+                        body: JSON.stringify({
+                            systemInstruction: {
+                                parts: [{ text: `You are a professional business consultant named Bob...` }]
+                            },
+                            messages: chatHistory
+                        })
                     });
+
                     
                     const result = await response.json();
                     const findings = result?.candidates?.[0]?.content?.parts?.[0]?.text || "Research phase incomplete.";
@@ -1430,10 +1410,7 @@ Each expert will provide their specialized perspective...`, 'assistant');
             }
             
             async function getAgentPerspective(agent, topic) {
-                try {
-                    const apiKey = apiKeyInput.value.trim();
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`;
-                    
+                try {                    
                     const payload = {
                         systemInstruction: {
                             parts: [{ text: agent.systemPrompt }]
@@ -1502,10 +1479,7 @@ Each expert will provide their specialized perspective...`, 'assistant');
                 
                 Keep ALL points to 1-2 sentences maximum. Be specific and actionable.`;
                 
-                try {
-                    const apiKey = apiKeyInput.value.trim();
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`;
-                    
+                try {                    
                     const payload = {
                         systemInstruction: {
                             parts: [{ text: 'You are Bob, synthesizing insights from multiple expert consultants into cohesive recommendations.' }]
@@ -2211,7 +2185,6 @@ The table must be the last element of the response before the suggestions block.
                     // Function to handle sending the message
         async function sendMessage() {
             const prompt = userInput.value.trim();
-            const apiKey = apiKeyInput.value.trim();
 
             
             // ===== GOAL-BASED REASONING TRIGGER =====
@@ -2366,10 +2339,7 @@ The table must be the last element of the response before the suggestions block.
                 const MAX_RETRIES = 3;
                 let retryCount = 0;
                 while (retryCount < MAX_RETRIES) {
-                    try {
-                        const apiKey = apiKeyInput.value.trim();
-                        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-                        
+                    try {                        
                         const payload = {
                             systemInstruction: {
                                 parts: [{ text: `You are a professional business consultant named Bob. Your role is to provide clear, actionable, and well-structured responses to business-related queries. Be concise and to the point while providing high-quality analysis. Use Markdown to format your output. A typical response should follow this structure: a main title (#), followed by a short summary or introduction, then several distinct sections. Each section should begin with a **subheading (##)**, followed by a short descriptive sentence. For subsections within a section, use a level three heading (###). For individual points within a list, use a bolded phrase followed by a bulleted list.For structured analyses (like SWOT, Market Entry, or Competitor Benchmarking), you must create a relevant, professional-grade Markdown table that is appropriate for the requested analysis.ONLY when generating a PESTLE analysis, you MUST use the following specific Markdown format, ensuring the "Key Findings" column uses bullet points with spacing:\`\`\`markdown| Factor | Key Findings ||---|---|| Political | * [concise finding 1] <br> * [concise finding 2] || Economic | * [concise finding 1] <br> * [concise finding 2] || Social | * [concise finding 1] <br> * [concise finding 2] || Technological | * [concise finding 1] <br> * [concise finding 2] || Legal | * [concise finding 1] <br> * [concise finding 2] || Environmental | * [concise finding 1] <br> * [concise finding 2] |\`\`\`The table must be the last piece of content before the suggestions. Ensure clarity and professionalism by using Markdown for titles, subheadings, bold text, bullet points, and the summary table. The content must be grounded in real-time information. You must use the Google Search tool for every query to get the most accurate and up-to-date data. At the end of every response, suggest 2-3 short, relevant follow-up questions. Format these suggestions as a single line, separated by a pipe symbol, and preceded by the text \`---SUGGESTIONS---\`. For example: \`---SUGGESTIONS---What is a PESTLE analysis?|How can I improve my marketing plan?|What is a market entry strategy?\`` }]
@@ -2513,7 +2483,6 @@ The table must be the last element of the response before the suggestions block.
                 chatArea.scrollTop = chatArea.scrollHeight;
     
                 try {
-                    const apiKey = apiKeyInput.value.trim();
         
                     // Create the special takeaways prompt
                     const takeawayPrompt = `Based on our entire conversation above, please generate a comprehensive summary with the following structure:
