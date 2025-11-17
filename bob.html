@@ -210,11 +210,7 @@
                 <p class="sub-title">You ask. Bob answers.</p>
             </div>
         </div>
-        
-        <div class="mb-6">
-            <label for="apiKeyInput" class="block text-sm font-medium text-gray-100 mb-1">Enter your Gemini API Key:</label>
-            <input type="password" id="apiKeyInput" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-700 text-white" placeholder="Paste your API key here...">
-        </div>
+    
         
         <div class="flex justify-between mb-4">
             
@@ -324,7 +320,6 @@
     
     <script>
         (function() {
-            const apiKeyInput = document.getElementById('apiKeyInput');
             const sendButton = document.getElementById('sendButton');
             const userInput = document.getElementById('userInput');
             const chatArea = document.getElementById('chatArea');
@@ -681,9 +676,7 @@ I've generated ${workflow.steps.length} comprehensive analyses. Review the insig
             
             // Execute individual prompt step (reuses existing API call logic)
             async function executePromptStep(promptTemplate, userContext) {
-                const apiKey = apiKeyInput.value.trim();
-                
-                // Show "Thinking..." indicator
+                // Show loading indicator
                 const loadingBubble = document.createElement('div');
                 loadingBubble.classList.add('flex', 'justify-start');
                 loadingBubble.innerHTML = `
@@ -708,7 +701,18 @@ I've generated ${workflow.steps.length} comprehensive analyses. Review the insig
                         parts: [{ text: finalPrompt }]
                     });
                     
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                    // Call Cloudflare Worker instead of Gemini directly
+                    const response = await fetch('/api/chat', {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            systemInstruction: {
+                                parts: [{ text: `You are a professional business consultant named Bob. Your role is to provide clear, actionable, and well-structured responses to business-related queries. Use Markdown formatting.` }]
+                            },
+                            messages: chatHistory
+                        })
+                    });
+
                     
                     const payload = {
                         systemInstruction: {
@@ -1963,13 +1967,7 @@ The table must be the last element of the response before the suggestions block.
                 // 4. Apply the final height
                 textarea.style.height = `${newHeight}px`;
             }
-            // Load the API key from local storage and set up initial state
-            document.addEventListener('DOMContentLoaded', () => {
-                const savedKey = localStorage.getItem('geminiApiKey');
-                if (savedKey) {
-                    apiKeyInput.value = savedKey;
-                }
-                populateMenus();
+
                 
                 // --- CRITICAL: Calculate MIN_HEIGHT (1 line height) after DOM is ready ---
                 // Temporarily set height to auto to get the correct initial scroll height for an empty textarea
