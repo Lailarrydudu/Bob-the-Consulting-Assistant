@@ -2505,21 +2505,18 @@ The table must be the last element of the response before the suggestions block.
                         parts: [{ text: takeawayPrompt }]
                     }];
         
-                    // Make API call to Gemini
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-        
-                    const payload = {
-                        systemInstruction: {
-                            parts: [{ text: `You are Bob, a professional business consultant. Generate a clear, well-structured conversation summary using Markdown formatting. Focus on clarity, professionalism, and readability.` }]
-                        },
-                        contents: tempHistory
-                    };
-        
-                    const response = await fetch(apiUrl, {
+                    // Make API call through Cloudflare Worker
+                    const response = await fetch('/api/chat', {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(payload)
+                        body: JSON.stringify({
+                            systemInstruction: {
+                                parts: [{ text: `You are Bob, a professional business consultant. Generate a clear, well-structured conversation summary using Markdown formatting. Focus on clarity, professionalism, and readability.` }]
+                            },
+                            messages: takeawayMessages
+                        })
                     });
+
         
                     if (!response.ok) {
                         throw new Error(`API call failed with status ${response.status}`);
