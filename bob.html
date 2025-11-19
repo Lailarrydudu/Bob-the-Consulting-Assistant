@@ -2182,8 +2182,11 @@ The table must be the last element of the response before the suggestions block.
             }
             
                     // Function to handle sending the message
-        async function sendMessage() {
-            const prompt = userInput.value.trim();
+                    async function sendMessage() {
+                        const prompt = userInput.value.trim();
+                        if (!prompt) return; 
+
+
 
             
             // ===== GOAL-BASED REASONING TRIGGER =====
