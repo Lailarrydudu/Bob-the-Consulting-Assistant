@@ -1948,7 +1948,6 @@ The table must be the last element of the response before the suggestions block.
                 
                 // Initialize the size of the textarea
                 autoResizeTextarea(userInput);
-            });
 
             // --- NEW FUNCTION: Custom Prompts Logic (BOB V12) ---
             function loadCustomPrompts() {
@@ -2677,7 +2676,11 @@ The table must be the last element of the response before the suggestions block.
                     menus.forEach(menu => menu.classList.add('hidden'));
                 }
             });
-        )(); // End of IIFE
+
+            // --- NEW: Initialize the menus so they aren't empty ---
+            populateMenus(); 
+
+        })(); // End of IIFE
     </script>
 </body>
 </html>
