@@ -1435,8 +1435,8 @@ Each expert will provide their specialized perspective...`, 'assistant');
                         tools: [{ "google_search": {} }]
                     };
                     
-                    const response = await fetch(apiUrl, {
-                        method: "POST",
+                        const response = await fetch('/api/chat', {
+                            method: 'POST',
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify(payload)
                     });
@@ -1489,8 +1489,8 @@ Each expert will provide their specialized perspective...`, 'assistant');
                         }]
                     };
                     
-                    const response = await fetch(apiUrl, {
-                        method: "POST",
+                        const response = await fetch('/api/chat', {
+                            method: 'POST',
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify(payload)
                     });
@@ -2349,7 +2349,7 @@ The table must be the last element of the response before the suggestions block.
                             tools: [{ "google_search": {} }],
                         };
                         
-                        const response = await fetch(apiUrl, {
+                        const response = await fetch('/api/chat', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(payload)
