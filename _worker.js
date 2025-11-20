@@ -2,7 +2,11 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     
-    // Handle CORS preflight
+    // Normalize the path: remove trailing slash if present
+    // This fixes the issue where '/api/chat/' wouldn't match '/api/chat'
+    const path = url.pathname.endsWith('/') ? url.pathname.slice(0, -1) : url.pathname;
+
+    // Handle CORS preflight (for local testing or cross-origin usage)
     if (request.method === 'OPTIONS') {
       return new Response(null, {
         headers: {
@@ -13,21 +17,26 @@ export default {
       });
     }
     
-    // Only handle /api/chat requests
-    if (url.pathname === '/api/chat' && request.method === 'POST') {
+    // Intercept requests to /api/chat
+    if (path === '/api/chat' && request.method === 'POST') {
       try {
         const { messages, systemInstruction } = await request.json();
         
+        // Verify API Key exists
+        if (!env.GEMINI_API_KEY) {
+            throw new Error("GEMINI_API_KEY is not set in Cloudflare environment variables.");
+        }
+
         // Call Gemini API
         const geminiResponse = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${env.GEMINI_API_KEY}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${env.GEMINI_API_KEY}`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               systemInstruction,
               contents: messages,
-              tools: [{ google_search: {} }],
+              // tools: [{ google_search: {} }], // Uncomment if you have Google Search enabled in Gemini
             }),
           }
         );
@@ -51,7 +60,7 @@ export default {
       }
     }
     
-    // For all other requests, pass through to Pages
+    // For all other requests, pass through to standard static assets
     return env.ASSETS.fetch(request);
   },
 };
