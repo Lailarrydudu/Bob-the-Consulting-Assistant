@@ -13,11 +13,9 @@ export default {
       });
     }
     
-    // ROBUST MATCHING: Check if the path contains '/api/chat' AND is a POST request
-    // This prevents "405 Not Allowed" by ensuring the Worker catches the request
+    // Check if the path contains '/api/chat' AND is a POST request
     if (url.pathname.includes('/api/chat') && request.method === 'POST') {
       try {
-        // Verify API Key exists in Cloudflare Environment Variables
         if (!env.GEMINI_API_KEY) {
             return new Response(JSON.stringify({ error: "GEMINI_API_KEY is not set in Cloudflare environment variables." }), { 
               status: 500,
@@ -27,20 +25,31 @@ export default {
 
         const { messages, systemInstruction } = await request.json();
 
-        // Call Gemini API
+        // Call Gemini API with the SPECIFIC STABLE MODEL VERSION (-001)
         const geminiResponse = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${env.GEMINI_API_KEY}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-001:generateContent?key=${env.GEMINI_API_KEY}`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               systemInstruction,
-              contents: messages, // Maps the incoming 'messages' to Gemini's 'contents'
+              contents: messages, 
             }),
           }
         );
         
         const data = await geminiResponse.json();
+        
+        // Pass any error from Gemini back to the frontend for debugging
+        if (data.error) {
+            return new Response(JSON.stringify(data), {
+                status: 400, 
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*',
+                },
+            });
+        }
         
         return new Response(JSON.stringify(data), {
           headers: {
@@ -59,7 +68,7 @@ export default {
       }
     }
     
-    // Fallback: If it's not an API call, serve the website (index.html)
+    // Fallback: Serve the website
     return env.ASSETS.fetch(request);
   },
 };
