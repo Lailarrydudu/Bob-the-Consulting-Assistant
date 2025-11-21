@@ -1414,7 +1414,7 @@ Each expert will provide their specialized perspective...`, 'assistant');
                         systemInstruction: {
                             parts: [{ text: agent.systemPrompt }]
                         },
-                        contents: [{
+                        messages: [{
                             role: "user",
                             parts: [{ text: `As a ${agent.name}, analyze "${topic}" in this EXACT format:
 
@@ -1483,7 +1483,7 @@ Each expert will provide their specialized perspective...`, 'assistant');
                         systemInstruction: {
                             parts: [{ text: 'You are Bob, synthesizing insights from multiple expert consultants into cohesive recommendations.' }]
                         },
-                        contents: [{
+                        messages: [{
                             role: "user",
                             parts: [{ text: synthesisPrompt }]
                         }]
@@ -2345,7 +2345,7 @@ The table must be the last element of the response before the suggestions block.
                             systemInstruction: {
                                 parts: [{ text: `You are a professional business consultant named Bob. Your role is to provide clear, actionable, and well-structured responses to business-related queries. Be concise and to the point while providing high-quality analysis. Use Markdown to format your output. A typical response should follow this structure: a main title (#), followed by a short summary or introduction, then several distinct sections. Each section should begin with a **subheading (##)**, followed by a short descriptive sentence. For subsections within a section, use a level three heading (###). For individual points within a list, use a bolded phrase followed by a bulleted list.For structured analyses (like SWOT, Market Entry, or Competitor Benchmarking), you must create a relevant, professional-grade Markdown table that is appropriate for the requested analysis.ONLY when generating a PESTLE analysis, you MUST use the following specific Markdown format, ensuring the "Key Findings" column uses bullet points with spacing:\`\`\`markdown| Factor | Key Findings ||---|---|| Political | * [concise finding 1] <br> * [concise finding 2] || Economic | * [concise finding 1] <br> * [concise finding 2] || Social | * [concise finding 1] <br> * [concise finding 2] || Technological | * [concise finding 1] <br> * [concise finding 2] || Legal | * [concise finding 1] <br> * [concise finding 2] || Environmental | * [concise finding 1] <br> * [concise finding 2] |\`\`\`The table must be the last piece of content before the suggestions. Ensure clarity and professionalism by using Markdown for titles, subheadings, bold text, bullet points, and the summary table. The content must be grounded in real-time information. You must use the Google Search tool for every query to get the most accurate and up-to-date data. At the end of every response, suggest 2-3 short, relevant follow-up questions. Format these suggestions as a single line, separated by a pipe symbol, and preceded by the text \`---SUGGESTIONS---\`. For example: \`---SUGGESTIONS---What is a PESTLE analysis?|How can I improve my marketing plan?|What is a market entry strategy?\`` }]
                             },
-                            contents: chatHistory,
+                            messages: chatHistory,
                             tools: [{ "google_search": {} }],
                         };
                         
