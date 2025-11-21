@@ -2340,13 +2340,13 @@ The table must be the last element of the response before the suggestions block.
                 const MAX_RETRIES = 3;
                 let retryCount = 0;
                 while (retryCount < MAX_RETRIES) {
-                    try {                        
+                    try {
                         const payload = {
                             systemInstruction: {
-                                parts: [{ text: `You are a professional business consultant named Bob. Your role is to provide clear, actionable, and well-structured responses to business-related queries. Be concise and to the point while providing high-quality analysis. Use Markdown to format your output. A typical response should follow this structure: a main title (#), followed by a short summary or introduction, then several distinct sections. Each section should begin with a **subheading (##)**, followed by a short descriptive sentence. For subsections within a section, use a level three heading (###). For individual points within a list, use a bolded phrase followed by a bulleted list.For structured analyses (like SWOT, Market Entry, or Competitor Benchmarking), you must create a relevant, professional-grade Markdown table that is appropriate for the requested analysis.ONLY when generating a PESTLE analysis, you MUST use the following specific Markdown format, ensuring the "Key Findings" column uses bullet points with spacing:\`\`\`markdown| Factor | Key Findings ||---|---|| Political | * [concise finding 1] <br> * [concise finding 2] || Economic | * [concise finding 1] <br> * [concise finding 2] || Social | * [concise finding 1] <br> * [concise finding 2] || Technological | * [concise finding 1] <br> * [concise finding 2] || Legal | * [concise finding 1] <br> * [concise finding 2] || Environmental | * [concise finding 1] <br> * [concise finding 2] |\`\`\`The table must be the last piece of content before the suggestions. Ensure clarity and professionalism by using Markdown for titles, subheadings, bold text, bullet points, and the summary table. The content must be grounded in real-time information. You must use the Google Search tool for every query to get the most accurate and up-to-date data. At the end of every response, suggest 2-3 short, relevant follow-up questions. Format these suggestions as a single line, separated by a pipe symbol, and preceded by the text \`---SUGGESTIONS---\`. For example: \`---SUGGESTIONS---What is a PESTLE analysis?|How can I improve my marketing plan?|What is a market entry strategy?\`` }]
+                                parts: [{ text: `You are a professional business consultant named Bob. Your role is to provide clear, actionable, and well-structured responses to business-related queries. Use Markdown formatting. A typical response should follow this structure: a main title (#), followed by a short summary or introduction, then several distinct sections. Each section should begin with a **subheading (##)**, followed by a short descriptive sentence. For subsections within a section, use a level three heading (###). For individual points within a list, use a bolded phrase followed by a bulleted list.For structured analyses (like SWOT, Market Entry, or Competitor Benchmarking), you must create a relevant, professional-grade Markdown table that is appropriate for the requested analysis.ONLY when generating a PESTLE analysis, you MUST use the following specific Markdown format, ensuring the "Key Findings" column uses bullet points with spacing:\`\`\`markdown| Factor | Key Findings ||---|---|| Political | * [concise finding 1] <br> * [concise finding 2] || Economic | * [concise finding 1] <br> * [concise finding 2] || Social | * [concise finding 1] <br> * [concise finding 2] || Technological | * [concise finding 1] <br> * [concise finding 2] || Legal | * [concise finding 1] <br> * [concise finding 2] || Environmental | * [concise finding 1] <br> * [concise finding 2] |\`\`\`The table must be the last piece of content before the suggestions. Ensure clarity and professionalism by using Markdown for titles, subheadings, bold text, bullet points, and the summary table. The content must be grounded in real-time information. You must use the Google Search tool for every query to get the most accurate and up-to-date data. At the end of every response, suggest 2-3 short, relevant follow-up questions. Format these suggestions as a single line, separated by a pipe symbol, and preceded by the text \`---SUGGESTIONS---\`. For example: \`---SUGGESTIONS---What is a PESTLE analysis?|How can I improve my marketing plan?|What is a market entry strategy?\`` }]
                             },
                             messages: chatHistory,
-                            tools: [{ "google_search": {} }],
+                            // tools: [{ "google_search": {} }], 
                         };
                         
                         const response = await fetch('/api/chat', {
@@ -2355,55 +2355,47 @@ The table must be the last element of the response before the suggestions block.
                             body: JSON.stringify(payload)
                         });
                         
-                        if (response.status === 429) { // Handle rate limiting
-                            if (retryCount < MAX_RETRIES - 1) {
-                                retryCount++;
-                                const delay = Math.pow(2, retryCount) * 1000; // Exponential backoff (2s, 4s, 8s)
-                                await new Promise(resolve => setTimeout(resolve, delay));
-                                continue; // Retry the loop
-                            } else {
-                                throw new Error("Rate limit exceeded after multiple retries.");
-                            }
-                        }
-                        if (!response.ok) {
-                            const errorText = await response.text();
-                            throw new Error(`API call failed with status ${response.status}: ${errorText}`);
-                        }
-                        
                         const result = await response.json();
+                        
+                        // Check for Cloudflare/Gemini Errors explicitly
+                        if (result.error) {
+                            throw new Error(result.error.message || JSON.stringify(result.error));
+                        }
+
                         const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
                         
                         // Remove loading indicator
-                        chatArea.removeChild(loadingBubble);
+                        if (chatArea.contains(loadingBubble)) {
+                            chatArea.removeChild(loadingBubble);
+                        }
                         
                         if (text) {
-                            // Add the assistant's response to the chat history and display it
                             chatHistory.push({
                                 role: "model",
                                 parts: [{ text: text }]
                             });
                             createMessageBubble(text, "model");
+                            learnFromInteraction(prompt, text);
                         } else {
-                            createMessageBubble("Sorry, I couldn't generate a response. Please try again.", "assistant");
+                            // If no text but also no standard error, dump the result for inspection
+                            console.log("Full Result:", result);
+                            createMessageBubble(`Received empty response from AI. Details: ${JSON.stringify(result)}`, "assistant");
                         }
-
-                        // PHASE 3: Learn from this interaction
-                        learnFromInteraction(prompt, text);
                         
-                        break; // Exit the retry loop on success
+                        break; // Exit retry loop on success
+                        
                     } catch (error) {
                         console.error("API Error:", error);
                         if (retryCount >= MAX_RETRIES - 1) {
-                            // Remove loading indicator and show error
                             if (chatArea.contains(loadingBubble)) {
                                 chatArea.removeChild(loadingBubble);
                             }
-                            createMessageBubble(`An error occurred: ${error.message}`, "assistant");
-                            break; // Exit the loop if max retries reached
+                            // Show the ACTUAL error message to the user
+                            createMessageBubble(`Connection Error: ${error.message}`, "assistant");
+                            break;
                         }
                         retryCount++;
-                        const delay = Math.pow(2, retryCount) * 1000; // Exponential backoff
-                        await new Promise(resolve => setTimeout(resolve, delay));
+                        await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
                     }
                 }
                 
