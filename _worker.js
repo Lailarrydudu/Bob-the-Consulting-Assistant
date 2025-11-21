@@ -2,11 +2,7 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     
-    // Normalize the path: remove trailing slash if present
-    // This fixes the issue where '/api/chat/' wouldn't match '/api/chat'
-    const path = url.pathname.endsWith('/') ? url.pathname.slice(0, -1) : url.pathname;
-
-    // Handle CORS preflight (for local testing or cross-origin usage)
+    // Handle CORS preflight (Allowed for all origins)
     if (request.method === 'OPTIONS') {
       return new Response(null, {
         headers: {
@@ -17,15 +13,19 @@ export default {
       });
     }
     
-    // Intercept requests to /api/chat
-    if (path === '/api/chat' && request.method === 'POST') {
+    // ROBUST MATCHING: Check if the path contains '/api/chat' AND is a POST request
+    // This prevents "405 Not Allowed" by ensuring the Worker catches the request
+    if (url.pathname.includes('/api/chat') && request.method === 'POST') {
       try {
-        const { messages, systemInstruction } = await request.json();
-        
-        // Verify API Key exists
+        // Verify API Key exists in Cloudflare Environment Variables
         if (!env.GEMINI_API_KEY) {
-            throw new Error("GEMINI_API_KEY is not set in Cloudflare environment variables.");
+            return new Response(JSON.stringify({ error: "GEMINI_API_KEY is not set in Cloudflare environment variables." }), { 
+              status: 500,
+              headers: { 'Content-Type': 'application/json' }
+            });
         }
+
+        const { messages, systemInstruction } = await request.json();
 
         // Call Gemini API
         const geminiResponse = await fetch(
@@ -35,8 +35,7 @@ export default {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               systemInstruction,
-              contents: messages,
-              // tools: [{ google_search: {} }], // Uncomment if you have Google Search enabled in Gemini
+              contents: messages, // Maps the incoming 'messages' to Gemini's 'contents'
             }),
           }
         );
@@ -60,7 +59,7 @@ export default {
       }
     }
     
-    // For all other requests, pass through to standard static assets
+    // Fallback: If it's not an API call, serve the website (index.html)
     return env.ASSETS.fetch(request);
   },
 };
