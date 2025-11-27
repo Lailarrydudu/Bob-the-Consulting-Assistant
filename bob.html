@@ -315,7 +315,11 @@
         <div class="relative flex items-end gap-2 bg-[#2f2f2f] p-1.5 rounded-[2rem] border border-gray-600 shadow-inner focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500 transition-all">
             
             <!-- Left: Attachment Button (Paperclip) -->
-            <button id="attachBtn" onclick="alert('File upload feature coming soon!')" class="p-2.5 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-gray-700 flex-shrink-0" title="Attach file">
+            <!-- Hidden File Input -->
+            <input type="file" id="hiddenFileInput" style="display: none;" accept=".txt,.md,.csv,.json,.js,.html,.css,.xml,.pdf">
+            
+            <!-- Left: Attachment Button -->
+            <button id="attachBtn" class="p-2.5 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-gray-700 flex-shrink-0" title="Attach file">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" />
                 </svg>
@@ -357,6 +361,62 @@
             const myPromptsDropdownBtn = document.getElementById('myPromptsDropdownBtn'); // NEW
             const myPromptsMenu = document.getElementById('myPromptsMenu'); // NEW
             let MIN_HEIGHT = 0; // Calculated minimum height (1 line)
+            // ===== FILE UPLOAD LOGIC (Text & PDF) =====
+            const hiddenFileInput = document.getElementById('hiddenFileInput');
+            const attachBtn = document.getElementById('attachBtn');
+            let attachedFileContent = null;
+            let attachedFileName = null;
+
+            // 1. Trigger hidden input when Paperclip is clicked
+            if (attachBtn && hiddenFileInput) {
+                attachBtn.addEventListener('click', () => {
+                    hiddenFileInput.click();
+                });
+
+                // 2. Handle file selection
+                hiddenFileInput.addEventListener('change', async (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    const onFileLoaded = (content, name) => {
+                        attachedFileContent = content;
+                        attachedFileName = name;
+                        attachBtn.classList.remove('text-gray-400', 'text-yellow-400');
+                        attachBtn.classList.add('text-emerald-500');
+                        attachBtn.title = `Attached: ${name}`;
+                        userInput.focus();
+                    };
+
+                    // CASE A: PDF Files
+                    if (file.type === 'application/pdf') {
+                        try {
+                            attachBtn.classList.add('text-yellow-400'); // Loading state
+                            const arrayBuffer = await file.arrayBuffer();
+                            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                            let fullText = "";
+                            
+                            for (let i = 1; i <= pdf.numPages; i++) {
+                                const page = await pdf.getPage(i);
+                                const textContent = await page.getTextContent();
+                                const pageText = textContent.items.map(item => item.str).join(' ');
+                                fullText += `\n--- PDF Page ${i} ---\n${pageText}`;
+                            }
+                            onFileLoaded(fullText, file.name);
+                        } catch (error) {
+                            console.error(error);
+                            alert("Error reading PDF. Please ensure it is text-based.");
+                            hiddenFileInput.value = ""; 
+                            attachBtn.classList.remove('text-yellow-400');
+                        }
+                    } 
+                    // CASE B: Text Files
+                    else {
+                        const reader = new FileReader();
+                        reader.onload = (e) => onFileLoaded(e.target.result, file.name);
+                        reader.readAsText(file);
+                    }
+                });
+            }
 
                         // ===== PHASE 1 FEATURE: PERSISTENT MEMORY SYSTEM =====
             
@@ -2198,12 +2258,58 @@ The table must be the last element of the response before the suggestions block.
                 chatArea.scrollTop = chatArea.scrollHeight; // Scroll to bottom
             }
             
-                    // Function to handle sending the message
-            async function sendMessage() {
-                const prompt = userInput.value.trim();
-                if (!prompt) return;
+                   async function sendMessage() {
+                let prompt = userInput.value.trim();
+                
+                // --- 1. NEW: Handle File Attachment ---
+                // If a file is loaded, we append it to the prompt sent to the AI
+                if (attachedFileContent) {
+                    const filePrompt = `\n\n[USER ATTACHED FILE: ${attachedFileName}]\n\`\`\`\n${attachedFileContent}\n\`\`\`\n`;
+                    
+                    // If user didn't type anything, create a default prompt
+                    if (prompt === "") {
+                        prompt = `Analyze the attached file: ${attachedFileName}`;
+                    }
+                    
+                    // Combine user text + file content for the AI
+                    // (We don't overwrite 'prompt' yet for the UI, only for the payload logic below)
+                    var fullPayloadPrompt = prompt + filePrompt;
+                } else {
+                    var fullPayloadPrompt = prompt;
+                }
 
-                // ===== GOAL-BASED REASONING TRIGGER =====
+                if (!fullPayloadPrompt) return;
+
+                // --- 2. NEW: UI Updates for File ---
+                if (attachedFileContent) {
+                    createMessageBubble(`📂 **Uploaded:** ${attachedFileName}`, 'user'); 
+                    
+                    // Reset File UI immediately
+                    attachedFileContent = null;
+                    attachedFileName = null;
+                    hiddenFileInput.value = "";
+                    attachBtn.classList.remove('text-emerald-500', 'text-yellow-400');
+                    attachBtn.classList.add('text-gray-400');
+                    attachBtn.title = "Attach file";
+                }
+
+                // --- 3. UI Updates for Text ---
+                const userVisibleText = userInput.value.trim();
+                if (userVisibleText) {
+                    // Show what the user actually typed
+                    createMessageBubble(userVisibleText, 'user');
+                    // Add the FULL prompt (text + file) to history for the AI context
+                    chatHistory.push({ role: "user", parts: [{ text: fullPayloadPrompt }] }); 
+                } else if (attachedFileContent) {
+                    // If only file was sent, we still need to push to history
+                    chatHistory.push({ role: "user", parts: [{ text: fullPayloadPrompt }] });
+                }
+
+                // Clear input
+                userInput.value = '';
+                autoResizeTextarea(userInput);
+
+                // --- 4. Existing Logic: Goal-Based Reasoning ---
                 const goalKeywords = [
                     'i want to launch', 'i want to start', 'i want to create', 'i want to open',
                     'help me launch', 'help me start', 'help me create', 'help me open',
@@ -2211,26 +2317,16 @@ The table must be the last element of the response before the suggestions block.
                     'i want to expand', 'i want to grow', 'i want to scale',
                     'i want to improve', 'i want to optimize', 'help me improve', 'help me optimize'
                 ];
-
                 const messageLC = prompt.toLowerCase();
                 const isGoalStatement = goalKeywords.some(keyword => messageLC.includes(keyword));
 
                 if (isGoalStatement) {
-                    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-                    createMessageBubble(prompt, 'user');
-                    userInput.value = '';
-                    autoResizeTextarea(userInput);
                     await processGoal(prompt);
                     return;
                 }
 
-                // ===== EXECUTION PLAN RESPONSE HANDLER =====
+                // --- 5. Existing Logic: Execution Plan Response ---
                 if (awaitingPlanResponse && (prompt === '1' || prompt === '2' || prompt === '3')) {
-                    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-                    createMessageBubble(prompt, 'user');
-                    userInput.value = '';
-                    autoResizeTextarea(userInput);
-                    
                     const plan = window.currentGoalPlan;
                     const goal = window.currentGoal;
                     
@@ -2247,43 +2343,27 @@ The table must be the last element of the response before the suggestions block.
                     return;
                 }
 
-                // ===== AUTONOMOUS RESEARCH TRIGGER =====
+                // --- 6. Existing Logic: Autonomous Research ---
                 if (isResearchRequest(prompt) && !prompt.includes('plan') && !prompt.includes('goal')) {
-                    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-                    createMessageBubble(prompt, 'user');
-                    userInput.value = '';
-                    autoResizeTextarea(userInput);
                     const topic = prompt.replace(/(research|investigate|study|analyze|explore|find information about|gather data on)/gi, '').trim();
                     await startAutonomousResearch(topic, 'standard');
                     return;
                 }
 
-                // ===== MULTI-AGENT COLLABORATION TRIGGER =====
+                // --- 7. Existing Logic: Multi-Agent Collaboration ---
                 if (isMultiAgentRequest(prompt)) {
-                    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-                    createMessageBubble(prompt, 'user');
-                    userInput.value = '';
-                    autoResizeTextarea(userInput);
                     const topic = prompt.replace(/(expert panel|multiple perspectives|different experts|consult experts|expert opinions|panel discussion|multi-agent|collaborate|expert team)/gi, '').replace(/on|about|for/gi, '').trim();
                     await executeMultiAgentCollaboration(topic, ['strategist', 'financial', 'operations']);
                     return;
                 }
 
-                // ===== LEARNING INSIGHTS TRIGGER =====
+                // --- 8. Existing Logic: Learning Insights ---
                 if (prompt.toLowerCase().includes('show learning insights') || prompt.toLowerCase().includes('learning insights')) {
-                    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-                    createMessageBubble(prompt, 'user');
-                    userInput.value = '';
-                    autoResizeTextarea(userInput);
                     showLearningInsights();
                     return;
                 }
 
-                // ===== STANDARD CHAT =====
-                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-                createMessageBubble(prompt, "user");
-                userInput.value = '';
-                autoResizeTextarea(userInput);
+                // --- 9. Standard Chat & API Call ---
                 userInput.disabled = true;
                 sendButton.disabled = true;
 
@@ -2309,10 +2389,9 @@ The table must be the last element of the response before the suggestions block.
                     try {
                         const payload = {
                             systemInstruction: {
-                                parts: [{ text: `You are a professional business consultant named Bob. Your role is to provide clear, actionable, and well-structured responses to business-related queries. Use Markdown formatting. A typical response should follow this structure: a main title (#), followed by a short summary or introduction, then several distinct sections. Each section should begin with a **subheading (##)**, followed by a short descriptive sentence. For subsections within a section, use a level three heading (###). For individual points within a list, use a bolded phrase followed by a bulleted list.For structured analyses (like SWOT, Market Entry, or Competitor Benchmarking), you must create a relevant, professional-grade Markdown table that is appropriate for the requested analysis.ONLY when generating a PESTLE analysis, you MUST use the following specific Markdown format, ensuring the "Key Findings" column uses bullet points with spacing:\`\`\`markdown| Factor | Key Findings ||---|---|| Political | * [concise finding 1] <br> * [concise finding 2] || Economic | * [concise finding 1] <br> * [concise finding 2] || Social | * [concise finding 1] <br> * [concise finding 2] || Technological | * [concise finding 1] <br> * [concise finding 2] || Legal | * [concise finding 1] <br> * [concise finding 2] || Environmental | * [concise finding 1] <br> * [concise finding 2] |\`\`\`The table must be the last piece of content before the suggestions. Ensure clarity and professionalism by using Markdown for titles, subheadings, bold text, bullet points, and the summary table. The content must be grounded in real-time information. You must use the Google Search tool for every query to get the most accurate and up-to-date data. At the end of every response, suggest 2-3 short, relevant follow-up questions. Format these suggestions as a single line, separated by a pipe symbol, and preceded by the text \`---SUGGESTIONS---\`. For example: \`---SUGGESTIONS---What is a PESTLE analysis?|How can I improve my marketing plan?|What is a market entry strategy?\`` }]
+                                parts: [{ text: `You are a professional business consultant named Bob. Your role is to provide clear, actionable, and well-structured responses to business-related queries. Use Markdown formatting. If the user attaches a file, analyze its content thoroughly based on their query.` }]
                             },
                             messages: chatHistory, 
-                            // tools: [{ "google_search": {} }], 
                         };
 
                         const response = await fetch('/api/chat', {
@@ -2323,7 +2402,6 @@ The table must be the last element of the response before the suggestions block.
 
                         const result = await response.json();
 
-                        // --- DEBUGGING LOGIC START ---
                         if (result.error) {
                             throw new Error(result.error.message || JSON.stringify(result.error));
                         }
@@ -2339,10 +2417,8 @@ The table must be the last element of the response before the suggestions block.
                             createMessageBubble(text, "model");
                             learnFromInteraction(prompt, text);
                         } else {
-                            console.log("Full Result:", result);
-                            createMessageBubble(`⚠️ **Debug Info:** Received empty response. Details: ${JSON.stringify(result)}`, "assistant");
+                            createMessageBubble(`⚠️ **Debug Info:** Received empty response.`, "assistant");
                         }
-                        // --- DEBUGGING LOGIC END ---
 
                         break; // Exit loop on success
 
