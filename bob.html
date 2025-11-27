@@ -2258,115 +2258,63 @@ The table must be the last element of the response before the suggestions block.
                 chatArea.scrollTop = chatArea.scrollHeight; // Scroll to bottom
             }
             
-                   async function sendMessage() {
-                let prompt = userInput.value.trim();
+                  async function sendMessage() {
+                // 1. GET INPUTS
+                let userText = userInput.value.trim();
+                let hasFile = attachedFileContent !== null;
                 
-                // --- 1. NEW: Handle File Attachment ---
-                // If a file is loaded, we append it to the prompt sent to the AI
-                if (attachedFileContent) {
-                    const filePrompt = `\n\n[USER ATTACHED FILE: ${attachedFileName}]\n\`\`\`\n${attachedFileContent}\n\`\`\`\n`;
+                // 2. VALIDATION: Ensure there is something to send
+                if (!userText && !hasFile) return;
+
+                // 3. CONSTRUCT PAYLOAD (The actual message Bob reads)
+                let finalPayload = userText;
+
+                if (hasFile) {
+                    // Append the file content to whatever the user typed
+                    const fileContext = `\n\n[SYSTEM: The user has attached a file named "${attachedFileName}". Use the content below to answer their request.]\n\n\`\`\`\n${attachedFileContent}\n\`\`\`\n`;
                     
-                    // If user didn't type anything, create a default prompt
-                    if (prompt === "") {
-                        prompt = `Analyze the attached file: ${attachedFileName}`;
+                    if (userText === "") {
+                        // If user sent ONLY a file, give Bob a default instruction
+                        finalPayload = `Analyze this attached file: ${attachedFileName}` + fileContext;
+                    } else {
+                        // If user typed a command (e.g. "Summarize this"), combine it with file
+                        finalPayload = userText + fileContext;
                     }
-                    
-                    // Combine user text + file content for the AI
-                    // (We don't overwrite 'prompt' yet for the UI, only for the payload logic below)
-                    var fullPayloadPrompt = prompt + filePrompt;
-                } else {
-                    var fullPayloadPrompt = prompt;
                 }
 
-                if (!fullPayloadPrompt) return;
+                // 4. UPDATE UI (Show bubbles to the user)
+                if (hasFile) {
+                    createMessageBubble(`📂 **Uploaded:** ${attachedFileName}`, 'user');
+                }
+                
+                if (userText) {
+                    createMessageBubble(userText, 'user');
+                }
 
-                // --- 2. NEW: UI Updates for File ---
-                if (attachedFileContent) {
-                    createMessageBubble(`📂 **Uploaded:** ${attachedFileName}`, 'user'); 
-                    
-                    // Reset File UI immediately
+                // 5. UPDATE HISTORY
+                chatHistory.push({ role: "user", parts: [{ text: finalPayload }] });
+
+                // 6. RESET INPUTS (Clear the UI immediately for the next message)
+                userInput.value = '';
+                autoResizeTextarea(userInput);
+                
+                if (hasFile) {
+                    // Clear file variables
                     attachedFileContent = null;
                     attachedFileName = null;
-                    hiddenFileInput.value = "";
+                    hiddenFileInput.value = ""; // Reset HTML input
+                    
+                    // Reset Icon to Gray
                     attachBtn.classList.remove('text-emerald-500', 'text-yellow-400');
                     attachBtn.classList.add('text-gray-400');
                     attachBtn.title = "Attach file";
                 }
 
-                // --- 3. UI Updates for Text ---
-                const userVisibleText = userInput.value.trim();
-                if (userVisibleText) {
-                    // Show what the user actually typed
-                    createMessageBubble(userVisibleText, 'user');
-                    // Add the FULL prompt (text + file) to history for the AI context
-                    chatHistory.push({ role: "user", parts: [{ text: fullPayloadPrompt }] }); 
-                } else if (attachedFileContent) {
-                    // If only file was sent, we still need to push to history
-                    chatHistory.push({ role: "user", parts: [{ text: fullPayloadPrompt }] });
-                }
-
-                // Clear input
-                userInput.value = '';
-                autoResizeTextarea(userInput);
-
-                // --- 4. Existing Logic: Goal-Based Reasoning ---
-                const goalKeywords = [
-                    'i want to launch', 'i want to start', 'i want to create', 'i want to open',
-                    'help me launch', 'help me start', 'help me create', 'help me open',
-                    'i need to launch', 'i need to start', 'i need to expand', 'i need to grow',
-                    'i want to expand', 'i want to grow', 'i want to scale',
-                    'i want to improve', 'i want to optimize', 'help me improve', 'help me optimize'
-                ];
-                const messageLC = prompt.toLowerCase();
-                const isGoalStatement = goalKeywords.some(keyword => messageLC.includes(keyword));
-
-                if (isGoalStatement) {
-                    await processGoal(prompt);
-                    return;
-                }
-
-                // --- 5. Existing Logic: Execution Plan Response ---
-                if (awaitingPlanResponse && (prompt === '1' || prompt === '2' || prompt === '3')) {
-                    const plan = window.currentGoalPlan;
-                    const goal = window.currentGoal;
-                    
-                    if (prompt === '1') {
-                        createMessageBubble(`Great! I'll execute the entire plan automatically.`, 'model');
-                        await executeGoalPlanAutomatically(goal, plan);
-                    } else if (prompt === '2') {
-                        createMessageBubble(`I'll walk you through each step. Let's start with Step 1: ${plan.steps[0].task}\n\nAsk me to proceed when you're ready.`, 'model');
-                        awaitingPlanResponse = false;
-                    } else if (prompt === '3') {
-                        createMessageBubble(`Plan modification feature coming soon! For now, I'll execute the plan as-is. Would you like to proceed? (Reply 'yes')`, 'model');
-                        awaitingPlanResponse = false;
-                    }
-                    return;
-                }
-
-                // --- 6. Existing Logic: Autonomous Research ---
-                if (isResearchRequest(prompt) && !prompt.includes('plan') && !prompt.includes('goal')) {
-                    const topic = prompt.replace(/(research|investigate|study|analyze|explore|find information about|gather data on)/gi, '').trim();
-                    await startAutonomousResearch(topic, 'standard');
-                    return;
-                }
-
-                // --- 7. Existing Logic: Multi-Agent Collaboration ---
-                if (isMultiAgentRequest(prompt)) {
-                    const topic = prompt.replace(/(expert panel|multiple perspectives|different experts|consult experts|expert opinions|panel discussion|multi-agent|collaborate|expert team)/gi, '').replace(/on|about|for/gi, '').trim();
-                    await executeMultiAgentCollaboration(topic, ['strategist', 'financial', 'operations']);
-                    return;
-                }
-
-                // --- 8. Existing Logic: Learning Insights ---
-                if (prompt.toLowerCase().includes('show learning insights') || prompt.toLowerCase().includes('learning insights')) {
-                    showLearningInsights();
-                    return;
-                }
-
-                // --- 9. Standard Chat & API Call ---
+                // 7. DISABLE CONTROLS (Prevent double-sending)
                 userInput.disabled = true;
                 sendButton.disabled = true;
 
+                // 8. SEND TO API
                 const loadingBubble = document.createElement('div');
                 loadingBubble.classList.add('flex', 'justify-start');
                 loadingBubble.innerHTML = `
@@ -2383,59 +2331,48 @@ The table must be the last element of the response before the suggestions block.
                 chatArea.appendChild(loadingBubble);
                 chatArea.scrollTop = chatArea.scrollHeight;
 
-                const MAX_RETRIES = 3;
-                let retryCount = 0;
-                while (retryCount < MAX_RETRIES) {
-                    try {
-                        const payload = {
+                try {
+                    const response = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
                             systemInstruction: {
-                                parts: [{ text: `You are a professional business consultant named Bob. Your role is to provide clear, actionable, and well-structured responses to business-related queries. Use Markdown formatting. If the user attaches a file, analyze its content thoroughly based on their query.` }]
+                                parts: [{ text: `You are Bob, a professional consulting assistant. If the user attaches a file, use its content to answer their specific question. Use Markdown formatting.` }]
                             },
-                            messages: chatHistory, 
-                        };
+                            messages: chatHistory
+                        })
+                    });
 
-                        const response = await fetch('/api/chat', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(payload)
-                        });
-
-                        const result = await response.json();
-
-                        if (result.error) {
-                            throw new Error(result.error.message || JSON.stringify(result.error));
-                        }
-
-                        const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-                        if (chatArea.contains(loadingBubble)) {
-                            chatArea.removeChild(loadingBubble);
-                        }
-
-                        if (text) {
-                            chatHistory.push({ role: "model", parts: [{ text: text }] });
-                            createMessageBubble(text, "model");
-                            learnFromInteraction(prompt, text);
-                        } else {
-                            createMessageBubble(`⚠️ **Debug Info:** Received empty response.`, "assistant");
-                        }
-
-                        break; // Exit loop on success
-
-                    } catch (error) {
-                        console.error("API Error:", error);
-                        if (retryCount >= MAX_RETRIES - 1) {
-                            if (chatArea.contains(loadingBubble)) {
-                                chatArea.removeChild(loadingBubble);
-                            }
-                            createMessageBubble(`❌ **Connection Error:** ${error.message}`, "assistant");
-                            break; 
-                        }
-                        retryCount++;
-                        await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
+                    const result = await response.json();
+                    
+                    // Remove loading bubble
+                    if (chatArea.contains(loadingBubble)) {
+                        chatArea.removeChild(loadingBubble);
                     }
+
+                    const aiText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                    if (aiText) {
+                        chatHistory.push({ role: "model", parts: [{ text: aiText }] });
+                        createMessageBubble(aiText, "model");
+                        
+                        // Optional: Learn from this interaction
+                        if (typeof learnFromInteraction === "function") {
+                            learnFromInteraction(finalPayload, aiText);
+                        }
+                    } else {
+                        createMessageBubble("⚠️ Bob received the file but returned an empty response. Please try again.", "model");
+                    }
+
+                } catch (error) {
+                    console.error("API Error:", error);
+                    if (chatArea.contains(loadingBubble)) {
+                        chatArea.removeChild(loadingBubble);
+                    }
+                    createMessageBubble(`❌ Error: ${error.message}`, "model");
                 }
 
+                // 9. RE-ENABLE CONTROLS
                 userInput.disabled = false;
                 sendButton.disabled = false;
                 userInput.focus();
