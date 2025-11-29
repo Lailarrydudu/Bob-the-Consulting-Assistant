@@ -113,6 +113,59 @@
             resize: none; 
             max-height: 150px;
         }
+    /* === CITATION STYLES === */
+        .citation-link {
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 2px;
+            background-color: #374151;
+            border-radius: 50%;
+            padding: 2px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .citation-link:hover { background-color: #4b5563; }
+        .citation-link svg { width: 14px; height: 14px; color: #9ca3af; }
+
+        .sources-section {
+            margin-top: 1rem;
+            border-top: 1px solid #374151;
+            padding-top: 0.75rem;
+        }
+
+        .sources-toggle-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background-color: transparent;
+            border: 1px solid #6b7280;
+            color: #d1d5db;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .sources-toggle-btn:hover { background-color: #374151; border-color: #9ca3af; }
+
+        .sources-list {
+            margin-top: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .source-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            color: #93c5fd;
+            text-decoration: none;
+            padding: 0.25rem;
+            border-radius: 0.25rem;
+        }
+        .source-item:hover { background-color: #1f2937; text-decoration: underline; }
+        .source-favicon { width: 16px; height: 16px; background-color: #fff; border-radius: 2px; }
     </style>
 </head>
 <body class="flex h-screen w-full bg-gray-900">
@@ -845,7 +898,14 @@ The table must be the last element of the response before the suggestions block.
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            systemInstruction: { parts: [{ text: `You are Bob. Use Markdown.` }] },
+                            systemInstruction: { 
+                                parts: [{ text: `You are Bob, a professional consulting assistant. 
+                                IMPORTANT: If you use external information, you MUST cite the source.
+                                DO NOT create a bibliography list at the end.
+                                INSTEAD, place an inline tag IMMEDIATELY after the sentence using this specific format: [[Source Name]](URL)
+                                Example: "The market grew by 5% [[Gartner]](https://gartner.com)."
+                                Use Markdown.` }] 
+                            },
                             messages: chatHistory
                         })
                     });
@@ -881,6 +941,51 @@ The table must be the last element of the response before the suggestions block.
             // 3. UTILITIES (Bubbles, Prompts, Clear, Etc)
             // ============================================
 
+            // --- CITATION HELPER FUNCTIONS ---
+            function processCitations(rawText) {
+                // Regex to find [[Name]](URL) pattern
+                const regex = /\[\[(.*?)\]\]\((.*?)\)/g;
+                let sources = [];
+                let match;
+                
+                // 1. Extract sources
+                while ((match = regex.exec(rawText)) !== null) {
+                    sources.push({ name: match[1], url: match[2] });
+                }
+
+                // 2. Replace with Pin Icon
+                let processedText = rawText.replace(regex, (match, name, url) => {
+                    return `<a href="${url}" target="_blank" class="citation-link" title="Source: ${name}"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg></a>`;
+                });
+
+                return { html: processedText, sources: sources };
+            }
+
+            function createSourcesFooter(sources) {
+                if (!sources || sources.length === 0) return '';
+                
+                const listItems = sources.map((s, i) => `
+                    <a href="${s.url}" target="_blank" class="source-item">
+                        <span class="text-gray-500 font-mono text-xs">[${i+1}]</span>
+                        <img src="https://www.google.com/s2/favicons?domain=${new URL(s.url).hostname}" class="source-favicon" onerror="this.style.display='none'">
+                        ${s.name}
+                    </a>
+                `).join('');
+
+                const listId = `sources-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+                return `
+                    <div class="sources-section">
+                        <button class="sources-toggle-btn" onclick="document.getElementById('${listId}').classList.toggle('hidden')">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg>
+                            Sources
+                        </button>
+                        <div id="${listId}" class="sources-list hidden">${listItems}</div>
+                    </div>
+                `;
+            }
+            // ----------------------------------
+
             function createMessageBubble(text, sender) {
                 const wrapper = document.createElement('div');
                 wrapper.classList.add('flex', sender === 'user' ? 'justify-end' : 'justify-start');
@@ -893,11 +998,23 @@ The table must be the last element of the response before the suggestions block.
                 );
 
                 if (sender === 'model') {
-                    // Copy Button & Markdown support
+                    // 1. Process Text for Citations
+                    const { html: textWithIcons, sources } = processCitations(text);
+
+                    // 2. Create Content Div
                     const contentDiv = document.createElement('div');
                     contentDiv.classList.add('ai-response-content', 'mb-2');
-                    contentDiv.innerHTML = marked.parse(text);
                     
+                    // Render Markdown (using the processed text with icons)
+                    contentDiv.innerHTML = marked.parse(textWithIcons);
+
+                    // 3. Add Sources Footer if needed
+                    if (sources.length > 0) {
+                        const footerDiv = document.createElement('div');
+                        footerDiv.innerHTML = createSourcesFooter(sources);
+                        contentDiv.appendChild(footerDiv);
+                    }
+
                     const copyBtn = document.createElement('button');
                     copyBtn.className = 'text-xs text-gray-400 hover:text-white mt-2 block ml-auto';
                     copyBtn.textContent = 'Copy';
