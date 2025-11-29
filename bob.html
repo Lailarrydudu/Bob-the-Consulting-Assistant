@@ -849,9 +849,10 @@ The table must be the last element of the response before the suggestions block.
                 
                 if (!prompt && !hasFile) return;
 
-                // ** UI CHANGE: Hide the "Should we start building?" text **
+                // 1. UI: Hide Hero Text
                 heroText.style.display = 'none';
 
+                // 2. Construct Payload
                 let fullPayloadPrompt = prompt;
                 if (hasFile) {
                     const filePrompt = `\n\n[USER ATTACHED FILE: ${attachedFileName}]\n\`\`\`\n${attachedFileContent}\n\`\`\`\n`;
@@ -863,10 +864,10 @@ The table must be the last element of the response before the suggestions block.
                     }
                 }
 
-                // Update UI Bubbles
+                // 3. Update UI Bubbles (User Side)
                 if (hasFile) {
                     createMessageBubble(`📂 **Uploaded:** ${attachedFileName}`, 'user');
-                    // Reset File
+                    // Reset File Variables immediately
                     attachedFileContent = null;
                     attachedFileName = null;
                     hiddenFileInput.value = "";
@@ -881,18 +882,20 @@ The table must be the last element of the response before the suggestions block.
                 
                 chatHistory.push({ role: "user", parts: [{ text: fullPayloadPrompt }] });
 
+                // 4. Reset Input State
                 userInput.value = '';
                 autoResizeTextarea(userInput);
                 userInput.disabled = true;
                 sendButton.disabled = true;
 
-                // -- Standard API Call --
+                // 5. Loading Indicator
                 const loadingBubble = document.createElement('div');
                 loadingBubble.classList.add('flex', 'justify-start');
                 loadingBubble.innerHTML = `<div class="bg-gray-700 text-gray-300 rounded-xl rounded-bl-none p-3 max-w-sm shadow-md"><div class="flex items-center">Thinking...</div></div>`;
                 chatArea.appendChild(loadingBubble);
                 chatArea.scrollTop = chatArea.scrollHeight;
 
+                // 6. API Call
                 try {
                     const response = await fetch('/api/chat', {
                         method: 'POST',
@@ -911,18 +914,29 @@ The table must be the last element of the response before the suggestions block.
                     });
 
                     const result = await response.json();
+                    
+                    // Remove loading bubble
                     if(chatArea.contains(loadingBubble)) chatArea.removeChild(loadingBubble);
 
-                    const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
-                    if (text) {
-                        chatHistory.push({ role: "model", parts: [{ text: text }] });
-                        createMessageBubble(text, "model");
+                    // 7. Error Handling & Response Display
+                    if (result.error) {
+                        console.error("API Error:", result.error);
+                        createMessageBubble(`⚠️ **System Error:** ${result.error.message || "Unknown API Error"}`, "model");
+                    } else {
+                        const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                        if (text) {
+                            chatHistory.push({ role: "model", parts: [{ text: text }] });
+                            createMessageBubble(text, "model");
+                        } else {
+                            createMessageBubble("⚠️ Bob returned an empty response. Try asking a specific question.", "model");
+                        }
                     }
                 } catch (error) {
                     if(chatArea.contains(loadingBubble)) chatArea.removeChild(loadingBubble);
-                    createMessageBubble(`Error: ${error.message}`, "model");
+                    createMessageBubble(`❌ **Connection Error:** ${error.message}`, "model");
                 }
 
+                // 8. Re-enable Controls
                 userInput.disabled = false;
                 sendButton.disabled = false;
                 userInput.focus();
