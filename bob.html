@@ -964,13 +964,25 @@ The table must be the last element of the response before the suggestions block.
             function createSourcesFooter(sources) {
                 if (!sources || sources.length === 0) return '';
                 
-                const listItems = sources.map((s, i) => `
+                const listItems = sources.map((s, i) => {
+                    // SAFETY CHECK: Try to parse hostname, fallback if invalid URL
+                    let faviconUrl = '';
+                    try {
+                        const urlObj = new URL(s.url);
+                        faviconUrl = `https://www.google.com/s2/favicons?domain=${urlObj.hostname}`;
+                    } catch (e) {
+                        // If URL is invalid (e.g. missing https), use a generic icon
+                        faviconUrl = 'https://www.google.com/s2/favicons?domain=google.com'; 
+                    }
+
+                    return `
                     <a href="${s.url}" target="_blank" class="source-item">
                         <span class="text-gray-500 font-mono text-xs">[${i+1}]</span>
-                        <img src="https://www.google.com/s2/favicons?domain=${new URL(s.url).hostname}" class="source-favicon" onerror="this.style.display='none'">
+                        <img src="${faviconUrl}" class="source-favicon" onerror="this.style.display='none'">
                         ${s.name}
                     </a>
-                `).join('');
+                    `;
+                }).join('');
 
                 const listId = `sources-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
