@@ -24,21 +24,29 @@ export default {
         // 1. Define the Google Search Tool
         const tools = [{ google_search: {} }];
 
-        // 2. Call Gemini 1.5 Flash with the Tool included
+        // 2. Call Gemini 2.0 Flash Experimental (Best for Search Tools)
         const geminiResponse = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${env.GEMINI_API_KEY}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${env.GEMINI_API_KEY}`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               systemInstruction,
               contents: messages,
-              tools: tools // <--- Enables the "Sources" capability
+              tools: tools 
             }),
           }
         );
         
         const data = await geminiResponse.json();
+        
+        // Check for upstream API errors
+        if (data.error) {
+             return new Response(JSON.stringify(data), {
+                status: 400,
+                headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+             });
+        }
         
         return new Response(JSON.stringify(data), {
           headers: {
