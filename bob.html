@@ -398,10 +398,33 @@
             let attachedFileName = null;
 
             // ============================================
-            // 1. PROMPT MAP (FULL ORIGINAL)
+            // 1. PROMPT MAP (STRUCTURED & CATEGORIZED)
             // ============================================
             const PROMPT_MAP = {
-                // Initial Setup
+                
+                // ========================
+                // PHASE 1: INITIAL SETUP
+                // ========================
+                
+                'Guided Diagnostic (Interviewer Mode)': `Act as a Senior Partner Consultant conducting a diagnostic interview. I have a business problem: [input BRIEF PROBLEM DESCRIPTION].
+
+Do NOT provide a solution yet. Instead, generate a structured interview protocol to diagnose the root cause.
+
+The output MUST follow this structure:
+
+# Guided Diagnostic: [Problem Name]
+## Objective
+[Concise statement of what we need to uncover]
+
+## Diagnostic Questions (Please answer these)
+1. **[Topic A]:** [Specific probing question about root cause]
+2. **[Topic B]:** [Specific probing question about constraints]
+3. **[Topic C]:** [Specific probing question about success metrics]
+4. **[Topic D]:** [Specific probing question about stakeholders]
+
+## Next Steps
+Once you answer these, I will analyze the root causes.`,
+
                 'Industry Trends Snapshot': `Generate a **rapid, high-level Industry Trends Snapshot** for [input SPECIFIED INDUSTRY]. 
 
 The output MUST strictly follow this high-readability structure:
@@ -428,16 +451,6 @@ The output MUST strictly follow this high-readability structure:
 | [Trend 3 Name] | * [Impact bullet 1] <br> * [Impact bullet 2] |
 
 The table must be the last element of the response before the suggestions block.`,
-
-                // === NEW CONSULTING SUPERPOWERS ===
-                'Guided Diagnostic (Interviewer Mode)': `Act as a Senior Partner Consultant. I want to solve a business problem, but I need you to extract the details from me first.\n\nDo NOT give me a solution yet. Instead, ask me 5 targeted, probing questions to understand:\n1. The root cause of the issue.\n2. The specific constraints (budget, time, talent).\n3. The definition of success.\n\nAsk these questions one by one or as a list, whichever is more effective.`,
-
-                'MECE Logic Check': `Review the analysis we have discussed so far. Check if the current breakdown of the problem follows the MECE principle (Mutually Exclusive, Collectively Exhaustive).\n\n1. Are there any overlaps between categories?\n2. Are there any major logical gaps or missing categories we haven't considered?\n3. Provide a restructured, truly MECE outline of the problem landscape.`,
-
-                "Devil's Advocate Review": `I want you to stress-test my current strategy/solution. Switch personas to a skeptical "Devil's Advocate."\n\n1. Identify the 3 biggest assumptions I am making that could fail.\n2. Tell me the "Worst Case Scenario" if this plan goes wrong.\n3. Point out any "Sunk Cost Fallacies" or cognitive biases in my thinking.\n\nBe tough but constructive.`,
-
-                'Monday Morning Protocol': `Convert our high-level strategy into a concrete "Monday Morning" Action Plan.\n\nCreate a table with these columns:\n| Who (Role/Dept) | What (Specific Task) | By When (Deadline) | Definition of Done |\n\nFocus on the immediate next steps required to start execution next week.`,
-            };
               
                 'Initial Project Charter Draft': `Generate an Initial Project Charter Draft for [input SPECIFIC PROJECT TYPE, e.g., 'implementing a new cloud-based CRM system for the sales department']. 
 
@@ -491,7 +504,33 @@ The output MUST strictly follow the Current State, Desired State, Impact structu
 
 The "Impact of Solving" section must be the last element of the response before the suggestions block.`,
               
-                // Analysis
+                // ========================
+                // PHASE 2: ANALYSIS
+                // ========================
+
+                'MECE Logic Check': `Perform a MECE (Mutually Exclusive, Collectively Exhaustive) audit on the following analysis or problem statement: [input PASTE ANALYSIS OR PROBLEM HERE].
+
+The output MUST follow this structure:
+
+# MECE Logic Audit
+[Brief assessment of the current logic's tightness]
+
+## Logic Gaps (Missing Elements)
+* [Gap 1 - What did we forget?]
+* [Gap 2 - What did we forget?]
+
+## Overlaps (Redundancies)
+* [Overlap 1 - Where are we double counting?]
+
+## Proposed MECE Framework
+Reorganize the analysis into distinct, non-overlapping buckets:
+1. **[Bucket 1]**
+   * [Point A]
+   * [Point B]
+2. **[Bucket 2]**
+   * [Point C]
+   * [Point D]`,
+
                 'Market Analysis': `Conduct a market analysis for [input SPECIFIC MARKET / INDUSTRY]. Focus on key trends, the competitive landscape, and the future outlook. 
 
 The output MUST strictly follow this high-readability structure:
@@ -604,7 +643,29 @@ The output MUST strictly follow this structure:
 
 The table must be the last element of the response before the suggestions block.`,
                 
-                // Solution Design
+                // ========================
+                // PHASE 3: SOLUTION DESIGN
+                // ========================
+
+                "Devil's Advocate Review": `I want you to stress-test my current strategy/solution. Switch personas to a skeptical "Red Team" or "Devil's Advocate."
+                
+The output MUST follow this structure:
+
+# Strategic Stress Test
+[Introductory critique of the proposed plan]
+
+## Critical Flaws & Assumptions
+| Assumption | Probability of Failure | Impact |
+|---|---|---|
+| [Assumption 1] | [High/Med/Low] | [High/Med/Low] |
+| [Assumption 2] | [High/Med/Low] | [High/Med/Low] |
+
+## The "Pre-Mortem" (Worst Case)
+* [Scenario description if the plan fails strictly]
+
+## Cognitive Bias Check
+* [Identify biases like Sunk Cost, Confirmation Bias, etc.]`,
+
                 'Business Plan Outline': `Draft a comprehensive business plan outline for a [input YOUR BUSINESS IDEA]. 
 
 The output MUST strictly follow this structure:
@@ -742,7 +803,28 @@ The output MUST strictly follow this structure:
 
 The table must be the last element of the response before the suggestions block.`,
               
-                // Execution
+                // ========================
+                // PHASE 4: EXECUTION
+                // ========================
+
+                'Monday Morning Protocol': `Convert our high-level strategy into a concrete "Monday Morning" Action Plan.
+
+The output MUST strictly follow this structure:
+
+# Monday Morning Action Protocol
+[Statement of immediate intent]
+
+## Immediate Actions (Next 7 Days)
+| Role/Owner | Specific Task (The "What") | Deadline (The "When") | Definition of Done |
+|---|---|---|---|
+| [Role 1] | [Task] | [Date/Day] | [Outcome] |
+| [Role 2] | [Task] | [Date/Day] | [Outcome] |
+
+## 30-60-90 Day Outlook
+* **30 Days:** [Milestone]
+* **60 Days:** [Milestone]
+* **90 Days:** [Milestone]`,
+
                 'KPI Dashboard Mockup': `Design a **KPI Dashboard Mockup** structure for tracking the success of [input SPECIFIC BUSINESS GOAL / PROJECT, e.g., 'reducing customer churn' or 'launching a new product feature']. Define a minimum of five mandatory KPIs (Key Performance Indicators).
 
 The output MUST strictly follow this structure:
