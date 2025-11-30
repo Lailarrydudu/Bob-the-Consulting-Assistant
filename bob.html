@@ -1198,14 +1198,14 @@ The table must be the last element of the response before the suggestions block.
                                 RULES FOR CHARTS:
                                 If the user asks to visualize data, compare numbers, or create a graph:
                                 1. Generate a standard textual analysis first.
-                                2. At the very end, output the chart data in a JSON block wrapped in <<<CHART>>> and <<<END_CHART>>> tags.
-                                3. The JSON must follow Chart.js format: { "type": "bar" (or line/pie), "data": { "labels": [], "datasets": [{ "label": "Title", "data": [] }] } }.
+                                2. At the very end, output the chart data in a JSON block wrapped in <chart> and </chart> tags.
+                                3. The JSON must follow Chart.js format: { "type": "bar" (or line/pie/doughnut), "data": { "labels": [], "datasets": [{ "label": "Title", "data": [] }] } }.
                                 
                                 Example:
                                 Analysis of sales...
-                                <<<CHART>>>
+                                <chart>
                                 { "type": "bar", "data": { "labels": ["Q1", "Q2"], "datasets": [{ "label": "Revenue", "data": [100, 200] }] } }
-                                <<<END_CHART>>>
+                                </chart>
 
                                 Format the rest of your response using professional Markdown.` }] 
                             },
@@ -1333,7 +1333,7 @@ The table must be the last element of the response before the suggestions block.
                 if (sender === 'model') {
                     // 1. EXTRACT CHART DATA
                     let chartConfig = null;
-                    const chartRegex = /<<<CHART>>>([\s\S]*?)<<<END_CHART>>>/;
+                    const chartRegex = /(?:<<<CHART>>>|<chart>|<<>>)([\s\S]*?)(?:<<<END_CHART>>>|<\/chart>|<<>>)/i;
                     const chartMatch = text.match(chartRegex);
                     
                     if (chartMatch) {
