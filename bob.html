@@ -11,6 +11,7 @@
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     </script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Georgia:wght@400;700&family=Roboto+Slab:wght=700&display=swap');
@@ -1192,11 +1193,20 @@ The table must be the last element of the response before the suggestions block.
                                 
                                 RULES FOR CITATIONS:
                                 1. Use the Google Search Tool for facts/data.
-                                2. EVERY time you use a source, you MUST add a Markdown link immediately after the fact.
-                                3. Format: [Source Name](URL)
-                                4. Example: "The market grew by 5% [Gartner](https://gartner.com)."
-                                5. Do NOT use footnotes like [1]. Do NOT put a list at the end. Use inline markdown links ONLY.
+                                2. Cite sources using inline markdown: [Source Name](URL).
                                 
+                                RULES FOR CHARTS:
+                                If the user asks to visualize data, compare numbers, or create a graph:
+                                1. Generate a standard textual analysis first.
+                                2. At the very end, output the chart data in a JSON block wrapped in <<<CHART>>> and <<<END_CHART>>> tags.
+                                3. The JSON must follow Chart.js format: { "type": "bar" (or line/pie), "data": { "labels": [], "datasets": [{ "label": "Title", "data": [] }] } }.
+                                
+                                Example:
+                                Analysis of sales...
+                                <<<CHART>>>
+                                { "type": "bar", "data": { "labels": ["Q1", "Q2"], "datasets": [{ "label": "Revenue", "data": [100, 200] }] } }
+                                <<<END_CHART>>>
+
                                 Format the rest of your response using professional Markdown.` }] 
                             },
                             messages: chatHistory
@@ -1309,7 +1319,6 @@ The table must be the last element of the response before the suggestions block.
 
             function createMessageBubble(text, sender) {
                 const wrapper = document.createElement('div');
-                // Added 'message-wrapper' class for hover effects
                 wrapper.classList.add('flex', 'message-wrapper', 'mb-4', sender === 'user' ? 'justify-end' : 'justify-start');
                 
                 const bubble = document.createElement('div');
@@ -1318,21 +1327,67 @@ The table must be the last element of the response before the suggestions block.
                     sender === 'user' ? 'bg-emerald-600' : 'bg-gray-800',
                     'text-gray-100'
                 );
+                bubble.style.overflow = 'hidden'; // Prevent chart overflow
 
-                // --- LOGIC FOR AI MESSAGES ---
+                // --- LOGIC FOR AI MESSAGES (Model) ---
                 if (sender === 'model') {
-                    const { html: textWithIcons, sources } = processCitations(text);
+                    // 1. EXTRACT CHART DATA
+                    let chartConfig = null;
+                    const chartRegex = /<<<CHART>>>([\s\S]*?)<<<END_CHART>>>/;
+                    const chartMatch = text.match(chartRegex);
+                    
+                    if (chartMatch) {
+                        try {
+                            chartConfig = JSON.parse(chartMatch[1]);
+                            text = text.replace(chartRegex, ''); // Remove JSON from visible text
+                        } catch (e) {
+                            console.error("Chart parse error", e);
+                        }
+                    }
 
+                    // 2. Process Text (Citations + Markdown)
+                    const { html: textWithIcons, sources } = processCitations(text);
                     const contentDiv = document.createElement('div');
                     contentDiv.classList.add('ai-response-content', 'mb-2');
                     contentDiv.innerHTML = marked.parse(textWithIcons);
+                    bubble.appendChild(contentDiv);
 
+                    // 3. Render Chart (If found)
+                    if (chartConfig) {
+                        const chartContainer = document.createElement('div');
+                        chartContainer.style.marginTop = '1rem';
+                        chartContainer.style.backgroundColor = '#1f2937';
+                        chartContainer.style.padding = '10px';
+                        chartContainer.style.borderRadius = '8px';
+                        
+                        const canvas = document.createElement('canvas');
+                        chartContainer.appendChild(canvas);
+                        bubble.appendChild(chartContainer);
+
+                        new Chart(canvas, {
+                            type: chartConfig.type,
+                            data: chartConfig.data,
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: { labels: { color: 'white' } }
+                                },
+                                scales: {
+                                    x: { ticks: { color: 'white' }, grid: { color: '#374151' } },
+                                    y: { ticks: { color: 'white' }, grid: { color: '#374151' } }
+                                }
+                            }
+                        });
+                    }
+
+                    // 4. Add Sources Footer
                     if (sources.length > 0) {
                         const footerDiv = document.createElement('div');
                         footerDiv.innerHTML = createSourcesFooter(sources);
-                        contentDiv.appendChild(footerDiv);
+                        bubble.appendChild(footerDiv);
                     }
 
+                    // 5. Copy Button
                     const copyBtn = document.createElement('button');
                     copyBtn.className = 'text-xs text-gray-400 hover:text-white mt-2 block ml-auto';
                     copyBtn.textContent = 'Copy';
@@ -1341,45 +1396,42 @@ The table must be the last element of the response before the suggestions block.
                         copyBtn.textContent = 'Copied!';
                         setTimeout(() => copyBtn.textContent = 'Copy', 1500);
                     };
-
-                    bubble.appendChild(contentDiv);
                     bubble.appendChild(copyBtn);
+                    
                     wrapper.appendChild(bubble);
                 } 
+                
                 // --- LOGIC FOR USER MESSAGES (Edit & Copy) ---
                 else {
                     bubble.textContent = text;
 
-                    // Container for the icons (Edit / Copy)
                     const actionsDiv = document.createElement('div');
                     actionsDiv.className = 'user-action-container';
 
-                    // Edit Button (Pencil Icon)
+                    // Edit
                     const editBtn = document.createElement('button');
                     editBtn.className = 'action-icon-btn';
                     editBtn.title = "Edit prompt";
                     editBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>`;
                     editBtn.onclick = () => {
-                        userInput.value = text; // Put text back in box
+                        userInput.value = text;
                         autoResizeTextarea(userInput);
                         userInput.focus();
                     };
 
-                    // Copy Button (Clipboard Icon)
+                    // Copy
                     const copyBtnUser = document.createElement('button');
                     copyBtnUser.className = 'action-icon-btn';
                     copyBtnUser.title = "Copy text";
                     copyBtnUser.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v2.25A2.25 2.25 0 0113.5 22.5h-8.25a2.25 2.25 0 01-2.25-2.25v-8.25a2.25 2.25 0 012.25-2.25H5.25a2.25 2.25 0 012.25-2.25h1.5a.75.75 0 010 1.5H6a.75.75 0 00-.75.75v8.25c0 .414.336.75.75.75H13.5a.75.75 0 00.75-.75V11.25H18a.75.75 0 01.75.75v4.5a.75.75 0 00.75.75h1.5A2.25 2.25 0 0122.5 17.25v2.25a.75.75 0 001.5 0V17.25A2.25 2.25 0 0021.75 15h-1.5a.75.75 0 01-.75-.75V9.75a2.25 2.25 0 00-2.25-2.25H15z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 7.125h-10.5a2.25 2.25 0 00-2.25 2.25v10.5" /></svg>`;
                     copyBtnUser.onclick = () => {
                         navigator.clipboard.writeText(text);
-                        copyBtnUser.style.color = '#34d399'; // Flash green
+                        copyBtnUser.style.color = '#34d399';
                         setTimeout(() => copyBtnUser.style.color = '', 500);
                     };
 
                     actionsDiv.appendChild(editBtn);
                     actionsDiv.appendChild(copyBtnUser);
-
-                    // Add actions BEFORE bubble so they appear to the left
                     wrapper.appendChild(actionsDiv);
                     wrapper.appendChild(bubble);
                 }
