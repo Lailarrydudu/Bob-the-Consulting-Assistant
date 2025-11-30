@@ -904,11 +904,12 @@ The table must be the last element of the response before the suggestions block.
                             systemInstruction: { 
                                 parts: [{ text: `You are Bob, a professional consulting assistant. 
                                 
-                                CRITICAL RULES FOR SOURCES:
-                                1. When asked about current events, stocks, or specific facts, YOU MUST USE THE GOOGLE SEARCH TOOL.
-                                2. Cite your sources using standard Markdown links inline: [Source Name](URL).
-                                3. DO NOT create a separate "References" list at the end.
-                                4. Example sentence: "Apple stock is currently $150 [Yahoo Finance](https://finance.yahoo.com)."
+                                RULES FOR CITATIONS:
+                                1. Use the Google Search Tool for facts/data.
+                                2. EVERY time you use a source, you MUST add a Markdown link immediately after the fact.
+                                3. Format: [Source Name](URL)
+                                4. Example: "The market grew by 5% [Gartner](https://gartner.com)."
+                                5. Do NOT use footnotes like [1]. Do NOT put a list at the end. Use inline markdown links ONLY.
                                 
                                 Format the rest of your response using professional Markdown.` }] 
                             },
