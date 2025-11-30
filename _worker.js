@@ -24,9 +24,10 @@ export default {
         // 1. Define the Google Search Tool
         const tools = [{ google_search: {} }];
 
-        // 2. Call Gemini 2.0 Flash Experimental (Best for Search Tools)
+        // 2. Call Gemini 1.5 Flash (Stable Version)
+        // We use this because 2.0-exp hits the rate limit too fast
         const geminiResponse = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${env.GEMINI_API_KEY}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${env.GEMINI_API_KEY}`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -40,7 +41,6 @@ export default {
         
         const data = await geminiResponse.json();
         
-        // Check for upstream API errors
         if (data.error) {
              return new Response(JSON.stringify(data), {
                 status: 400,
