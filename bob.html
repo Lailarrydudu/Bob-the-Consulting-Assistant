@@ -227,40 +227,52 @@
         <!-- Scrollable Menu Area -->
         <div class="flex-1 overflow-y-auto p-4 space-y-4">
             
-            <!-- Phase 1 -->
+            <!-- Phase 1: Initial Setup -->
             <div>
                 <button id="initialSetupDropdownBtn" class="sidebar-btn">
                     Initial Setup
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
-                <div id="initialSetupMenu" class="sidebar-menu hidden"></div>
+                <div id="initialSetupMenu" class="sidebar-menu hidden">
+                    <!-- Existing -->
+                    <!-- New: Guided Diagnostic -->
+                </div>
             </div>
 
-            <!-- Phase 2 -->
+            <!-- Phase 2: Analysis -->
             <div>
                 <button id="analysisDropdownBtn" class="sidebar-btn">
                     Analysis
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
-                <div id="analysisMenu" class="sidebar-menu hidden"></div>
+                <div id="analysisMenu" class="sidebar-menu hidden">
+                    <!-- Existing -->
+                    <!-- New: MECE Check -->
+                </div>
             </div>
 
-            <!-- Phase 3 -->
+            <!-- Phase 3: Solution Design -->
             <div>
                 <button id="solutionDesignDropdownBtn" class="sidebar-btn">
                     Solution Design
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
-                <div id="solutionDesignMenu" class="sidebar-menu hidden"></div>
+                <div id="solutionDesignMenu" class="sidebar-menu hidden">
+                    <!-- Existing -->
+                    <!-- New: Devil's Advocate -->
+                </div>
             </div>
 
-            <!-- Phase 4 -->
+            <!-- Phase 4: Execution -->
             <div>
                 <button id="executionDropdownBtn" class="sidebar-btn">
                     Execution
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
-                <div id="executionMenu" class="sidebar-menu hidden"></div>
+                <div id="executionMenu" class="sidebar-menu hidden">
+                     <!-- Existing -->
+                     <!-- New: Monday Morning Protocol -->
+                </div>
             </div>
 
         </div>
@@ -416,6 +428,16 @@ The output MUST strictly follow this high-readability structure:
 | [Trend 3 Name] | * [Impact bullet 1] <br> * [Impact bullet 2] |
 
 The table must be the last element of the response before the suggestions block.`,
+
+                // === NEW CONSULTING SUPERPOWERS ===
+                'Guided Diagnostic (Interviewer Mode)': `Act as a Senior Partner Consultant. I want to solve a business problem, but I need you to extract the details from me first.\n\nDo NOT give me a solution yet. Instead, ask me 5 targeted, probing questions to understand:\n1. The root cause of the issue.\n2. The specific constraints (budget, time, talent).\n3. The definition of success.\n\nAsk these questions one by one or as a list, whichever is more effective.`,
+
+                'MECE Logic Check': `Review the analysis we have discussed so far. Check if the current breakdown of the problem follows the MECE principle (Mutually Exclusive, Collectively Exhaustive).\n\n1. Are there any overlaps between categories?\n2. Are there any major logical gaps or missing categories we haven't considered?\n3. Provide a restructured, truly MECE outline of the problem landscape.`,
+
+                "Devil's Advocate Review": `I want you to stress-test my current strategy/solution. Switch personas to a skeptical "Devil's Advocate."\n\n1. Identify the 3 biggest assumptions I am making that could fail.\n2. Tell me the "Worst Case Scenario" if this plan goes wrong.\n3. Point out any "Sunk Cost Fallacies" or cognitive biases in my thinking.\n\nBe tough but constructive.`,
+
+                'Monday Morning Protocol': `Convert our high-level strategy into a concrete "Monday Morning" Action Plan.\n\nCreate a table with these columns:\n| Who (Role/Dept) | What (Specific Task) | By When (Deadline) | Definition of Done |\n\nFocus on the immediate next steps required to start execution next week.`,
+            };
               
                 'Initial Project Charter Draft': `Generate an Initial Project Charter Draft for [input SPECIFIC PROJECT TYPE, e.g., 'implementing a new cloud-based CRM system for the sales department']. 
 
@@ -826,10 +848,41 @@ The table must be the last element of the response before the suggestions block.
                 });
             };
 
-            populateMenu('initialSetupMenu', ['Industry Trends Snapshot', 'Initial Project Charter Draft', 'Problem Statement Draft']);
-            populateMenu('analysisMenu', ['Market Analysis', 'SWOT Analysis', 'Competitor Benchmarking', '5 Forces Analysis', 'PESTLE Analysis', 'Hofstede Analysis']);
-            populateMenu('solutionDesignMenu', ['Business Plan Outline', 'Market Entry Strategy', 'Go-to-market Strategy', 'Ansoff Matrix', 'Risk Analysis']);
-            populateMenu('executionMenu', ['KPI Dashboard Mockup', 'Implementation Plan Outline']);
+            // 1. Initial Setup + The "Interviewer"
+            populateMenu('initialSetupMenu', [
+                'Guided Diagnostic (Interviewer Mode)', // NEW
+                'Industry Trends Snapshot', 
+                'Initial Project Charter Draft', 
+                'Problem Statement Draft'
+            ]);
+
+            // 2. Analysis + The "MECE Validator"
+            populateMenu('analysisMenu', [
+                'MECE Logic Check', // NEW
+                'Market Analysis', 
+                'SWOT Analysis', 
+                'Competitor Benchmarking', 
+                '5 Forces Analysis', 
+                'PESTLE Analysis', 
+                'Hofstede Analysis'
+            ]);
+
+            // 3. Solution + "Devil's Advocate"
+            populateMenu('solutionDesignMenu', [
+                "Devil's Advocate Review", // NEW
+                'Business Plan Outline', 
+                'Market Entry Strategy', 
+                'Go-to-market Strategy', 
+                'Ansoff Matrix', 
+                'Risk Analysis'
+            ]);
+
+            // 4. Execution + "Monday Morning Protocol"
+            populateMenu('executionMenu', [
+                'Monday Morning Protocol', // NEW
+                'KPI Dashboard Mockup', 
+                'Implementation Plan Outline'
+            ]);
 
             // ============================================
             // 2. CORE LOGIC (Send, File, API)
