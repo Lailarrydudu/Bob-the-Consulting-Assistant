@@ -296,7 +296,7 @@
         <!-- HERO TEXT (Initially Visible, Hides on Chat) -->
         <div id="heroText" class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-0">
             <h2 class="text-4xl font-bold text-gray-200 tracking-tight drop-shadow-lg">Should we start building?</h2>
-            <p class="text-gray-500 mt-2">Select a phase from the left or type below.</p>
+            <p class="text-gray-500 mt-2">Select a project from the left or type below.</p>
         </div>
 
         <!-- Input Area (Fixed Bottom) -->
@@ -1226,10 +1226,13 @@ The table must be the last element of the response before the suggestions block.
                     createMessageBubble(`❌ **Connection Error:** ${error.message}`, "model");
                 }
 
-                // 8. Re-enable Controls
+                // 8. RE-ENABLE CONTROLS
                 userInput.disabled = false;
                 sendButton.disabled = false;
                 userInput.focus();
+                
+                // CRITICAL FIX: Save the chat to the project memory
+                saveCurrentProjectChat();
             }
 
             // Keyboard and Button Listeners for Send
