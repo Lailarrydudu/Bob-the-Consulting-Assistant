@@ -207,7 +207,6 @@
     <aside class="w-64 bg-gray-800 border-r border-gray-700 flex flex-col flex-shrink-0 z-20">
        <!-- Logo Area -->
         <div class="p-6 border-b border-gray-700 flex items-center gap-3">
-            <!-- Bob Network Logo -->
             <div class="p-1.5 bg-white rounded-full border-2 border-green-700 flex-shrink-0">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="28" height="28">
                     <circle cx="50" cy="50" r="8" fill="none" stroke="#4a5d3e" stroke-width="4"/>
@@ -224,55 +223,63 @@
             <h1 class="font-bold text-lg text-white tracking-wide">Bob Assistant</h1>
         </div>
 
-        <!-- Scrollable Menu Area -->
-        <div class="flex-1 overflow-y-auto p-4 space-y-4">
+        <!-- PROJECT CONTROLS (Always Visible) -->
+        <div class="p-4 border-b border-gray-700 space-y-2">
+            <button id="newProjectBtn" class="w-full py-2 px-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold text-sm transition flex items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                New Project
+            </button>
+            <button id="loadProjectBtn" class="w-full py-2 px-3 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg font-bold text-sm transition flex items-center justify-center gap-2 border border-gray-600">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" /></svg>
+                Load Project
+            </button>
+        </div>
+
+        <!-- PHASE MENUS (Hidden by default) -->
+        <div id="phaseMenuContainer" class="hidden flex-1 overflow-y-auto p-4 space-y-4 opacity-50 transition-opacity duration-500">
             
-            <!-- Phase 1: Initial Setup -->
+            <div class="text-xs text-gray-500 font-bold uppercase tracking-widest mb-2">Project Phases</div>
+
+            <!-- Phase 1 -->
             <div>
                 <button id="initialSetupDropdownBtn" class="sidebar-btn">
                     Initial Setup
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
-                <div id="initialSetupMenu" class="sidebar-menu hidden">
-                    <!-- Existing -->
-                    <!-- New: Guided Diagnostic -->
-                </div>
+                <div id="initialSetupMenu" class="sidebar-menu hidden"></div>
             </div>
 
-            <!-- Phase 2: Analysis -->
+            <!-- Phase 2 -->
             <div>
                 <button id="analysisDropdownBtn" class="sidebar-btn">
                     Analysis
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
-                <div id="analysisMenu" class="sidebar-menu hidden">
-                    <!-- Existing -->
-                    <!-- New: MECE Check -->
-                </div>
+                <div id="analysisMenu" class="sidebar-menu hidden"></div>
             </div>
 
-            <!-- Phase 3: Solution Design -->
+            <!-- Phase 3 -->
             <div>
                 <button id="solutionDesignDropdownBtn" class="sidebar-btn">
                     Solution Design
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
-                <div id="solutionDesignMenu" class="sidebar-menu hidden">
-                    <!-- Existing -->
-                    <!-- New: Devil's Advocate -->
-                </div>
+                <div id="solutionDesignMenu" class="sidebar-menu hidden"></div>
             </div>
 
-            <!-- Phase 4: Execution -->
+            <!-- Phase 4 -->
             <div>
                 <button id="executionDropdownBtn" class="sidebar-btn">
                     Execution
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
-                <div id="executionMenu" class="sidebar-menu hidden">
-                     <!-- Existing -->
-                     <!-- New: Monday Morning Protocol -->
-                </div>
+                <div id="executionMenu" class="sidebar-menu hidden"></div>
+            </div>
+            
+            <!-- Current Project Indicator -->
+            <div id="currentProjectBadge" class="mt-6 p-3 bg-gray-900 rounded border border-gray-700 text-center hidden">
+                <div class="text-xs text-gray-500">Active Project</div>
+                <div id="currentProjectNameDisplay" class="text-sm font-bold text-emerald-400 truncate"></div>
             </div>
 
         </div>
@@ -326,44 +333,54 @@
 
     <!-- RIGHT SIDEBAR (Utilities) -->
     <aside class="w-64 bg-gray-800 border-l border-gray-700 flex flex-col flex-shrink-0 z-20 p-4">
-        <h3 class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-4 text-center">Tools</h3>
         
-        <!-- My Prompts -->
-        <div class="relative mb-0"> 
-            <button id="myPromptsDropdownBtn" class="utility-btn">
-                My Prompts
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-            </button>
-            <div id="myPromptsMenu" class="absolute hidden top-full left-0 w-full bg-gray-700 rounded-lg shadow-xl z-30 border border-gray-600 p-2 mt-1"></div>
-        </div>
-
-        <!-- Takeaways -->
-        <button id="generateTakeawaysBtn" class="utility-btn">Generate Takeaways</button>
-
-        <!-- Workflow -->
-        <div class="relative mb-0">
-            <button id="workflowBtn" class="utility-btn">
-                Run Workflow
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-            </button>
-            <div id="workflowMenu" class="absolute hidden top-full right-0 w-64 bg-gray-700 rounded-lg shadow-xl z-30 border border-gray-600 p-2 mt-1">
-                <button class="workflow-option w-full text-left px-3 py-2 text-sm text-gray-200 hover:bg-gray-600 rounded" data-workflow="market-entry-strategy">Market Entry Strategy</button>
-                <button class="workflow-option w-full text-left px-3 py-2 text-sm text-gray-200 hover:bg-gray-600 rounded" data-workflow="business-health-check">Business Health Check</button>
-                <button class="workflow-option w-full text-left px-3 py-2 text-sm text-gray-200 hover:bg-gray-600 rounded" data-workflow="competitive-analysis">Competitive Analysis</button>
+        <!-- WRAPPER FOR TOGGLING VISIBILITY -->
+        <div id="toolsMenuContainer" class="hidden w-full h-full flex flex-col">
+            
+            <h3 class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-4 text-center">Tools</h3>
+            
+            <!-- My Prompts -->
+            <div class="relative mb-0"> 
+                <button id="myPromptsDropdownBtn" class="utility-btn">
+                    My Prompts
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div id="myPromptsMenu" class="absolute hidden top-full left-0 w-full bg-gray-700 rounded-lg shadow-xl z-30 border border-gray-600 p-2 mt-1"></div>
             </div>
+
+            <!-- Takeaways -->
+            <button id="generateTakeawaysBtn" class="utility-btn">Generate Takeaways</button>
+
+            <!-- Workflow -->
+            <div class="relative mb-0">
+                <button id="workflowBtn" class="utility-btn">
+                    Run Workflow
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div id="workflowMenu" class="absolute hidden top-full right-0 w-64 bg-gray-700 rounded-lg shadow-xl z-30 border border-gray-600 p-2 mt-1">
+                    <button class="workflow-option w-full text-left px-3 py-2 text-sm text-gray-200 hover:bg-gray-600 rounded" data-workflow="market-entry-strategy">Market Entry Strategy</button>
+                    <button class="workflow-option w-full text-left px-3 py-2 text-sm text-gray-200 hover:bg-gray-600 rounded" data-workflow="business-health-check">Business Health Check</button>
+                    <button class="workflow-option w-full text-left px-3 py-2 text-sm text-gray-200 hover:bg-gray-600 rounded" data-workflow="competitive-analysis">Competitive Analysis</button>
+                </div>
+            </div>
+
+            <!-- Export -->
+            <button id="exportBtn" class="utility-btn">Export Chat</button>
+
+            <div class="flex-grow"></div> <!-- Spacer -->
+
+            <!-- Clear Chat -->
+            <button id="clearChatBtn" class="w-full px-4 py-2 border border-red-500 text-red-400 rounded-lg hover:bg-red-900/20 transition text-sm font-bold flex justify-center items-center">
+                Clear Chat
+            </button>
+        </div>
+        
+        <!-- Placeholder when no project selected -->
+        <div id="noProjectToolState" class="flex-1 flex items-center justify-center text-center text-gray-600 text-sm p-4">
+            Select a project to access tools
         </div>
 
-        <!-- Export -->
-        <button id="exportBtn" class="utility-btn">Export Chat</button>
-
-        <div class="flex-grow"></div> <!-- Spacer to push Clear Chat to bottom -->
-
-        <!-- Clear Chat -->
-        <button id="clearChatBtn" class="w-full px-4 py-2 border border-red-500 text-red-400 rounded-lg hover:bg-red-900/20 transition text-sm font-bold flex justify-center items-center">
-            Clear Chat
-        </button>
     </aside>
-
     <script>
         (function() {
             // ELEMENT REFERENCES
@@ -396,6 +413,107 @@
             let awaitingPlanResponse = false;
             let attachedFileContent = null;
             let attachedFileName = null;
+
+            // ============================================
+            // 0. PROJECT MANAGEMENT SYSTEM
+            // ============================================
+            let currentProjectId = null;
+            const phaseMenuContainer = document.getElementById('phaseMenuContainer');
+            const toolsMenuContainer = document.getElementById('toolsMenuContainer');
+            const noProjectToolState = document.getElementById('noProjectToolState');
+            const currentProjectBadge = document.getElementById('currentProjectBadge');
+            const currentProjectNameDisplay = document.getElementById('currentProjectNameDisplay');
+
+            // Load Project List from LocalStorage
+            function getProjects() {
+                return JSON.parse(localStorage.getItem('bob_projects_index') || '[]');
+            }
+
+            // Save Chat to Current Project
+            function saveCurrentProjectChat() {
+                if (!currentProjectId) return;
+                localStorage.setItem(`bob_project_${currentProjectId}_chat`, JSON.stringify(chatHistory));
+            }
+
+            // Switch to a specific project
+            function activateProject(id, name) {
+                currentProjectId = id;
+                
+                // 1. Update UI Visibility
+                phaseMenuContainer.classList.remove('hidden', 'opacity-50');
+                phaseMenuContainer.classList.add('opacity-100');
+                toolsMenuContainer.classList.remove('hidden');
+                noProjectToolState.classList.add('hidden');
+                
+                // 2. Update Hero Text
+                heroText.style.display = 'none';
+                
+                // 3. Update Badge
+                currentProjectBadge.classList.remove('hidden');
+                currentProjectNameDisplay.textContent = name;
+
+                // 4. Load Chat History
+                chatArea.innerHTML = ''; // Clear screen
+                chatHistory.length = 0; // Clear array
+                
+                const savedChat = JSON.parse(localStorage.getItem(`bob_project_${id}_chat`) || '[]');
+                
+                if (savedChat.length > 0) {
+                    savedChat.forEach(msg => {
+                        // Re-render bubbles without re-saving (since they are already saved)
+                        chatHistory.push(msg); // Add to memory
+                        
+                        // Manually create bubble to avoid double-save loop
+                        // We use a simplified version of logic here just for rendering
+                        const wrapper = document.createElement('div');
+                        wrapper.classList.add('flex', 'message-wrapper', 'mb-4', msg.role === 'user' ? 'justify-end' : 'justify-start');
+                        const bubble = document.createElement('div');
+                        bubble.classList.add('rounded-xl', 'p-4', 'max-w-2xl', 'shadow-md', msg.role === 'user' ? 'bg-emerald-600' : 'bg-gray-800', 'text-gray-100');
+                        
+                        if (msg.role === 'model') {
+                             const { html } = processCitations(msg.parts[0].text);
+                             bubble.innerHTML = `<div class="ai-response-content mb-2">${marked.parse(html)}</div>`;
+                        } else {
+                             bubble.textContent = msg.parts[0].text;
+                        }
+                        wrapper.appendChild(bubble);
+                        chatArea.appendChild(wrapper);
+                    });
+                    // Scroll to bottom
+                    setTimeout(() => chatArea.scrollTop = chatArea.scrollHeight, 100);
+                } else {
+                    // New Project: Show Hero Text
+                     heroText.style.display = 'flex';
+                }
+            }
+
+            // EVENT: New Project
+            document.getElementById('newProjectBtn').onclick = () => {
+                const name = prompt("Enter Project Name (e.g., 'Q3 Sales Strategy'):");
+                if (!name) return;
+
+                const id = Date.now().toString();
+                const projects = getProjects();
+                projects.push({ id, name, date: new Date().toISOString() });
+                localStorage.setItem('bob_projects_index', JSON.stringify(projects));
+                
+                activateProject(id, name);
+            };
+
+            // EVENT: Load Project
+            document.getElementById('loadProjectBtn').onclick = () => {
+                const projects = getProjects();
+                if (projects.length === 0) return alert("No saved projects found.");
+
+                // Simple prompt selection (can be upgraded to modal later)
+                let list = "Select a project by number:\n";
+                projects.forEach((p, i) => list += `${i + 1}. ${p.name}\n`);
+                
+                const choice = prompt(list);
+                if (choice && projects[choice - 1]) {
+                    activateProject(projects[choice - 1].id, projects[choice - 1].name);
+                }
+            };
 
             // ============================================
             // 1. PROMPT MAP (STRUCTURED & CATEGORIZED)
