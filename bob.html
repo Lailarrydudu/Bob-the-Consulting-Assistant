@@ -1338,10 +1338,21 @@ The table must be the last element of the response before the suggestions block.
                     
                     if (chartMatch) {
                         try {
-                            chartConfig = JSON.parse(chartMatch[1]);
-                            text = text.replace(chartRegex, ''); // Remove JSON from visible text
+                            let rawContent = chartMatch[1];
+                            
+                            // BULLETPROOF FIX: Find the first '{' and the last '}'
+                            // This ignores "```json" or "Here is the chart:" inside the tags
+                            const firstBrace = rawContent.indexOf('{');
+                            const lastBrace = rawContent.lastIndexOf('}');
+                            
+                            if (firstBrace !== -1 && lastBrace !== -1) {
+                                const cleanJson = rawContent.substring(firstBrace, lastBrace + 1);
+                                chartConfig = JSON.parse(cleanJson);
+                                text = text.replace(chartRegex, ''); // Success! Remove code from view
+                            }
                         } catch (e) {
-                            console.error("Chart parse error", e);
+                            console.error("Chart rendering failed:", e);
+                            // If it fails, we leave 'text' alone so you can see what went wrong
                         }
                     }
 
