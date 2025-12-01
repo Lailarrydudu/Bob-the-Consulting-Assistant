@@ -1327,32 +1327,47 @@ The table must be the last element of the response before the suggestions block.
                     sender === 'user' ? 'bg-emerald-600' : 'bg-gray-800',
                     'text-gray-100'
                 );
-                bubble.style.overflow = 'hidden'; // Prevent chart overflow
+                bubble.style.overflow = 'hidden'; 
 
                 // --- LOGIC FOR AI MESSAGES (Model) ---
                 if (sender === 'model') {
-                    // 1. EXTRACT CHART DATA
                     let chartConfig = null;
-                    const chartRegex = /(?:<<<CHART>>>|<chart>|<<>>)([\s\S]*?)(?:<<<END_CHART>>>|<\/chart>|<<>>)/i;
-                    const chartMatch = text.match(chartRegex);
                     
-                    if (chartMatch) {
+                    // STRATEGY 1: Look for specific tags (Highest Priority)
+                    const tagRegex = /(?:<<<CHART>>>|<chart>|<<>>)([\s\S]*?)(?:<<<END_CHART>>>|<\/chart>|<<>>)/i;
+                    let match = text.match(tagRegex);
+                    
+                    // STRATEGY 2: Look for Markdown Code Blocks containing JSON (Medium Priority)
+                    if (!match) {
+                        const codeRegex = /```json\s*({[\s\S]*?"type"[\s\S]*?"data"[\s\S]*?})\s*```/i;
+                        match = text.match(codeRegex);
+                    }
+
+                    // STRATEGY 3: Look for Raw JSON pattern in text (Fallback)
+                    if (!match) {
+                        // Looks for { "type": "bar|line|pie...", "data": ... }
+                        const rawRegex = /({[\s\n]*"type"[\s\n]*:[\s\n]*"(?:bar|line|pie|doughnut)"[\s\S]*?"data"[\s\S]*?})/i;
+                        match = text.match(rawRegex);
+                    }
+
+                    // If any strategy found a match, try to parse it
+                    if (match) {
                         try {
-                            let rawContent = chartMatch[1];
+                            let rawContent = match[1] || match[0]; 
                             
-                            // BULLETPROOF FIX: Find the first '{' and the last '}'
-                            // This ignores "```json" or "Here is the chart:" inside the tags
+                            // CLEANING: Find the first '{' and the last '}' to strip surrounding noise
                             const firstBrace = rawContent.indexOf('{');
                             const lastBrace = rawContent.lastIndexOf('}');
                             
                             if (firstBrace !== -1 && lastBrace !== -1) {
                                 const cleanJson = rawContent.substring(firstBrace, lastBrace + 1);
                                 chartConfig = JSON.parse(cleanJson);
-                                text = text.replace(chartRegex, ''); // Success! Remove code from view
+                                
+                                // Remove the code block/tag from the visible text
+                                text = text.replace(match[0], ''); 
                             }
                         } catch (e) {
-                            console.error("Chart rendering failed:", e);
-                            // If it fails, we leave 'text' alone so you can see what went wrong
+                            console.error("Chart rendering attempt failed:", e);
                         }
                     }
 
@@ -1363,7 +1378,7 @@ The table must be the last element of the response before the suggestions block.
                     contentDiv.innerHTML = marked.parse(textWithIcons);
                     bubble.appendChild(contentDiv);
 
-                    // 3. Render Chart (If found)
+                    // 3. Render Chart (If config was successfully parsed)
                     if (chartConfig) {
                         const chartContainer = document.createElement('div');
                         chartContainer.style.marginTop = '1rem';
