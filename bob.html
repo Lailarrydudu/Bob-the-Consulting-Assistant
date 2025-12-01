@@ -1332,42 +1332,57 @@ The table must be the last element of the response before the suggestions block.
                 // --- LOGIC FOR AI MESSAGES (Model) ---
                 if (sender === 'model') {
                     let chartConfig = null;
+                    let rawChartContent = null;
                     
-                    // STRATEGY 1: Look for specific tags (Highest Priority)
+                    // STRATEGY 1: Explicit Tags (Best Case)
+                    // Looks for <chart> ... </chart> or <<<CHART>>>
                     const tagRegex = /(?:<<<CHART>>>|<chart>|<<>>)([\s\S]*?)(?:<<<END_CHART>>>|<\/chart>|<<>>)/i;
                     let match = text.match(tagRegex);
                     
-                    // STRATEGY 2: Look for Markdown Code Blocks containing JSON (Medium Priority)
-                    if (!match) {
+                    if (match) {
+                        rawChartContent = match[1];
+                    } 
+                    // STRATEGY 2: Markdown Code Blocks (Common AI behavior)
+                    else {
                         const codeRegex = /```json\s*({[\s\S]*?"type"[\s\S]*?"data"[\s\S]*?})\s*```/i;
                         match = text.match(codeRegex);
+                        if (match) rawChartContent = match[1];
                     }
 
-                    // STRATEGY 3: Look for Raw JSON pattern in text (Fallback)
-                    if (!match) {
-                        // Looks for { "type": "bar|line|pie...", "data": ... }
-                        const rawRegex = /({[\s\n]*"type"[\s\n]*:[\s\n]*"(?:bar|line|pie|doughnut)"[\s\S]*?"data"[\s\S]*?})/i;
-                        match = text.match(rawRegex);
-                    }
-
-                    // If any strategy found a match, try to parse it
-                    if (match) {
-                        try {
-                            let rawContent = match[1] || match[0]; 
+                    // STRATEGY 3: "Aggressive Hunter" (Fallback for raw JSON)
+                    // If no tags found, we look for the specific Chart.js signature: "type": "something"
+                    if (!rawChartContent) {
+                        const typeMarker = text.search(/"type"\s*:\s*"(bar|line|pie|doughnut|radar|polarArea)"/i);
+                        if (typeMarker !== -1) {
+                            // Found the marker. Now find the bounding braces { }
+                            const startBrace = text.lastIndexOf('{', typeMarker);
+                            const endBrace = text.lastIndexOf('}');
                             
-                            // CLEANING: Find the first '{' and the last '}' to strip surrounding noise
-                            const firstBrace = rawContent.indexOf('{');
-                            const lastBrace = rawContent.lastIndexOf('}');
-                            
-                            if (firstBrace !== -1 && lastBrace !== -1) {
-                                const cleanJson = rawContent.substring(firstBrace, lastBrace + 1);
-                                chartConfig = JSON.parse(cleanJson);
-                                
-                                // Remove the code block/tag from the visible text
-                                text = text.replace(match[0], ''); 
+                            if (startBrace !== -1 && endBrace !== -1 && endBrace > startBrace) {
+                                rawChartContent = text.substring(startBrace, endBrace + 1);
                             }
+                        }
+                    }
+
+                    // PARSE ATTEMPT
+                    if (rawChartContent) {
+                        try {
+                            // Cleanup: Remove any lingering markdown ticks or whitespace
+                            let cleanJson = rawChartContent.trim();
+                            cleanJson = cleanJson.replace(/^```json/, '').replace(/```$/, '');
+                            
+                            chartConfig = JSON.parse(cleanJson);
+                            
+                            // Remove the raw JSON text from the bubble so it looks clean
+                            // We construct a new regex based on the found content to remove it safely
+                            text = text.replace(rawChartContent, '');
+                            
+                            // Also remove empty tags if they were left behind
+                            text = text.replace(/<chart>\s*<\/chart>/i, '').replace(/<<<CHART>>>\s*<<<END_CHART>>>/i, '');
+                            
                         } catch (e) {
                             console.error("Chart rendering attempt failed:", e);
+                            // If parsing fails, we leave the text as is so the user at least sees the data
                         }
                     }
 
@@ -1399,8 +1414,16 @@ The table must be the last element of the response before the suggestions block.
                                     legend: { labels: { color: 'white' } }
                                 },
                                 scales: {
-                                    x: { ticks: { color: 'white' }, grid: { color: '#374151' } },
-                                    y: { ticks: { color: 'white' }, grid: { color: '#374151' } }
+                                    x: { 
+                                        display: chartConfig.type !== 'pie' && chartConfig.type !== 'doughnut',
+                                        ticks: { color: 'white' }, 
+                                        grid: { color: '#374151' } 
+                                    },
+                                    y: { 
+                                        display: chartConfig.type !== 'pie' && chartConfig.type !== 'doughnut',
+                                        ticks: { color: 'white' }, 
+                                        grid: { color: '#374151' } 
+                                    }
                                 }
                             }
                         });
