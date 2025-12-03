@@ -518,7 +518,7 @@
             };
 
             // ============================================
-            // 1. PROMPT MAP (OPTIMIZED & STRUCTURED)
+            // 1. PROMPT MAP (OPTIMIZED FOR CONSULTING ACCURACY)
             // ============================================
             const PROMPT_MAP = {
                 
@@ -528,39 +528,41 @@
                 
                 'Guided Diagnostic (Interviewer Mode)': `Act as a Senior Partner Consultant conducting a root-cause diagnostic interview. I have a business problem: [input BRIEF PROBLEM DESCRIPTION].
 
-Do NOT provide a solution yet. Instead, generate a structured interview protocol to diagnose the underlying issues, not just the symptoms.
+Your goal is to uncover the underlying issues, not just the symptoms. Do NOT provide a solution yet. Instead, generate a structured interview protocol.
 
 The output MUST follow this structure:
 
 # Guided Diagnostic: [Problem Name]
 ## Objective
-[Concise statement of what we need to uncover to solve the core issue]
+[Concise statement of the diagnostic goal]
 
-## Diagnostic Questions (Please answer these)
-1. **[Topic A - Root Cause]:** [Specific probing question to peel back the onion]
-2. **[Topic B - Constraints]:** [Specific probing question about budget, time, or political constraints]
-3. **[Topic C - Success]:** [Specific probing question about the exact definition of success]
-4. **[Topic D - Stakeholders]:** [Specific probing question about who needs to buy-in]
+## Diagnostic Questions
+1. **[Topic A - Root Cause]:** [Probing question using the "5 Whys" technique]
+2. **[Topic B - Constraints]:** [Question regarding budget, timeline, or resources]
+3. **[Topic C - Success Metrics]:** [Question defining what "good" looks like quantitatively]
+4. **[Topic D - Stakeholders]:** [Question about decision-makers and blockers]
 
 ## Next Steps
-Once you answer these, I will analyze the root causes and propose a strategy.`,
+Please answer these questions so I can formulate a hypothesis.`,
 
-                'Industry Trends Snapshot': `Act as a Strategy Consultant. Generate a **rapid, high-level Industry Trends Snapshot** for [input SPECIFIED INDUSTRY]. Focus on emerging technologies, shifting consumer behaviors, and regulatory changes. Avoid generic observations.
+                'Industry Trends Snapshot': `Act as a Market Researcher. Use Google Search to find **real-time, quantified data** regarding [input SPECIFIED INDUSTRY]. 
+                
+IMPORTANT: You MUST cite your sources using inline markdown links [Source Name](URL). Do not hallucinate data.
 
 The output MUST strictly follow this high-readability structure:
 
 # [Industry] Trends Snapshot
-[Concise executive summary of the industry's current trajectory (Growth/Stagnation/Disruption)]
+[Concise executive summary of the current industry landscape]
 
 ## Key Trend 1: [Trend Name]
-* [Concise bullet point on what is happening]
-* [Concise bullet point on *why* it matters]
-* [Concise bullet point on the future implication]
+* [Specific data point/statistic with citation]
+* [Impact on business models]
+* [Future projection]
 
 ## Key Trend 2: [Trend Name]
-* [Concise bullet point on what is happening]
-* [Concise bullet point on *why* it matters]
-* [Concise bullet point on the future implication]
+* [Specific data point/statistic with citation]
+* [Impact on business models]
+* [Future projection]
 ... (3 to 5 trends total)
 
 ## Summary Table
@@ -572,55 +574,57 @@ The output MUST strictly follow this high-readability structure:
 
 The table must be the last element of the response before the suggestions block.`,
               
-                'Initial Project Charter Draft': `Act as a Certified Project Manager (PMP). Generate an Initial Project Charter Draft for [input SPECIFIC PROJECT TYPE, e.g., 'implementing a new cloud-based CRM system for the sales department']. Ensure objectives are SMART (Specific, Measurable, Achievable, Relevant, Time-bound).
+                'Initial Project Charter Draft': `Act as a Project Manager. Generate a formal Project Charter for [input SPECIFIC PROJECT TYPE, e.g., 'implementing a new cloud-based CRM system']. 
+
+Ensure the objectives are SMART (Specific, Measurable, Achievable, Relevant, Time-bound).
 
 The output MUST strictly follow this professional structure:
 
 # Project Charter: [Project Title]
-[Short introductory summary of the project goal and strategic alignment]
+[Short executive summary of the project's strategic value]
 
 ## Project Details
 | Field | Value |
 |---|---|
-| Project Sponsor | [Placeholder Name/Title] |
-| Project Manager | [Placeholder Name/Title] |
-| Target Completion | [Date/Quarter] |
+| Project Sponsor | [Recommended Title] |
+| Project Manager | [Recommended Title] |
+| Target Completion | [Estimated Quarter/Year] |
 
 ## Scope Overview
-[1-2 paragraphs strictly defining what is included (In Scope) and what is explicitly excluded (Out of Scope) to prevent scope creep.]
+[1-2 paragraphs clearly defining what is included (In-Scope) and explicitly what is excluded (Out-of-Scope) to prevent scope creep.]
 
 ## Key Objectives
-* [Measurable objective 1 (SMART)]
-* [Measurable objective 2 (SMART)]
-* [Measurable objective 3 (SMART)]
+* [SMART Objective 1]
+* [SMART Objective 2]
+* [SMART Objective 3]
 
 ## Success Metrics (Key Performance Indicators)
-* [Metric 1: Definition of success]
-* [Metric 2: Definition of success]
-* [Metric 3: Definition of success]
+* [Metric 1: Quantitative definition of success]
+* [Metric 2: Quantitative definition of success]
+* [Metric 3: Quantitative definition of success]
 
 ## High-Level Timeline (Phases)
-* Phase 1: Initiation and Planning ([Duration])
-* Phase 2: Execution and Development ([Duration])
-* Phase 3: Deployment and Stabilization ([Duration])
+* Phase 1: Initiation and Planning ([Estimated Duration])
+* Phase 2: Execution and Development ([Estimated Duration])
+* Phase 3: Deployment and Stabilization ([Estimated Duration])
 
 The timeline must be the last element of the response before the suggestions block.`,
               
-                'Problem Statement Draft': `Act as a Senior Engagement Manager. Draft a rigorous Problem Statement for [input SPECIFIC ISSUE, e.g., 'Customer retention has dropped by 10% in the last quarter']. Quantify the impact where possible.
+                'Problem Statement Draft': `Act as a Strategy Consultant. Draft a precise Problem Statement for [input SPECIFIC ISSUE]. Use the SCQA (Situation, Complication, Question, Answer) logic implicitly to frame this.
 
-The output MUST strictly follow the Current State, Desired State, Impact structure using Markdown headings and paragraphs:
+The output MUST strictly follow the Current State, Desired State, Impact structure:
 
 # Preliminary Problem Statement
-[A single, punchy introductory sentence about why this problem is critical right now.]
+[A single, punchy sentence stating the core business issue.]
 
 ## 1. Current State (The Symptom)
-[A concise paragraph describing the current measurable negative business symptom, its magnitude, and where it is occurring.]
+[A concise paragraph describing the current measurable negative symptoms, the magnitude of the gap, and where it is occurring. Use placeholders for data if unknown.]
 
 ## 2. Desired State (The Goal)
-[A concise paragraph describing the measurable target outcome and the benefit of achieving it.]
+[A concise paragraph describing the measurable target outcome and the strategic benefit of achieving it.]
 
 ## 3. Impact of Solving (The Value)
-[A concise paragraph describing the strategic or financial value derived by the business upon successful achievement of the desired state. Try to estimate the ROI.]
+[A concise paragraph describing the financial (Revenue/Cost) or strategic value derived by the business upon successful resolution.]
 
 The "Impact of Solving" section must be the last element of the response before the suggestions block.`,
               
@@ -628,16 +632,18 @@ The "Impact of Solving" section must be the last element of the response before 
                 // PHASE 2: ANALYSIS
                 // ========================
 
-                'MECE Logic Check': `Act as a Case Team Leader. Perform a MECE (Mutually Exclusive, Collectively Exhaustive) audit on the following analysis or problem statement: [input PASTE ANALYSIS OR PROBLEM HERE]. Be critical and look for logical fallacies.
+                'MECE Logic Check': `Act as a Logic Auditor. Perform a MECE (Mutually Exclusive, Collectively Exhaustive) audit on the following analysis or problem statement: [input PASTE ANALYSIS OR PROBLEM HERE].
+
+Your goal is to find logical flaws, overlaps, or missing data points.
 
 The output MUST follow this structure:
 
 # MECE Logic Audit
-[Brief assessment of the current logic's tightness]
+[Assessment: Is this breakdown logic tight or leaky?]
 
 ## Logic Gaps (Missing Elements)
-* [Gap 1 - What critical category did we forget?]
-* [Gap 2 - What critical category did we forget?]
+* [Gap 1 - What category did we forget?]
+* [Gap 2 - What category did we forget?]
 
 ## Overlaps (Redundancies)
 * [Overlap 1 - Where are we double counting?]
@@ -651,16 +657,20 @@ Reorganize the analysis into distinct, non-overlapping buckets:
    * [Point C]
    * [Point D]`,
 
-                'Market Analysis': `Act as a Market Research Analyst. Conduct a market analysis for [input SPECIFIC MARKET / INDUSTRY]. Focus on key trends, the competitive landscape, and the future outlook. Include data on Market Size (TAM/SAM/SOM) if possible.
+                'Market Analysis': `Act as a Market Analyst. Conduct a rigorous analysis for [input SPECIFIC MARKET / INDUSTRY]. 
 
-The output MUST strictly follow this high-readability structure:
+**REQUIREMENTS:**
+1. Use Google Search to find **current data** (TAM/SAM/SOM, CAGR).
+2. Cite sources inline using [Source Name](URL).
+
+The output MUST strictly follow this structure:
 
 # [Analysis Title]
-[Concise, clear introductory explanation of market dynamics]
+[Executive summary of the market health and maturity]
 
 ## Key Trends
-* [Concise, clear bullet point 1]
-* [Concise, clear bullet point 2]
+* [Trend 1: Data-backed trend with citation]
+* [Trend 2: Data-backed trend with citation]
 ...
 
 ## Competitive Landscape
@@ -670,96 +680,116 @@ The output MUST strictly follow this high-readability structure:
 | [Name 2] | [Focus] | * [Strength 1] <br> * [Weakness 1] |
 
 ## Future Outlook
-* [Concise, clear bullet point 1]
-* [Concise, clear bullet point 2]
+* [Projected Growth Rate (CAGR) with citation]
+* [Disruptive technologies or regulations]
 ...
 
 The table must be the last element before the suggestions block.`,
               
-                'SWOT Analysis': `Act as a Corporate Strategist. Perform a SWOT analysis for [input SPECIFIC COMPANY / PROJECT]. The analysis should be grounded in recent information. Focus on *actionable* insights, not just descriptions.
+                'SWOT Analysis': `Act as a Strategic Planner. Perform a SWOT analysis for [input SPECIFIC COMPANY / PROJECT]. 
+
+**REQUIREMENTS:**
+1. Use Google Search to ensure "Opportunities" and "Threats" are based on real external market conditions.
+2. Cite sources for external factors using [Source Name](URL).
 
 The output MUST strictly follow this structure:
 
 # SWOT Analysis for [Company/Project]
-[A concise paragraph explaining the current strategic position.]
+[A concise paragraph explaining the strategic position.]
 
 ## Analysis Matrix
 | Strengths (Internal) | Weaknesses (Internal) | Opportunities (External) | Threats (External) |
 |---|---|---|---|
-| * [Bullet point 1] <br> * [Bullet point 2] | * [Bullet point 1] <br> * [Bullet point 2] | * [Bullet point 1] <br> * [Bullet point 2] | * [Bullet point 1] <br> * [Bullet point 2] |
-| * [Bullet point 3] | * [Bullet point 3] | * [Bullet point 3] | * [Bullet point 3] |
+| * [Core Competency 1] <br> * [Core Competency 2] | * [Internal Gap 1] <br> * [Internal Gap 2] | * [Market Trend 1 (Cited)] <br> * [Market Trend 2 (Cited)] | * [Competitor Move 1 (Cited)] <br> * [Regulation 1 (Cited)] |
+| * [Core Competency 3] | * [Internal Gap 3] | * [Market Trend 3 (Cited)] | * [Macro Factor 1 (Cited)] |
 
 The table must be the last element of the response before the suggestions block.`,
               
-                'Competitor Benchmarking': `Act as a Competitive Intelligence Expert. Perform a detailed competitive analysis for [input COMPANY A] against [input COMPETITOR B] and [input COMPETITOR C]. Focus on differentiators, pricing power, and digital footprint.
+                'Competitor Benchmarking': `Act as a Competitive Intelligence Analyst. Perform a detailed benchmarking analysis for [input COMPANY A] against [input COMPETITOR B] and [input COMPETITOR C]. 
+
+**REQUIREMENTS:**
+1. Use Google Search to find real feature sets, pricing, and reviews.
+2. Cite sources using [Source Name](URL).
 
 The output MUST strictly follow this structure:
 
 # Competitor Benchmarking Report
-[A brief introduction defining the competitive scope.]
+[A brief introduction defining the competitive scope and primary differentiators.]
 
 ## Benchmarking Table
-| Competitor | Market Share/Focus | Product Features | Pricing Model | Online Presence |
+| Competitor | Market Share/Focus | Product Features | Pricing Model | Online Presence/Sentiment |
 |---|---|---|---|---|
-| **[Competitor B]** | [Share/Focus] | * [Feature 1] <br> * [Feature 2] | [Model description] | [Score/Metric] |
-| **[Competitor C]** | [Share/Focus] | * [Feature 1] <br> * [Feature 2] | [Model description] | [Score/Metric] |
+| **[Competitor B]** | [Est. Share] | * [Key Feature 1] <br> * [Key Feature 2] | [Pricing Strategy] | [Sentiment/Rating] |
+| **[Competitor C]** | [Est. Share] | * [Key Feature 1] <br> * [Key Feature 2] | [Pricing Strategy] | [Sentiment/Rating] |
 
 The table must be the last element of the response before the suggestions block.`,
               
-                '5 Forces Analysis': `Act as an Industry Economist. Conduct a Porter's 5 Forces Analysis for [input SPECIFIC INDUSTRY]. Assess the overall profitability potential and intensity of competition.
+                '5 Forces Analysis': `Act as an Industry Analyst. Conduct a Porter's 5 Forces Analysis for [input SPECIFIC INDUSTRY]. 
+
+**REQUIREMENTS:**
+1. Assess the "Power" (High/Medium/Low) of each force based on current market dynamics.
+2. Use Google Search to find supporting evidence. Cite sources using [Source Name](URL).
 
 The output MUST strictly follow this structure:
 
 # Porter's Five Forces Analysis: [Industry]
-[A concise introductory paragraph about the industry's profitability outlook.]
+[A concise paragraph summarizing the overall industry attractiveness and profitability.]
 
 ## Industry Structure Summary
-| Force | Threat Level (High/Medium/Low) | Key Drivers/Evidence |
+| Force | Threat Level | Key Drivers/Evidence |
 |---|---|---|
-| **Threat of New Entrants** | [Level] | * [Driver 1] <br> * [Driver 2] |
-| **Bargaining Power of Buyers** | [Level] | * [Driver 1] <br> * [Driver 2] |
-| **Bargaining Power of Suppliers** | [Level] | * [Driver 1] <br> * [Driver 2] |
-| **Threat of Substitutes** | [Level] | * [Driver 1] <br> * [Driver 2] |
-| **Competitive Rivalry** | [Level] | * [Driver 1] <br> * [Driver 2] |
+| **Threat of New Entrants** | [High/Med/Low] | * [Barriers to entry details (Cited)] <br> * [Capital requirements] |
+| **Bargaining Power of Buyers** | [High/Med/Low] | * [Buyer concentration] <br> * [Switching costs] |
+| **Bargaining Power of Suppliers** | [High/Med/Low] | * [Supplier concentration] <br> * [Input criticality] |
+| **Threat of Substitutes** | [High/Med/Low] | * [Price/performance trade-off] <br> * [Technology shifts] |
+| **Competitive Rivalry** | [High/Med/Low] | * [Industry growth rate] <br> * [differentiation] |
 
 The table must be the last element of the response before the suggestions block.`,
               
-                'PESTLE Analysis': `Act as a Global Strategy Consultant. Perform a PESTLE analysis for [input SPECIFIC COMPANY / INDUSTRY]. Focus on macro-environmental risks and opportunities that could impact long-term strategy.
+                'PESTLE Analysis': `Act as a Macro-Economic Analyst. Perform a PESTLE analysis for [input SPECIFIC COMPANY / INDUSTRY]. 
+
+**REQUIREMENTS:**
+1. Focus on external macro-factors impacting the business.
+2. Use Google Search for Regulations (Legal) and Economic trends. Cite sources using [Source Name](URL).
 
 The output MUST strictly follow this structure:
 
 # PESTLE Analysis for [Company/Industry]
-[A brief introduction explaining the purpose of the analysis.]
+[A brief introduction explaining the most critical macro-factors.]
 
-The remaining analysis MUST be presented in a specific two-column table format where the 'Key Findings' column contains bullet points separated by line breaks (<br>).
+The remaining analysis MUST be presented in a specific two-column table format:
 
 | Factor | Key Findings |
 |---|---|
-| **Political** | * [concise finding 1] <br> * [concise finding 2] |
-| **Economic** | * [concise finding 1] <br> * [concise finding 2] |
-| **Social** | * [concise finding 1] <br> * [concise finding 2] |
-| **Technological** | * [concise finding 1] <br> * [concise finding 2] |
-| **Legal** | * [concise finding 1] <br> * [concise finding 2] |
-| **Environmental** | * [concise finding 1] <br> * [concise finding 2] |
+| **Political** | * [Trade policy/Stability (Cited)] <br> * [Taxation policy] |
+| **Economic** | * [Inflation/Rates (Cited)] <br> * [Growth trends] |
+| **Social** | * [Demographics] <br> * [Lifestyle changes] |
+| **Technological** | * [Innovation/R&D] <br> * [Disruption] |
+| **Legal** | * [Employment law] <br> * [Industry regulations (Cited)] |
+| **Environmental** | * [Carbon footprint] <br> * [Sustainability targets] |
 
 The table must be the last element of the response before the suggestions block.`,
 
-                'Hofstede Analysis': `Act as a Cross-Cultural Management Consultant. Perform a Hofstede's Cultural Dimensions analysis for [input SPECIFIC COUNTRY/CULTURE] focusing on its implications for [input SPECIFIC BUSINESS SCENARIO, e.g., 'market entry strategy' or 'managing a remote team']. 
+                'Hofstede Analysis': `Act as a Cross-Cultural Consultant. Perform a Hofstede's Cultural Dimensions analysis for [input SPECIFIC COUNTRY/CULTURE] focusing on its implications for [input SPECIFIC BUSINESS SCENARIO]. 
                 
+**REQUIREMENTS:**
+1. Use Google Search to find the actual Hofstede scores for the country if available.
+2. Interpret what those scores mean for business management.
+
 The output MUST strictly follow this structure:
 
 # Hofstede's Cultural Analysis: [Country]
-[A concise introductory paragraph explaining the purpose of the analysis.]
+[A concise introductory paragraph explaining the cultural context.]
 
 ## Cultural Dimensions Summary
 | Dimension | Score/Rating | Business Implication |
 |---|---|---|
-| **Power Distance (PDI)** | [Score/Rating] | * [Implication 1] <br> * [Implication 2] |
-| **Individualism vs. Collectivism (IDV)** | [Score/Rating] | * [Implication 1] <br> * [Implication 2] |
-| **Masculinity vs. Femininity (MAS)** | [Score/Rating] | * [Implication 1] <br> * [Implication 2] |
-| **Uncertainty Avoidance (UAI)** | [Score/Rating] | * [Implication 1] <br> * [Implication 2] |
-| **Long-Term vs. Short-Term Orientation (LTO)** | [Score/Rating] | * [Implication 1] <br> * [Implication 2] |
-| **Indulgence vs. Restraint (IVR)** | [Score/Rating] | * [Implication 1] <br> * [Implication 2] |
+| **Power Distance (PDI)** | [Score/Rating] | * [Implication for hierarchy] <br> * [Implication for leadership] |
+| **Individualism (IDV)** | [Score/Rating] | * [Implication for teamwork] <br> * [Implication for incentives] |
+| **Masculinity (MAS)** | [Score/Rating] | * [Implication for competition] <br> * [Implication for work-life balance] |
+| **Uncertainty Avoidance (UAI)** | [Score/Rating] | * [Implication for risk-taking] <br> * [Implication for rules] |
+| **Long-Term Orientation (LTO)** | [Score/Rating] | * [Implication for planning] <br> * [Implication for investment] |
+| **Indulgence (IVR)** | [Score/Rating] | * [Implication for atmosphere] <br> * [Implication for strictness] |
 
 The table must be the last element of the response before the suggestions block.`,
                 
@@ -767,12 +797,12 @@ The table must be the last element of the response before the suggestions block.
                 // PHASE 3: SOLUTION DESIGN
                 // ========================
 
-                "Devil's Advocate Review": `I want you to stress-test my current strategy/solution. Switch personas to a skeptical "Red Team" or "Devil's Advocate." Identify blind spots I missed.
+                "Devil's Advocate Review": `Act as a "Red Team" Lead. I want you to stress-test my current strategy/solution. Switch personas to a skeptical, critical opponent.
                 
 The output MUST follow this structure:
 
 # Strategic Stress Test
-[Introductory critique of the proposed plan]
+[Introductory critique of the proposed plan - be direct]
 
 ## Critical Flaws & Assumptions
 | Assumption | Probability of Failure | Impact |
@@ -781,12 +811,12 @@ The output MUST follow this structure:
 | [Assumption 2] | [High/Med/Low] | [High/Med/Low] |
 
 ## The "Pre-Mortem" (Worst Case)
-* [Scenario description if the plan fails strictly]
+* [Detailed scenario description if the plan fails strictly]
 
 ## Cognitive Bias Check
-* [Identify biases like Sunk Cost, Confirmation Bias, etc.]`,
+* [Identify biases: Sunk Cost, Confirmation Bias, Groupthink, etc.]`,
 
-                'Business Plan Outline': `Act as a Venture Capitalist. Draft a comprehensive business plan outline for a [input YOUR BUSINESS IDEA]. Focus on viability, scalability, and path to profitability.
+                'Business Plan Outline': `Act as a Business Strategy Consultant. Draft a comprehensive business plan outline for a [input YOUR BUSINESS IDEA]. Focus on viability and monetization.
 
 The output MUST strictly follow this structure:
 
@@ -794,19 +824,19 @@ The output MUST strictly follow this structure:
 [A concise introductory summary paragraph.]
 
 ## Executive Summary
-* [Core Concept]
-* [Target Market]
-* [Financial Highlights]
+* [Core Value Proposition]
+* [Target Market Segment]
+* [Financial Highlights (Revenue Model)]
 
 ## Company Description
-* [Mission Statement]
+* [Mission & Vision]
 * [Legal Structure]
-* [Key Personnel]
+* [Key Personnel/Team gaps]
 
 ## Market Analysis
-* [Industry Trends]
-* [Competitive Advantage]
-* [Market Size]
+* [Industry Trends & Growth]
+* [Competitive Advantage (Moat)]
+* [Market Size (TAM/SAM/SOM)]
 
 ## Organization and Management
 * [Organizational Structure]
@@ -814,53 +844,57 @@ The output MUST strictly follow this structure:
 
 ## Service or Product Line
 * [Product/Service Description]
-* [Development Status]
-* [Intellectual Property]
+* [Development Status (MVP vs Scale)]
+* [Intellectual Property/Assets]
 
 ## Marketing and Sales Strategy
-* [Marketing Channels]
-* [Sales Strategy]
-* [Key Partnerships]
+* [Acquisition Channels]
+* [Sales Cycle Strategy]
+* [Key Strategic Partnerships]
 
 ## Financial Projections
 * [Startup Costs Summary]
 * [3-Year Revenue Forecast Highlight]
-* [Funding Request]
+* [Funding Request/Burn Rate]
 
 ## Appendix
 * [Supporting Documents]
 
 The Appendix section must be the last element of the response before the suggestions block.`,
               
-                'Market Entry Strategy': `Act as a Global Expansion Strategist. Develop a comprehensive market entry strategy for [input PRODUCT / SERVICE] entering the [input SPECIFIC COUNTRY / MARKET]. Evaluate Organic vs. M&A vs. Partnership options.
+                'Market Entry Strategy': `Act as a Global Expansion Consultant. Develop a comprehensive market entry strategy for [input PRODUCT / SERVICE] entering the [input SPECIFIC COUNTRY / MARKET]. 
+
+**REQUIREMENTS:**
+1. Analyze entry modes (Greenfield, JV, Acquisition, Export).
+2. Use Google Search to identify local regulations and competitors.
 
 The output MUST strictly follow this structure:
 
 # Market Entry Strategy: [Product] in [Market]
-[A brief paragraph summarizing the primary recommendation.]
+[A brief paragraph summarizing the primary recommended approach.]
 
 ## Target Audience
-* [Demographics]
-* [Key Needs/Pain Points]
+* [Demographics/Psychographics]
+* [Local Needs/Pain Points]
 
 ## Distribution Strategy
 * [Primary Channel]
 * [Logistics and Fulfillment]
 
 ## Pricing Model
-* [Recommended Strategy (e.g., Penetration, Skimming)]
-* [Key Cost Drivers]
+* [Recommended Strategy (e.g., Penetration, Skimming, Cost-Plus)]
+* [Local Currency Considerations]
 
 ## Market Entry Options Summary
 | Method | Key Advantages | Key Disadvantages |
 |---|---|---|
-| [Method 1] | * [Advantage 1] <br> * [Advantage 2] | * [Disadvantage 1] <br> * [Disadvantage 2] |
-| [Method 2] | * [Advantage 1] <br> * [Advantage 2] | * [Disadvantage 1] <br> * [Disadvantage 2] |
-| [Method 3] | * [Advantage 1] <br> * [Advantage 2] | * [Disadvantage 1] <br> * [Disadvantage 2] |
+| [Method 1 (e.g., Export)] | * [Advantage 1] <br> * [Advantage 2] | * [Disadvantage 1] <br> * [Disadvantage 2] |
+| [Method 2 (e.g., Joint Venture)] | * [Advantage 1] <br> * [Advantage 2] | * [Disadvantage 1] <br> * [Disadvantage 2] |
+| [Method 3 (e.g., Direct Investment)] | * [Advantage 1] <br> * [Advantage 2] | * [Disadvantage 1] <br> * [Disadvantage 2] |
 
 The table must be the last element of the response before the suggestions block.`,
 
-                'Go-to-market Strategy': `Act as a CMO / Product Marketing Lead. Develop a comprehensive Go-to-Market (GTM) Strategy for [input PRODUCT / SERVICE (e.g. a new B2B SaaS platform)] targeting [input SPECIFIC AUDIENCE / GEOGRAPHY (e.g. mid-market financial services)]. Focus on key messaging, channel strategy, and launch metrics.
+                'Go-to-market Strategy': `Act as a Chief Marketing Officer (CMO). Develop a comprehensive Go-to-Market (GTM) Strategy for [input PRODUCT / SERVICE] targeting [input SPECIFIC AUDIENCE]. Focus on CAC (Cost of Acquisition) and LTV (Lifetime Value) drivers.
 
 The output MUST strictly follow this structure:
 
@@ -875,9 +909,9 @@ The output MUST strictly follow this structure:
 ## Channel and Tactics Plan
 | Channel Category | Key Tactics/Activities | Owner/Timeline |
 |---|---|---|
-| **Marketing** | * [Tactic 1 (e.g., Content)] <br> * [Tactic 2 (e.g., SEO)] | [Owner/Timeline] |
-| **Sales** | * [Tactic 1 (e.g., Outbound)] <br> * [Tactic 2 (e.g., Partnerships)] | [Owner/Timeline] |
-| **Product/Success** | * [Tactic 1 (e.g., Onboarding)] <br> * [Tactic 2 (e.g., Documentation)] | [Owner/Timeline] |
+| **Marketing (Top of Funnel)** | * [Tactic 1] <br> * [Tactic 2] | [Owner/Timeline] |
+| **Sales (Middle/Bottom)** | * [Tactic 1] <br> * [Tactic 2] | [Owner/Timeline] |
+| **Product/Success (Retention)** | * [Tactic 1] <br> * [Tactic 2] | [Owner/Timeline] |
 
 ## Pricing & Packaging
 * [Recommended Pricing Model]
@@ -890,7 +924,7 @@ The output MUST strictly follow this structure:
 
 The "Launch Metrics" section must be the last element of the response before the suggestions block.`,
 
-                'Ansoff Matrix': `Act as a Growth Strategist. Apply the Ansoff Matrix (Product/Market Expansion Grid) to recommend growth strategies for [input COMPANY NAME / PRODUCT IDEA ]. Analyze Market Penetration, Product Development, Market Development, and Diversification.
+                'Ansoff Matrix': `Act as a Growth Strategist. Apply the Ansoff Matrix (Product/Market Expansion Grid) to recommend growth strategies for [input COMPANY NAME / PRODUCT IDEA ]. 
 
 The output MUST strictly follow this structure:
 
@@ -907,7 +941,7 @@ The output MUST strictly follow this structure:
 
 The table must be the last element of the response before the suggestions block.`,
               
-                'Risk Analysis': `Act as a Chief Risk Officer. Conduct a risk analysis for [input SPECIFIC BUSINESS VENTURE / PROJECT]. Identify potential risks, assess their likelihood and impact, and propose mitigation strategies. 
+                'Risk Analysis': `Act as a Risk Manager. Conduct a risk analysis for [input SPECIFIC BUSINESS VENTURE / PROJECT]. Identify potential risks, assess their likelihood and impact, and propose mitigation strategies. 
 
 The output MUST strictly follow this structure:
 
@@ -927,7 +961,7 @@ The table must be the last element of the response before the suggestions block.
                 // PHASE 4: EXECUTION
                 // ========================
 
-                'Monday Morning Protocol': `Convert our high-level strategy into a concrete "Monday Morning" Action Plan.
+                'Monday Morning Protocol': `Act as an Implementation Manager. Convert our high-level strategy into a concrete "Monday Morning" Action Plan.
 
 The output MUST strictly follow this structure:
 
@@ -945,7 +979,10 @@ The output MUST strictly follow this structure:
 * **60 Days:** [Milestone]
 * **90 Days:** [Milestone]`,
 
-                'KPI Dashboard Mockup': `Act as a Data Analytics Lead. Design a **KPI Dashboard Mockup** structure for tracking the success of [input SPECIFIC BUSINESS GOAL / PROJECT, e.g., 'reducing customer churn' or 'launching a new product feature']. Define a minimum of five mandatory KPIs (Key Performance Indicators).
+                'KPI Dashboard Mockup': `Act as a Data Scientist. Design a **KPI Dashboard Mockup** structure for tracking the success of [input SPECIFIC BUSINESS GOAL / PROJECT]. 
+
+**REQUIREMENTS:**
+1. Distinguish between "Leading Indicators" (Predictive) and "Lagging Indicators" (Outcome).
 
 The output MUST strictly follow this structure:
 
@@ -953,17 +990,16 @@ The output MUST strictly follow this structure:
 [A concise statement defining the overall goal of the dashboard.]
 
 ## Defined Metrics
-| KPI Name | Definition/Formula | Target Value | Reporting Frequency |
-|---|---|---|---|
-| **[KPI 1: Financial]** | [Formula] | [Target #] | [Daily/Weekly/Monthly] |
-| **[KPI 2: Customer/User]** | [Formula] | [Target #] | [Daily/Weekly/Monthly] |
-| **[KPI 3: Operational]** | [Formula] | [Target #] | [Daily/Weekly/Monthly] |
-| **[KPI 4: Quality]** | [Formula] | [Target #] | [Daily/Weekly/Monthly] |
-| **[KPI 5: Strategic]** | [Formula] | [Target #] | [Daily/Weekly/Monthly] |
+| KPI Name | Type (Leading/Lagging) | Definition/Formula | Target Value | Reporting Frequency |
+|---|---|---|---|---|
+| **[KPI 1: Financial]** | [Type] | [Formula] | [Target] | [Monthly] |
+| **[KPI 2: Customer]** | [Type] | [Formula] | [Target] | [Weekly] |
+| **[KPI 3: Operational]** | [Type] | [Formula] | [Target] | [Daily] |
+| **[KPI 4: Quality]** | [Type] | [Formula] | [Target] | [Daily] |
 
 The table must be the last element of the response before the suggestions block.`,
               
-                'Implementation Plan Outline': `Act as a Transformation Manager. Generate a high-level **Implementation Plan Outline** for [input PROJECT / STRATEGY, e.g., 'launching a new corporate training program']. Structure the plan into clear phases and focus on resource allocation.
+                'Implementation Plan Outline': `Act as a Program Manager. Generate a high-level **Implementation Plan Outline** for [input PROJECT / STRATEGY]. Structure the plan into clear phases.
 
 The output MUST strictly follow this structure:
 
