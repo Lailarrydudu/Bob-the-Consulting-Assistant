@@ -1166,6 +1166,105 @@ The table must be the last element of the response before the suggestions block.
                 }
             });
 
+            // ============================================
+            // 3. AUTONOMOUS RESEARCH AGENT (THE LOOP)
+            // ============================================
+            
+            async function startAutonomousResearch(topic) {
+                // 1. UI Feedback: Initialize Agent
+                createMessageBubble(`🕵️‍♂️ **Autonomous Agent Activated**\n\nObjective: Deep dive research on "${topic}"\n\n*Step 1: Generative Planning...*`, 'model');
+                
+                try {
+                    // 2. STEP 1: GENERATE RESEARCH PLAN (Queries)
+                    const planPrompt = `I need to research "${topic}" thoroughly to provide a strategic consulting report. 
+                    Generate 3 specific, diverse Google Search queries that would yield the best data.
+                    Return ONLY a raw JSON array of strings. 
+                    Example: ["market size of X", "competitors of X", "trends in X"]`;
+
+                    const planResponse = await getSilentResponse(planPrompt);
+                    let queries = [];
+                    try {
+                        // Clean markdown wrappers if present
+                        let cleanJson = planResponse.replace(/```json/g, '').replace(/```/g, '').trim();
+                        queries = JSON.parse(cleanJson);
+                    } catch (e) {
+                        console.error("Plan parse error, defaulting", e);
+                        queries = [`${topic} market size`, `${topic} trends`, `${topic} competitors`];
+                    }
+
+                    // 3. STEP 2: EXECUTION LOOP
+                    let researchNotes = "";
+                    
+                    for (let i = 0; i < queries.length; i++) {
+                        const query = queries[i];
+                        
+                        // Update UI to show progress
+                        createMessageBubble(`🔎 **Researching (${i+1}/${queries.length}):** "${query}"...`, 'model');
+                        
+                        // Perform the Search (using the Worker's tool capability)
+                        const searchPrompt = `Use the Google Search tool to find detailed information on: "${query}". 
+                        Summarize the key facts, numbers, and dates found. 
+                        Cite URLs using [Source](URL) format.`;
+                        
+                        const result = await getSilentResponse(searchPrompt);
+                        researchNotes += `\n\n### Findings for "${query}":\n${result}`;
+                        
+                        // Small delay to prevent rate limiting
+                        await new Promise(r => setTimeout(r, 1000));
+                    }
+
+                    // 4. STEP 3: SYNTHESIS & REPORT
+                    createMessageBubble(`📝 **Synthesizing Data into Final Report...**`, 'model');
+                    
+                    const finalReportPrompt = `You are a Senior Strategy Consultant. 
+                    I have collected research notes on "${topic}". 
+                    
+                    Write a comprehensive **Strategic Deep Dive Report** based ONLY on these notes.
+                    
+                    **NOTES:**
+                    ${researchNotes}
+                    
+                    **FORMAT:**
+                    # Strategic Deep Dive: ${topic}
+                    ## Executive Summary
+                    ## Key Findings (Data & Trends)
+                    ## Competitive Landscape
+                    ## Strategic Implications
+                    
+                    Use Markdown. Cite sources using the links provided in the notes.`;
+
+                    const finalReport = await getSilentResponse(finalReportPrompt);
+                    
+                    // Show Final Report
+                    createMessageBubble(finalReport, 'model');
+                    saveCurrentProjectChat(); 
+
+                } catch (error) {
+                    createMessageBubble(`❌ **Agent Failure:** ${error.message}`, 'model');
+                }
+            }
+
+            // Helper: Send a message to API without adding it to the main UI chat history immediately
+            async function getSilentResponse(prompt) {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        systemInstruction: { parts: [{ text: "You are a Research Agent. Be precise." }] },
+                        messages: [{ role: "user", parts: [{ text: prompt }] }] 
+                    })
+                });
+                const data = await response.json();
+                if (data.error) throw new Error(data.error.message);
+                return data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+            }
+            
+            // Trigger Detection
+            function isResearchRequest(message) {
+                const keywords = ['research', 'deep dive', 'investigate', 'analyze landscape'];
+                return keywords.some(k => message.toLowerCase().includes(k));
+            }
+            
             // SEND MESSAGE
             async function sendMessage() {
                 let prompt = userInput.value.trim();
