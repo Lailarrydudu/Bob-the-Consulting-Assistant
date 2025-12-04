@@ -1171,68 +1171,61 @@ The table must be the last element of the response before the suggestions block.
             // ============================================
             
             async function startAutonomousResearch(topic) {
-                // 1. UI Feedback: Initialize Agent
+                // 1. UI Feedback
                 createMessageBubble(`🕵️‍♂️ **Autonomous Agent Activated**\n\nObjective: Deep dive research on "${topic}"\n\n*Step 1: Generative Planning...*`, 'model');
                 
                 try {
-                    // 2. STEP 1: GENERATE RESEARCH PLAN (Queries)
-                    const planPrompt = `I need to research "${topic}" thoroughly to provide a strategic consulting report. 
-                    Generate 3 specific, diverse Google Search queries that would yield the best data.
+                    // 2. PLAN
+                    const planPrompt = `I need to research "${topic}" thoroughly. 
+                    Generate 3 specific, diverse Google Search queries.
                     Return ONLY a raw JSON array of strings. 
                     Example: ["market size of X", "competitors of X", "trends in X"]`;
 
                     const planResponse = await getSilentResponse(planPrompt);
                     let queries = [];
                     try {
-                        // Clean markdown wrappers if present
                         let cleanJson = planResponse.replace(/```json/g, '').replace(/```/g, '').trim();
                         queries = JSON.parse(cleanJson);
                     } catch (e) {
-                        console.error("Plan parse error, defaulting", e);
+                        console.error("Plan parse error", e);
                         queries = [`${topic} market size`, `${topic} trends`, `${topic} competitors`];
                     }
 
-                    // 3. STEP 2: EXECUTION LOOP
+                    // 3. EXECUTE LOOP
                     let researchNotes = "";
                     
                     for (let i = 0; i < queries.length; i++) {
                         const query = queries[i];
-                        
-                        // Update UI to show progress
                         createMessageBubble(`🔎 **Researching (${i+1}/${queries.length}):** "${query}"...`, 'model');
                         
-                        // Perform the Search (using the Worker's tool capability)
-                        // UPDATED PROMPT: Enforcing strict citations here
-                        const searchPrompt = `Use the Google Search tool to find detailed information on: "${query}". 
-                        Summarize the key facts, numbers, and dates found. 
+                        // STRICTER PROMPT FOR SEARCH
+                        const searchPrompt = `Use Google Search to find detailed data on: "${query}". 
+                        Extract key facts, numbers, and dates.
                         
-                        IMPORTANT: You MUST cite your sources using inline markdown links [Source Name](URL). Do not hallucinate data.`;
+                        CRITICAL: You MUST cite the URL for every fact found using this format: [Source Name](URL).
+                        Example: "Revenue is $10M [Forbes](https://forbes.com)."`;
                         
                         const result = await getSilentResponse(searchPrompt);
                         researchNotes += `\n\n### Findings for "${query}":\n${result}`;
                         
-                        // Small delay to prevent rate limiting
                         await new Promise(r => setTimeout(r, 1000));
                     }
 
-                    // 4. STEP 3: SYNTHESIS & REPORT
+                    // 4. SYNTHESIS
                     createMessageBubble(`📝 **Synthesizing Data into Final Report...**`, 'model');
                     
-                    // UPDATED PROMPT: Enforcing strict citations in the final report
                     const finalReportPrompt = `You are a Senior Strategy Consultant. 
-                    I have collected research notes on "${topic}". 
+                    Write a **Strategic Deep Dive Report** based ONLY on these notes.
                     
-                    Write a comprehensive **Strategic Deep Dive Report** based ONLY on these notes.
-                    
-                    **REQUIREMENTS:**
-                    1. Use Markdown formatting.
-                    2. IMPORTANT: You MUST cite your sources using inline markdown links [Source Name](URL) based on the provided notes.
-                    3. Do not hallucinate data or sources not present in the notes.
+                    **CRITICAL FORMATTING RULES:**
+                    1. Use Markdown.
+                    2. **PRESERVE THE URLs:** When you state a fact from the notes, you MUST include the citation link `[Source](URL)` exactly as it appears in the notes.
+                    3. Do NOT write `[Source]` without the `(URL)`. The link is required for the pin icon to appear.
                     
                     **NOTES:**
                     ${researchNotes}
                     
-                    **FORMAT:**
+                    **REPORT STRUCTURE:**
                     # Strategic Deep Dive: ${topic}
                     ## Executive Summary
                     ## Key Findings (Data & Trends)
@@ -1241,7 +1234,6 @@ The table must be the last element of the response before the suggestions block.
 
                     const finalReport = await getSilentResponse(finalReportPrompt);
                     
-                    // Show Final Report
                     createMessageBubble(finalReport, 'model');
                     saveCurrentProjectChat(); 
 
@@ -1250,13 +1242,17 @@ The table must be the last element of the response before the suggestions block.
                 }
             }
 
-            // Helper: Send a message to API without adding it to the main UI chat history immediately
+            // Helper: Send a message to API with STRICT Citation Rules
             async function getSilentResponse(prompt) {
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        systemInstruction: { parts: [{ text: "You are a Research Agent. Be precise." }] },
+                        systemInstruction: { 
+                            parts: [{ text: `You are a Research Agent. 
+                            CRITICAL: Always use Google Search for facts. 
+                            ALWAYS cite sources inline using [Source Name](URL).` }] 
+                        },
                         messages: [{ role: "user", parts: [{ text: prompt }] }] 
                     })
                 });
