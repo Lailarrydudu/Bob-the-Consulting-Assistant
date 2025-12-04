@@ -1166,105 +1166,6 @@ The table must be the last element of the response before the suggestions block.
                 }
             });
 
-            // ============================================
-            // 3. AUTONOMOUS RESEARCH AGENT (THE LOOP)
-            // ============================================
-            
-            async function startAutonomousResearch(topic) {
-                createMessageBubble(`🕵️‍♂️ **Autonomous Agent Activated**\n\nObjective: Deep dive research on "${topic}"\n\n*Step 1: Generative Planning...*`, 'model');
-                
-                try {
-                    // 2. PLAN
-                    const planPrompt = `I need to research "${topic}" thoroughly. 
-                    Generate 3 specific, diverse Google Search queries.
-                    Return ONLY a raw JSON array of strings. 
-                    Example: ["market size of X", "competitors of X", "trends in X"]`;
-
-                    const planResponse = await getSilentResponse(planPrompt);
-                    let queries = [];
-                    try {
-                        let cleanJson = planResponse.replace(/```json/g, '').replace(/```/g, '').trim();
-                        queries = JSON.parse(cleanJson);
-                    } catch (e) {
-                        console.error("Plan parse error", e);
-                        queries = [`${topic} market size`, `${topic} trends`, `${topic} competitors`];
-                    }
-
-                    // 3. EXECUTE LOOP
-                    let researchNotes = "";
-                    
-                    for (let i = 0; i < queries.length; i++) {
-                        const query = queries[i];
-                        createMessageBubble(`🔎 **Researching (${i+1}/${queries.length}):** "${query}"...`, 'model');
-                        
-                        const searchPrompt = `Use Google Search to find detailed data on: "${query}". 
-                        Extract key facts, numbers, and dates.
-                        
-                        CRITICAL: You MUST cite the URL for every fact found using this format: [Ref](Link).
-                        Example: "Revenue is $10M [Ref](https://forbes.com)."`;
-                        
-                        const result = await getSilentResponse(searchPrompt);
-                        researchNotes += `\n\n### Findings for "${query}":\n${result}`;
-                        
-                        await new Promise(r => setTimeout(r, 1000));
-                    }
-
-                    // 4. SYNTHESIS
-                    createMessageBubble(`📝 **Synthesizing Data into Final Report...**`, 'model');
-                    
-                    const finalReportPrompt = `You are a Senior Strategy Consultant. 
-                    Write a **Strategic Deep Dive Report** based ONLY on these notes.
-                    
-                    **CRITICAL FORMATTING RULES:**
-                    1. Use Markdown.
-                    2. **PRESERVE THE URLs:** When you state a fact from the notes, you MUST include the citation link [Ref](Link) exactly as it appears in the notes.
-                    3. Do NOT write [Ref] without the (Link). The link is required for the pin icon to appear.
-                    
-                    **NOTES:**
-                    ${researchNotes}
-                    
-                    **REPORT STRUCTURE:**
-                    # Strategic Deep Dive: ${topic}
-                    ## Executive Summary
-                    ## Key Findings (Data & Trends)
-                    ## Competitive Landscape
-                    ## Strategic Implications`;
-
-                    const finalReport = await getSilentResponse(finalReportPrompt);
-                    
-                    createMessageBubble(finalReport, 'model');
-                    saveCurrentProjectChat(); 
-
-                } catch (error) {
-                    createMessageBubble(`❌ **Agent Failure:** ${error.message}`, 'model');
-                }
-            }
-
-            // Helper: Send a message to API with STRICT Citation Rules
-            async function getSilentResponse(prompt) {
-                const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        systemInstruction: { 
-                            parts: [{ text: `You are a Research Agent. 
-                            CRITICAL: Always use Google Search for facts. 
-                            ALWAYS cite sources inline using [Ref](Link).` }] 
-                        },
-                        messages: [{ role: "user", parts: [{ text: prompt }] }] 
-                    })
-                });
-                const data = await response.json();
-                if (data.error) throw new Error(data.error.message);
-                return data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-            }
-            
-            // Trigger Detection
-            function isResearchRequest(message) {
-                const keywords = ['research', 'deep dive', 'investigate', 'analyze landscape'];
-                return keywords.some(k => message.toLowerCase().includes(k));
-            }
-            
             // SEND MESSAGE
             async function sendMessage() {
                 let prompt = userInput.value.trim();
@@ -1311,23 +1212,7 @@ The table must be the last element of the response before the suggestions block.
                 userInput.disabled = true;
                 sendButton.disabled = true;
 
-                // --- NEW TRIGGER: Check for Research Agent ---
-                if (isResearchRequest(prompt)) {
-                    // Extract the topic (remove the word "research")
-                    const topic = prompt.replace(/(deep dive|research|investigate|study|analyze|explore|find information about|gather data on)/gi, '').trim();
-                    
-                    // Run the loop
-                    await startAutonomousResearch(topic);
-                    
-                    // Cleanup & Exit
-                    userInput.disabled = false;
-                    sendButton.disabled = false;
-                    userInput.focus();
-                    return; 
-                }
-                // ---------------------------------------------
-
-                // 5. Loading Indicator (Standard Chat Only)
+                // 5. Loading Indicator
                 const loadingBubble = document.createElement('div');
                 loadingBubble.classList.add('flex', 'justify-start');
                 loadingBubble.innerHTML = `<div class="bg-gray-700 text-gray-300 rounded-xl rounded-bl-none p-3 max-w-sm shadow-md"><div class="flex items-center">Thinking...</div></div>`;
@@ -1417,6 +1302,7 @@ The table must be the last element of the response before the suggestions block.
                 const regex = /\[([^\]]+)\]\((http[^)]+)\)/g;
                 let sources = [];
                 let match;
+    
                 
                 // 1. Extract sources
                 while ((match = regex.exec(rawText)) !== null) {
