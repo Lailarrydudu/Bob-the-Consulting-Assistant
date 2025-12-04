@@ -1123,6 +1123,120 @@ The table must be the last element of the response before the suggestions block.
             ]);
 
             // ============================================
+            // 1.5. AUTONOMOUS RESEARCH AGENT (The Loop)
+            // ============================================
+            
+            function isResearchRequest(text) {
+                const keywords = ['research', 'investigate', 'deep dive', 'study', 'comprehensive analysis'];
+                return keywords.some(k => text.toLowerCase().includes(k));
+            }
+
+            async function startAutonomousResearch(topic) {
+                // 1. Initialization
+                createMessageBubble(`🕵️‍♂️ **Agent Activated:** Starting deep research on "${topic}"...`, 'model');
+                
+                try {
+                    // 2. Planning Phase
+                    const planPrompt = `I need to research "${topic}" thoroughly. Generate 3 distinct, specific Google Search queries that would cover different angles of this topic (e.g., Market Size, Competitors, Trends). Output ONLY the 3 queries separated by pipes (|). Example: Query 1 | Query 2 | Query 3`;
+                    
+                    const planResponse = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            systemInstruction: { parts: [{ text: "You are a Research Planner. Output only search queries." }] },
+                            messages: [{ role: "user", parts: [{ text: planPrompt }] }]
+                        })
+                    });
+                    
+                    const planJson = await planResponse.json();
+                    let queries = [];
+                    if (planJson?.candidates?.[0]?.content?.parts?.[0]?.text) {
+                         queries = planJson.candidates[0].content.parts[0].text.split('|').map(q => q.trim());
+                    }
+                    
+                    // Fallback if AI fails to generate specific queries
+                    if(queries.length < 2) queries = [`${topic} market size statistics`, `${topic} key trends`, `${topic} top competitors`];
+
+                    createMessageBubble(`**📋 Research Plan:**\n1. ${queries[0]}\n2. ${queries[1]}\n3. ${queries[2]}`, 'model');
+
+                    // 3. Execution Loop
+                    let gatheredData = "";
+                    
+                    for (let i = 0; i < queries.length; i++) {
+                        const query = queries[i];
+                        
+                        // Create a temporary loading bubble for this step
+                        const stepBubble = document.createElement('div');
+                        stepBubble.className = 'flex justify-start mb-4';
+                        stepBubble.innerHTML = `<div class="bg-gray-800 text-gray-300 p-3 rounded-xl text-sm flex items-center gap-2"><svg class="animate-spin h-4 w-4 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Executing Search ${i+1}: ${query}...</div>`;
+                        chatArea.appendChild(stepBubble);
+                        chatArea.scrollTop = chatArea.scrollHeight;
+
+                        // Perform Search Step via API (forcing it to use the search tool)
+                        const stepResponse = await fetch('/api/chat', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                systemInstruction: { parts: [{ text: "You are a Research Bot. Use Google Search to find facts. Summarize key findings in 3 bullet points with inline citations [Source](URL)." }] },
+                                messages: [{ role: "user", parts: [{ text: `Find current statistics and info on: ${query}` }] }]
+                            })
+                        });
+                        
+                        const stepJson = await stepResponse.json();
+                        const stepResult = stepJson?.candidates?.[0]?.content?.parts?.[0]?.text || "No relevant data found.";
+                        
+                        // Accumulate data
+                        gatheredData += `\n\n### Findings for "${query}":\n${stepResult}`;
+
+                        // Update UI (Replace spinner with checkmark)
+                        stepBubble.innerHTML = `<div class="bg-gray-800 text-gray-300 p-3 rounded-xl text-sm">✅ **Step ${i+1} Complete:** Gathered data on ${query}</div>`;
+                    }
+
+                    // 4. Synthesis Phase
+                    createMessageBubble(`📝 **Synthesizing Final Report...**`, 'model');
+                    
+                    const finalPrompt = `You are a Senior Consultant. Synthesize the following raw research notes into a comprehensive "Deep Dive Report" on "${topic}".
+                    
+                    RAW NOTES:
+                    ${gatheredData}
+                    
+                    FORMAT:
+                    # Deep Dive: ${topic}
+                    ## Executive Summary
+                    ## Key Findings (Integrate the citations from notes)
+                    ## Strategic Implications
+                    
+                    Ensure all claims are cited based on the notes. Use Markdown.`;
+
+                    const finalResponse = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            systemInstruction: { parts: [{ text: "You are Bob, a professional consulting assistant." }] },
+                            messages: [{ role: "user", parts: [{ text: finalPrompt }] }]
+                        })
+                    });
+
+                    const finalJson = await finalResponse.json();
+                    const finalText = finalJson?.candidates?.[0]?.content?.parts?.[0]?.text;
+                    
+                    if (finalText) {
+                         // Use standard bubble creator to handle parsing/citations
+                         createMessageBubble(finalText, 'model');
+                         
+                         // Save to history
+                         chatHistory.push({ role: "user", parts: [{ text: `[Agent Request]: Research ${topic}` }] });
+                         chatHistory.push({ role: "model", parts: [{ text: finalText }] });
+                         saveCurrentProjectChat();
+                    }
+
+                } catch (error) {
+                    console.error("Agent Error:", error);
+                    createMessageBubble(`❌ **Agent Failure:** ${error.message}`, "model");
+                }
+            }
+            
+            // ============================================
             // 2. CORE LOGIC (Send, File, API)
             // ============================================
 
