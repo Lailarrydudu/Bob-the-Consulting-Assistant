@@ -1171,7 +1171,6 @@ The table must be the last element of the response before the suggestions block.
             // ============================================
             
             async function startAutonomousResearch(topic) {
-                // 1. UI Feedback
                 createMessageBubble(`🕵️‍♂️ **Autonomous Agent Activated**\n\nObjective: Deep dive research on "${topic}"\n\n*Step 1: Generative Planning...*`, 'model');
                 
                 try {
@@ -1198,12 +1197,11 @@ The table must be the last element of the response before the suggestions block.
                         const query = queries[i];
                         createMessageBubble(`🔎 **Researching (${i+1}/${queries.length}):** "${query}"...`, 'model');
                         
-                        // STRICTER PROMPT FOR SEARCH (Renamed to avoid 'Source' keyword conflict)
                         const searchPrompt = `Use Google Search to find detailed data on: "${query}". 
                         Extract key facts, numbers, and dates.
                         
-                        CRITICAL: You MUST cite the URL for every fact found using this format: [Website](Link).
-                        Example: "Revenue is $10M [Forbes](https://forbes.com)."`;
+                        CRITICAL: You MUST cite the URL for every fact found using this format: [Ref](Link).
+                        Example: "Revenue is $10M [Ref](https://forbes.com)."`;
                         
                         const result = await getSilentResponse(searchPrompt);
                         researchNotes += `\n\n### Findings for "${query}":\n${result}`;
@@ -1219,8 +1217,8 @@ The table must be the last element of the response before the suggestions block.
                     
                     **CRITICAL FORMATTING RULES:**
                     1. Use Markdown.
-                    2. **PRESERVE THE URLs:** When you state a fact from the notes, you MUST include the citation link `[Website](Link)` exactly as it appears in the notes.
-                    3. Do NOT write `[Website]` without the `(Link)`. The link is required for the pin icon to appear.
+                    2. **PRESERVE THE URLs:** When you state a fact from the notes, you MUST include the citation link [Ref](Link) exactly as it appears in the notes.
+                    3. Do NOT write [Ref] without the (Link). The link is required for the pin icon to appear.
                     
                     **NOTES:**
                     ${researchNotes}
@@ -1238,7 +1236,6 @@ The table must be the last element of the response before the suggestions block.
                     saveCurrentProjectChat(); 
 
                 } catch (error) {
-                    console.error("Agent Error:", error);
                     createMessageBubble(`❌ **Agent Failure:** ${error.message}`, 'model');
                 }
             }
@@ -1252,7 +1249,7 @@ The table must be the last element of the response before the suggestions block.
                         systemInstruction: { 
                             parts: [{ text: `You are a Research Agent. 
                             CRITICAL: Always use Google Search for facts. 
-                            ALWAYS cite sources inline using [Website](Link).` }] 
+                            ALWAYS cite sources inline using [Ref](Link).` }] 
                         },
                         messages: [{ role: "user", parts: [{ text: prompt }] }] 
                     })
@@ -1421,19 +1418,6 @@ The table must be the last element of the response before the suggestions block.
                 let sources = [];
                 let match;
     
-                
-                // 1. Extract sources
-                while ((match = regex.exec(rawText)) !== null) {
-                    sources.push({ name: match[1], url: match[2] });
-                }
-
-                // 2. Replace with Pin Icon
-                let processedText = rawText.replace(regex, (match, name, url) => {
-                    return `<a href="${url}" target="_blank" class="citation-link" title="Source: ${name}"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg></a>`;
-                });
-
-                return { html: processedText, sources: sources };
-            }
 
             function createSourcesFooter(sources) {
                 if (!sources || sources.length === 0) return '';
