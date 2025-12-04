@@ -1311,7 +1311,23 @@ The table must be the last element of the response before the suggestions block.
                 userInput.disabled = true;
                 sendButton.disabled = true;
 
-                // 5. Loading Indicator
+                // --- NEW TRIGGER: Check for Research Agent ---
+                if (isResearchRequest(prompt)) {
+                    // Extract the topic (remove the word "research")
+                    const topic = prompt.replace(/(deep dive|research|investigate|study|analyze|explore|find information about|gather data on)/gi, '').trim();
+                    
+                    // Run the loop
+                    await startAutonomousResearch(topic);
+                    
+                    // Cleanup & Exit
+                    userInput.disabled = false;
+                    sendButton.disabled = false;
+                    userInput.focus();
+                    return; 
+                }
+                // ---------------------------------------------
+
+                // 5. Loading Indicator (Standard Chat Only)
                 const loadingBubble = document.createElement('div');
                 loadingBubble.classList.add('flex', 'justify-start');
                 loadingBubble.innerHTML = `<div class="bg-gray-700 text-gray-300 rounded-xl rounded-bl-none p-3 max-w-sm shadow-md"><div class="flex items-center">Thinking...</div></div>`;
