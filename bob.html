@@ -1198,11 +1198,11 @@ The table must be the last element of the response before the suggestions block.
                         const query = queries[i];
                         createMessageBubble(`🔎 **Researching (${i+1}/${queries.length}):** "${query}"...`, 'model');
                         
-                        // STRICTER PROMPT FOR SEARCH
+                        // STRICTER PROMPT FOR SEARCH (Renamed to avoid 'Source' keyword conflict)
                         const searchPrompt = `Use Google Search to find detailed data on: "${query}". 
                         Extract key facts, numbers, and dates.
                         
-                        CRITICAL: You MUST cite the URL for every fact found using this format: [Source Name](URL).
+                        CRITICAL: You MUST cite the URL for every fact found using this format: [Website](Link).
                         Example: "Revenue is $10M [Forbes](https://forbes.com)."`;
                         
                         const result = await getSilentResponse(searchPrompt);
@@ -1219,8 +1219,8 @@ The table must be the last element of the response before the suggestions block.
                     
                     **CRITICAL FORMATTING RULES:**
                     1. Use Markdown.
-                    2. **PRESERVE THE URLs:** When you state a fact from the notes, you MUST include the citation link `[Source](URL)` exactly as it appears in the notes.
-                    3. Do NOT write `[Source]` without the `(URL)`. The link is required for the pin icon to appear.
+                    2. **PRESERVE THE URLs:** When you state a fact from the notes, you MUST include the citation link `[Website](Link)` exactly as it appears in the notes.
+                    3. Do NOT write `[Website]` without the `(Link)`. The link is required for the pin icon to appear.
                     
                     **NOTES:**
                     ${researchNotes}
@@ -1238,6 +1238,7 @@ The table must be the last element of the response before the suggestions block.
                     saveCurrentProjectChat(); 
 
                 } catch (error) {
+                    console.error("Agent Error:", error);
                     createMessageBubble(`❌ **Agent Failure:** ${error.message}`, 'model');
                 }
             }
@@ -1251,7 +1252,7 @@ The table must be the last element of the response before the suggestions block.
                         systemInstruction: { 
                             parts: [{ text: `You are a Research Agent. 
                             CRITICAL: Always use Google Search for facts. 
-                            ALWAYS cite sources inline using [Source Name](URL).` }] 
+                            ALWAYS cite sources inline using [Website](Link).` }] 
                         },
                         messages: [{ role: "user", parts: [{ text: prompt }] }] 
                     })
