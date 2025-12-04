@@ -1202,9 +1202,11 @@ The table must be the last element of the response before the suggestions block.
                         createMessageBubble(`🔎 **Researching (${i+1}/${queries.length}):** "${query}"...`, 'model');
                         
                         // Perform the Search (using the Worker's tool capability)
+                        // UPDATED PROMPT: Enforcing strict citations here
                         const searchPrompt = `Use the Google Search tool to find detailed information on: "${query}". 
                         Summarize the key facts, numbers, and dates found. 
-                        Cite URLs using [Source](URL) format.`;
+                        
+                        IMPORTANT: You MUST cite your sources using inline markdown links [Source Name](URL). Do not hallucinate data.`;
                         
                         const result = await getSilentResponse(searchPrompt);
                         researchNotes += `\n\n### Findings for "${query}":\n${result}`;
@@ -1216,10 +1218,16 @@ The table must be the last element of the response before the suggestions block.
                     // 4. STEP 3: SYNTHESIS & REPORT
                     createMessageBubble(`📝 **Synthesizing Data into Final Report...**`, 'model');
                     
+                    // UPDATED PROMPT: Enforcing strict citations in the final report
                     const finalReportPrompt = `You are a Senior Strategy Consultant. 
                     I have collected research notes on "${topic}". 
                     
                     Write a comprehensive **Strategic Deep Dive Report** based ONLY on these notes.
+                    
+                    **REQUIREMENTS:**
+                    1. Use Markdown formatting.
+                    2. IMPORTANT: You MUST cite your sources using inline markdown links [Source Name](URL) based on the provided notes.
+                    3. Do not hallucinate data or sources not present in the notes.
                     
                     **NOTES:**
                     ${researchNotes}
@@ -1229,9 +1237,7 @@ The table must be the last element of the response before the suggestions block.
                     ## Executive Summary
                     ## Key Findings (Data & Trends)
                     ## Competitive Landscape
-                    ## Strategic Implications
-                    
-                    Use Markdown. Cite sources using the links provided in the notes.`;
+                    ## Strategic Implications`;
 
                     const finalReport = await getSilentResponse(finalReportPrompt);
                     
