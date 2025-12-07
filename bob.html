@@ -470,31 +470,20 @@
 
                 // 4. Load Chat History
                 chatArea.innerHTML = ''; // Clear screen
-                chatHistory.length = 0; // Clear array
+                chatHistory.length = 0; // Clear memory array
                 
                 const savedChat = JSON.parse(localStorage.getItem(`bob_project_${id}_chat`) || '[]');
                 
                 if (savedChat.length > 0) {
                     savedChat.forEach(msg => {
-                        // Re-render bubbles without re-saving (since they are already saved)
-                        chatHistory.push(msg); // Add to memory
+                        // 1. Restore to memory
+                        chatHistory.push(msg); 
                         
-                        // Manually create bubble to avoid double-save loop
-                        // We use a simplified version of logic here just for rendering
-                        const wrapper = document.createElement('div');
-                        wrapper.classList.add('flex', 'message-wrapper', 'mb-4', msg.role === 'user' ? 'justify-end' : 'justify-start');
-                        const bubble = document.createElement('div');
-                        bubble.classList.add('rounded-xl', 'p-4', 'max-w-2xl', 'shadow-md', msg.role === 'user' ? 'bg-emerald-600' : 'bg-gray-800', 'text-gray-100');
-                        
-                        if (msg.role === 'model') {
-                             const { html } = processCitations(msg.parts[0].text);
-                             bubble.innerHTML = `<div class="ai-response-content mb-2">${marked.parse(html)}</div>`;
-                        } else {
-                             bubble.textContent = msg.parts[0].text;
-                        }
-                        wrapper.appendChild(bubble);
-                        chatArea.appendChild(wrapper);
+                        // 2. Restore to UI 
+                        // We use the main bubble function so citations, charts, and tables render correctly!
+                        createMessageBubble(msg.parts[0].text, msg.role);
                     });
+                    
                     // Scroll to bottom
                     setTimeout(() => chatArea.scrollTop = chatArea.scrollHeight, 100);
                 } else {
