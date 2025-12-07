@@ -521,6 +521,41 @@
                 }
             };
 
+            // EVENT: Delete Project
+            document.getElementById('deleteProjectBtn').onclick = () => {
+                const projects = getProjects();
+                if (projects.length === 0) return alert("No saved projects to delete.");
+
+                // List projects
+                let list = "Type the number of the project to DELETE:\n";
+                projects.forEach((p, i) => list += `${i + 1}. ${p.name}\n`);
+                
+                const choice = prompt(list);
+                const projectToDelete = projects[choice - 1];
+
+                if (choice && projectToDelete) {
+                    // CONFIRMATION POPUP
+                    const confirmDelete = confirm(`⚠️ ARE YOU SURE?\n\nYou are about to delete "${projectToDelete.name}".\nThis action cannot be undone.`);
+                    
+                    if (confirmDelete) {
+                        // 1. Remove the chat history data
+                        localStorage.removeItem(`bob_project_${projectToDelete.id}_chat`);
+                        
+                        // 2. Remove from the index array
+                        const updatedProjects = projects.filter(p => p.id !== projectToDelete.id);
+                        localStorage.setItem('bob_projects_index', JSON.stringify(updatedProjects));
+                        
+                        // 3. Feedback and Reset
+                        alert(`Project "${projectToDelete.name}" has been deleted.`);
+                        
+                        // Reload page to reset UI and prevent using deleted data
+                        location.reload();
+                    }
+                } else if (choice) {
+                    alert("Invalid selection.");
+                }
+            };
+
             // ============================================
             // 1. PROMPT MAP (OPTIMIZED FOR CONSULTING ACCURACY)
             // ============================================
