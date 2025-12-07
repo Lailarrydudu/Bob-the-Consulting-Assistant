@@ -1307,22 +1307,13 @@ The table must be the last element of the response before the suggestions block.
                             systemInstruction: { 
                                 parts: [{ text: `You are Bob, a professional consulting assistant. 
                                 
-                                RULES FOR CITATIONS:
-                                1. Use the Google Search Tool for facts/data.
-                                2. Cite sources using inline markdown: [Source Name](URL).
+                                CRITICAL RULES FOR SOURCES:
+                                1. Use the Google Search Tool for ANY factual claim, stat, or news.
+                                2. EVERY time you use a search result, you MUST add a citation immediately after the sentence.
+                                3. Citation Format: [Source Name](URL)
+                                4. Example: "Apple revenue grew 5% [Bloomberg](https://bloomberg.com)."
+                                5. DO NOT create a "References" list at the end. Use inline citations only.
                                 
-                                RULES FOR CHARTS:
-                                If the user asks to visualize data, compare numbers, or create a graph:
-                                1. Generate a standard textual analysis first.
-                                2. At the very end, output the chart data in a JSON block wrapped in <chart> and </chart> tags.
-                                3. The JSON must follow Chart.js format: { "type": "bar" (or line/pie/doughnut), "data": { "labels": [], "datasets": [{ "label": "Title", "data": [] }] } }.
-                                
-                                Example:
-                                Analysis of sales...
-                                <chart>
-                                { "type": "bar", "data": { "labels": ["Q1", "Q2"], "datasets": [{ "label": "Revenue", "data": [100, 200] }] } }
-                                </chart>
-
                                 Format the rest of your response using professional Markdown.` }] 
                             },
                             messages: chatHistory
@@ -1374,44 +1365,42 @@ The table must be the last element of the response before the suggestions block.
             // 3. UTILITIES (Bubbles, Prompts, Clear, Etc)
             // ============================================
 
-            // --- CITATION HELPER FUNCTIONS ---
+            // --- CITATION HELPER FUNCTIONS (TOKEN SWAP STRATEGY) ---
+            
+            // 1. Process Text: Extract links and replace with safe TOKENS
             function processCitations(rawText) {
-                // Regex to find STANDARD Markdown links: [Name](URL)
-                // We look for http in the URL to ensure it's a real link
+                // Regex to find standard Markdown links [Name](URL)
                 const regex = /\[([^\]]+)\]\((http[^)]+)\)/g;
                 let sources = [];
-                let match;
-    
                 
-                // 1. Extract sources
-                while ((match = regex.exec(rawText)) !== null) {
-                    sources.push({ name: match[1], url: match[2] });
-                }
-
-                // 2. Replace with Pin Icon
-                let processedText = rawText.replace(regex, (match, name, url) => {
-                    return `<a href="${url}" target="_blank" class="citation-link" title="Source: ${name}"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg></a>`;
+                // Replace Markdown links with tokens like __CIT_0__
+                // This prevents the Markdown parser from breaking tables or corrupting URLs
+                const textWithTokens = rawText.replace(regex, (match, name, url) => {
+                    sources.push({ name, url });
+                    return `__CIT_${sources.length - 1}__`;
                 });
 
-                return { html: processedText, sources: sources };
+                return { textWithTokens, sources };
             }
 
+            // 2. Generate the Footer List
             function createSourcesFooter(sources) {
                 if (!sources || sources.length === 0) return '';
                 
-                const listItems = sources.map((s, i) => {
-                    // SAFETY CHECK: Try to parse hostname, fallback if invalid URL
+                // Remove duplicates based on URL
+                const uniqueSources = Array.from(new Map(sources.map(s => [s.url, s])).values());
+
+                const listItems = uniqueSources.map((s, i) => {
                     let faviconUrl = '';
                     try {
                         const urlObj = new URL(s.url);
                         faviconUrl = `https://www.google.com/s2/favicons?domain=${urlObj.hostname}`;
                     } catch (e) {
-                        // If URL is invalid (e.g. missing https), use a generic icon
                         faviconUrl = 'https://www.google.com/s2/favicons?domain=google.com'; 
                     }
 
                     return `
-                    <a href="${s.url}" target="_blank" class="source-item">
+                    <a href="${s.url}" target="_blank" rel="noopener noreferrer" class="source-item">
                         <span class="text-gray-500 font-mono text-xs">[${i+1}]</span>
                         <img src="${faviconUrl}" class="source-favicon" onerror="this.style.display='none'">
                         ${s.name}
@@ -1431,8 +1420,8 @@ The table must be the last element of the response before the suggestions block.
                     </div>
                 `;
             }
-            // ----------------------------------
 
+            // 3. Render Message Bubble
             function createMessageBubble(text, sender) {
                 const wrapper = document.createElement('div');
                 wrapper.classList.add('flex', 'message-wrapper', 'mb-4', sender === 'user' ? 'justify-end' : 'justify-start');
@@ -1450,73 +1439,63 @@ The table must be the last element of the response before the suggestions block.
                     let chartConfig = null;
                     let rawChartContent = null;
                     
-                    // STRATEGY 1: Explicit Tags (Best Case)
-                    // Looks for <chart> ... </chart> or <<<CHART>>>
+                    // Chart Detection (Aggressive Hunter)
                     const tagRegex = /(?:<<<CHART>>>|<chart>|<<>>)([\s\S]*?)(?:<<<END_CHART>>>|<\/chart>|<<>>)/i;
                     let match = text.match(tagRegex);
                     
                     if (match) {
                         rawChartContent = match[1];
-                    } 
-                    // STRATEGY 2: Markdown Code Blocks (Common AI behavior)
-                    else {
+                    } else {
+                        // Fallback: Look for Markdown blocks or raw JSON signature
                         const codeRegex = /```json\s*({[\s\S]*?"type"[\s\S]*?"data"[\s\S]*?})\s*```/i;
-                        match = text.match(codeRegex);
-                        if (match) rawChartContent = match[1];
+                        const rawRegex = /({[\s\n]*"type"[\s\n]*:[\s\n]*"(?:bar|line|pie|doughnut)"[\s\S]*?"data"[\s\S]*?})/i;
+                        match = text.match(codeRegex) || text.match(rawRegex);
+                        if (match) rawChartContent = match[1] || match[0];
                     }
 
-                    // STRATEGY 3: "Aggressive Hunter" (Fallback for raw JSON)
-                    // If no tags found, we look for the specific Chart.js signature: "type": "something"
-                    if (!rawChartContent) {
-                        const typeMarker = text.search(/"type"\s*:\s*"(bar|line|pie|doughnut|radar|polarArea)"/i);
-                        if (typeMarker !== -1) {
-                            // Found the marker. Now find the bounding braces { }
-                            const startBrace = text.lastIndexOf('{', typeMarker);
-                            const endBrace = text.lastIndexOf('}');
-                            
-                            if (startBrace !== -1 && endBrace !== -1 && endBrace > startBrace) {
-                                rawChartContent = text.substring(startBrace, endBrace + 1);
-                            }
-                        }
-                    }
-
-                    // PARSE ATTEMPT
                     if (rawChartContent) {
                         try {
-                            // Cleanup: Remove any lingering markdown ticks or whitespace
-                            let cleanJson = rawChartContent.trim();
-                            cleanJson = cleanJson.replace(/^```json/, '').replace(/```$/, '');
-                            
-                            chartConfig = JSON.parse(cleanJson);
-                            
-                            // Remove the raw JSON text from the bubble so it looks clean
-                            // We construct a new regex based on the found content to remove it safely
-                            text = text.replace(rawChartContent, '');
-                            
-                            // Also remove empty tags if they were left behind
-                            text = text.replace(/<chart>\s*<\/chart>/i, '').replace(/<<<CHART>>>\s*<<<END_CHART>>>/i, '');
-                            
-                        } catch (e) {
-                            console.error("Chart rendering attempt failed:", e);
-                            // If parsing fails, we leave the text as is so the user at least sees the data
-                        }
+                            let cleanJson = rawChartContent.trim().replace(/^```json/, '').replace(/```$/, '');
+                            // Find outermost braces to ignore surrounding text
+                            const first = cleanJson.indexOf('{');
+                            const last = cleanJson.lastIndexOf('}');
+                            if(first !== -1 && last !== -1) {
+                                chartConfig = JSON.parse(cleanJson.substring(first, last+1));
+                                // Remove chart code from text so we don't see it
+                                text = text.replace(match[0], ''); 
+                            }
+                        } catch (e) { console.error("Chart parsing failed", e); }
                     }
 
-                    // 2. Process Text (Citations + Markdown)
-                    const { html: textWithIcons, sources } = processCitations(text);
+                    // A. Process Text -> Tokens (Protect links from breaking tables)
+                    const { textWithTokens, sources } = processCitations(text);
+                    
+                    // B. Render Markdown (Tokens preserve table structure)
                     const contentDiv = document.createElement('div');
                     contentDiv.classList.add('ai-response-content', 'mb-2');
-                    contentDiv.innerHTML = marked.parse(textWithIcons);
+                    
+                    // Generate HTML from Markdown
+                    let renderedHtml = marked.parse(textWithTokens);
+
+                    // C. Swap Tokens -> Pin Icons
+                    // We do this AFTER markdown parsing so the <a> tags don't get escaped or break tables
+                    sources.forEach((source, index) => {
+                        const iconHtml = `<a href="${source.url}" target="_blank" rel="noopener noreferrer" class="citation-link" title="Source: ${source.name}"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg></a>`;
+                        // Global replace in case the source was cited multiple times
+                        const token = `__CIT_${index}__`;
+                        renderedHtml = renderedHtml.split(token).join(iconHtml);
+                    });
+
+                    contentDiv.innerHTML = renderedHtml;
                     bubble.appendChild(contentDiv);
 
-                    // 3. Render Chart (If config was successfully parsed)
+                    // D. Render Chart (If config exists)
                     if (chartConfig) {
                         const chartContainer = document.createElement('div');
                         chartContainer.style.marginTop = '1rem';
                         chartContainer.style.backgroundColor = '#1f2937';
                         chartContainer.style.padding = '10px';
                         chartContainer.style.borderRadius = '8px';
-                        
                         const canvas = document.createElement('canvas');
                         chartContainer.appendChild(canvas);
                         bubble.appendChild(chartContainer);
@@ -1526,33 +1505,23 @@ The table must be the last element of the response before the suggestions block.
                             data: chartConfig.data,
                             options: {
                                 responsive: true,
-                                plugins: {
-                                    legend: { labels: { color: 'white' } }
-                                },
+                                plugins: { legend: { labels: { color: 'white' } } },
                                 scales: {
-                                    x: { 
-                                        display: chartConfig.type !== 'pie' && chartConfig.type !== 'doughnut',
-                                        ticks: { color: 'white' }, 
-                                        grid: { color: '#374151' } 
-                                    },
-                                    y: { 
-                                        display: chartConfig.type !== 'pie' && chartConfig.type !== 'doughnut',
-                                        ticks: { color: 'white' }, 
-                                        grid: { color: '#374151' } 
-                                    }
+                                    x: { display: chartConfig.type!=='pie'&&chartConfig.type!=='doughnut', ticks: {color:'white'}, grid: {color:'#374151'} },
+                                    y: { display: chartConfig.type!=='pie'&&chartConfig.type!=='doughnut', ticks: {color:'white'}, grid: {color:'#374151'} }
                                 }
                             }
                         });
                     }
 
-                    // 4. Add Sources Footer
+                    // E. Add Sources Footer
                     if (sources.length > 0) {
                         const footerDiv = document.createElement('div');
                         footerDiv.innerHTML = createSourcesFooter(sources);
                         bubble.appendChild(footerDiv);
                     }
 
-                    // 5. Copy Button
+                    // F. Copy Button
                     const copyBtn = document.createElement('button');
                     copyBtn.className = 'text-xs text-gray-400 hover:text-white mt-2 block ml-auto';
                     copyBtn.textContent = 'Copy';
@@ -1569,11 +1538,9 @@ The table must be the last element of the response before the suggestions block.
                 // --- LOGIC FOR USER MESSAGES (Edit & Copy) ---
                 else {
                     bubble.textContent = text;
-
                     const actionsDiv = document.createElement('div');
                     actionsDiv.className = 'user-action-container';
 
-                    // Edit
                     const editBtn = document.createElement('button');
                     editBtn.className = 'action-icon-btn';
                     editBtn.title = "Edit prompt";
@@ -1584,7 +1551,6 @@ The table must be the last element of the response before the suggestions block.
                         userInput.focus();
                     };
 
-                    // Copy
                     const copyBtnUser = document.createElement('button');
                     copyBtnUser.className = 'action-icon-btn';
                     copyBtnUser.title = "Copy text";
