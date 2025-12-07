@@ -1449,32 +1449,45 @@ The table must be the last element of the response before the suggestions block.
                 if (sender === 'model') {
                     let chartConfig = null;
                     
-                    // ROBUST CHART EXTRACTION STRATEGY
-                    // 1. Regex to find <chart> OR ```json blocks
+                    // STRATEGY 1: Look for explicit tags (Best)
                     const tagRegex = /(?:<<<CHART>>>|<chart>|<<>>)\s*([\s\S]*?)\s*(?:<<<END_CHART>>>|<\/chart>|<<>>)/i;
+                    
+                    // STRATEGY 2: Look for Markdown blocks (Common)
                     const codeRegex = /```json\s*({[\s\S]*?"type"[\s\S]*?"data"[\s\S]*?})\s*```/i;
                     
-                    // Try to match tags first, then fallback to code blocks
-                    let match = text.match(tagRegex) || text.match(codeRegex);
+                    // STRATEGY 3: Look for Raw JSON signature (Fallback for "messy words")
+                    // Matches { "type": "bar|line...", "data": ... }
+                    const rawRegex = /({[\s\n]*"type"[\s\n]*:[\s\n]*"(?:bar|line|pie|doughnut|radar|polarArea)"[\s\S]*?"data"[\s\S]*?})/i;
+
+                    // Execute Search
+                    let match = text.match(tagRegex) || text.match(codeRegex) || text.match(rawRegex);
                     
                     if (match) {
                         try {
-                            const fullBlock = match[0]; // The whole string including tags
-                            let jsonContent = match[1]; // Just the inner content
-                            
-                            // CLEANUP: Aggressively remove Markdown wrapper if it exists inside the tags
-                            // This handles cases like <chart>\n```json\n{...}\n```\n</chart>
+                            const fullBlock = match[0]; // The text to remove
+                            let jsonContent = match[1] || match[0]; // The content to parse
+
+                            // Cleaning: Remove any residual markdown artifacts
                             jsonContent = jsonContent.replace(/```json/gi, '').replace(/```/g, '').trim();
+
+                            // Fix common JSON syntax errors if necessary (e.g. trailing commas)
+                            // But usually, just parsing is enough if the AI is good.
                             
-                            // Parse JSON
-                            chartConfig = JSON.parse(jsonContent);
+                            // Find the boundaries of the JSON object to ensure valid parsing
+                            const firstBrace = jsonContent.indexOf('{');
+                            const lastBrace = jsonContent.lastIndexOf('}');
                             
-                            // Success! Remove the raw code from the visible text
-                            text = text.replace(fullBlock, ''); 
+                            if (firstBrace !== -1 && lastBrace !== -1) {
+                                jsonContent = jsonContent.substring(firstBrace, lastBrace + 1);
+                                chartConfig = JSON.parse(jsonContent);
+                                
+                                // SUCCESS: Remove the raw code from the UI
+                                text = text.replace(fullBlock, ''); 
+                            }
                             
                         } catch (e) {
                             console.error("Chart parsing failed:", e);
-                            // Note: We don't remove the text if parsing fails, so you can debug the raw output
+                            // If it fails, we leave the text so you can debug what went wrong
                         }
                     }
 
