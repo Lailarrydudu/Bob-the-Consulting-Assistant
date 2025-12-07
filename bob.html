@@ -615,6 +615,8 @@ The output MUST strictly follow this high-readability structure:
 ... (3 to 5 trends total)
 
 ## Summary Table
+(Ensure there is an empty line before the table)
+
 | Trend | Primary Impact |
 |---|---|
 | [Trend 1 Name] | * [Impact bullet 1] <br> * [Impact bullet 2] |
@@ -631,6 +633,8 @@ The output MUST strictly follow this professional structure:
 [Short executive summary of the project's strategic value]
 
 ## Project Details
+(Ensure there is an empty line before the table)
+
 | Field | Value |
 |---|---|
 | Project Sponsor | [Recommended Title] |
@@ -715,6 +719,8 @@ The output MUST strictly follow this structure:
 ...
 
 ## Competitive Landscape
+(Ensure there is an empty line before the table)
+
 | Competitor | Market Share/Focus | Key Strengths/Weaknesses |
 |---|---|---|
 | [Name 1] | [Focus] | * [Strength 1] <br> * [Weakness 1] |
@@ -737,6 +743,8 @@ The output MUST strictly follow this structure:
 [A concise paragraph explaining the strategic position.]
 
 ## Analysis Matrix
+(Ensure there is an empty line before the table)
+
 | Strengths (Internal) | Weaknesses (Internal) | Opportunities (External) | Threats (External) |
 |---|---|---|---|
 | * [Core Competency 1] | * [Internal Gap 1] | * [Market Trend 1 (Cited)] | * [Competitor Move 1 (Cited)] |
@@ -754,6 +762,8 @@ The output MUST strictly follow this structure:
 [A brief introduction defining the competitive scope.]
 
 ## Benchmarking Table
+(Ensure there is an empty line before the table)
+
 | Competitor | Market Share | Product Features | Pricing Model | Sentiment |
 |---|---|---|---|---|
 | **[Competitor B]** | [Est. Share] | * [Feature 1] <br> * [Feature 2] | [Pricing] | [Rating] |
@@ -771,6 +781,8 @@ The output MUST strictly follow this structure:
 [A concise paragraph summarizing the overall industry attractiveness.]
 
 ## Industry Structure Summary
+(Ensure there is an empty line before the table)
+
 | Force | Threat Level | Key Drivers/Evidence |
 |---|---|---|
 | **Threat of New Entrants** | [High/Med/Low] | * [Barriers details (Cited)] |
@@ -791,6 +803,7 @@ The output MUST strictly follow this structure:
 [A brief introduction explaining the most critical macro-factors.]
 
 The remaining analysis MUST be presented in a specific two-column table format:
+(Ensure there is an empty line before the table)
 
 | Factor | Key Findings |
 |---|---|
@@ -813,6 +826,8 @@ The output MUST strictly follow this structure:
 [A concise introductory paragraph.]
 
 ## Cultural Dimensions Summary
+(Ensure there is an empty line before the table)
+
 | Dimension | Score/Rating | Business Implication |
 |---|---|---|
 | **Power Distance (PDI)** | [Score] | * [Implication 1] <br> * [Implication 2] |
@@ -836,6 +851,8 @@ The output MUST follow this structure:
 [Introductory critique - be direct]
 
 ## Critical Flaws & Assumptions
+(Ensure there is an empty line before the table)
+
 | Assumption | Probability | Impact |
 |---|---|---|
 | [Assumption 1] | [High/Med/Low] | [High/Med/Low] |
@@ -914,6 +931,8 @@ The output MUST strictly follow this structure:
 * [Currency Considerations]
 
 ## Market Entry Options Summary
+(Ensure there is an empty line before the table)
+
 | Method | Key Advantages | Key Disadvantages |
 |---|---|---|
 | [Method 1] | * [Advantage 1] <br> * [Advantage 2] | * [Disadvantage 1] <br> * [Disadvantage 2] |
@@ -935,6 +954,8 @@ The output MUST strictly follow this structure:
 * [UVP]
 
 ## Channel and Tactics Plan
+(Ensure there is an empty line before the table)
+
 | Channel | Tactics | Timeline |
 |---|---|---|
 | **Marketing** | * [Tactic 1] <br> * [Tactic 2] | [Timeline] |
@@ -960,6 +981,8 @@ The output MUST strictly follow this structure:
 [A concise introduction.]
 
 ## Growth Strategy Matrix
+(Ensure there is an empty line before the table)
+
 | Strategy | Product/Market Status | Key Action/Risk |
 |---|---|---|
 | **Market Penetration** | Existing Product / Existing Market | * [Action 1] <br> * [Action 2] |
@@ -977,6 +1000,8 @@ The output MUST strictly follow this structure:
 [A brief introductory statement.]
 
 ## Risk Mitigation Table
+(Ensure there is an empty line before the table)
+
 | Risk Area | Likelihood | Impact | Mitigation Strategy |
 |---|---|---|---|
 | **[Risk 1]** | [H/M/L] | [H/M/L] | * [Strategy 1] <br> * [Strategy 2] |
@@ -997,6 +1022,8 @@ The output MUST strictly follow this structure:
 [Statement of immediate intent]
 
 ## Immediate Actions (Next 7 Days)
+(Ensure there is an empty line before the table)
+
 | Role/Owner | Specific Task | Deadline | Definition of Done |
 |---|---|---|---|
 | [Role 1] | [Task] | [Date] | [Outcome] |
@@ -1018,6 +1045,8 @@ The output MUST strictly follow this structure:
 [A concise statement.]
 
 ## Defined Metrics
+(Ensure there is an empty line before the table)
+
 | KPI Name | Type | Formula | Target | Frequency |
 |---|---|---|---|---|
 | **[KPI 1]** | [Type] | [Formula] | [Target] | [Monthly] |
@@ -1034,6 +1063,8 @@ The output MUST strictly follow this structure:
 [A brief introductory paragraph.]
 
 ## Implementation Phases
+(Ensure there is an empty line before the table)
+
 | Phase | Key Milestones | Resources | Duration |
 |---|---|---|---|
 | **Phase 1: Setup** | * [Milestone 1] <br> * [Milestone 2] | [Team/Budget] | [Duration] |
@@ -1347,14 +1378,22 @@ The table must be the last element of the response before the suggestions block.
             
             // 1. Process Text: Extract links and replace with SAFE TOKENS
             function processCitations(rawText) {
-                // Regex to find standard Markdown links [Name](URL)
-                const regex = /\[([^\]]+)\]\((http[^)]+)\)/g;
+                // Regex Breakdown:
+                // \[([^\]]+)\]  -> Capture Title inside []
+                // \(            -> Opening (
+                // (https?:\/\/  -> Capture Group 2: Must start with http:// or https://
+                // [^)\s]+)      -> Match any character that is NOT a ')' or space
+                // \)            -> Closing )
+                const regex = /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g;
+                
                 let sources = [];
                 
                 // Replace Markdown links with tokens like %%CIT_0%%
-                // We use %% because Markdown doesn't format it (unlike __ which becomes bold)
                 const textWithTokens = rawText.replace(regex, (match, name, url) => {
-                    sources.push({ name, url });
+                    // Clean trailing punctuation (dots, commas) from URL if captured by mistake
+                    let cleanUrl = url.replace(/[.,;!]+$/, ""); 
+                    
+                    sources.push({ name, url: cleanUrl });
                     return `%%CIT_${sources.length - 1}%%`;
                 });
 
