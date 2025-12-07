@@ -1364,20 +1364,20 @@ The table must be the last element of the response before the suggestions block.
             // ============================================
             // 3. UTILITIES (Bubbles, Prompts, Clear, Etc)
             // ============================================
-
-            // --- CITATION HELPER FUNCTIONS (TOKEN SWAP STRATEGY) ---
             
-            // 1. Process Text: Extract links and replace with safe TOKENS
+           // --- CITATION HELPER FUNCTIONS (SAFE TOKEN STRATEGY) ---
+            
+            // 1. Process Text: Extract links and replace with SAFE TOKENS
             function processCitations(rawText) {
                 // Regex to find standard Markdown links [Name](URL)
                 const regex = /\[([^\]]+)\]\((http[^)]+)\)/g;
                 let sources = [];
                 
-                // Replace Markdown links with tokens like __CIT_0__
-                // This prevents the Markdown parser from breaking tables or corrupting URLs
+                // Replace Markdown links with tokens like %%CIT_0%%
+                // We use %% because Markdown doesn't format it (unlike __ which becomes bold)
                 const textWithTokens = rawText.replace(regex, (match, name, url) => {
                     sources.push({ name, url });
-                    return `__CIT_${sources.length - 1}__`;
+                    return `%%CIT_${sources.length - 1}%%`;
                 });
 
                 return { textWithTokens, sources };
@@ -1467,10 +1467,10 @@ The table must be the last element of the response before the suggestions block.
                         } catch (e) { console.error("Chart parsing failed", e); }
                     }
 
-                    // A. Process Text -> Tokens (Protect links from breaking tables)
+                    // A. Process Text -> Tokens (Using safe %% tokens)
                     const { textWithTokens, sources } = processCitations(text);
                     
-                    // B. Render Markdown (Tokens preserve table structure)
+                    // B. Render Markdown (Tokens preserve table structure and aren't bolded)
                     const contentDiv = document.createElement('div');
                     contentDiv.classList.add('ai-response-content', 'mb-2');
                     
@@ -1478,11 +1478,12 @@ The table must be the last element of the response before the suggestions block.
                     let renderedHtml = marked.parse(textWithTokens);
 
                     // C. Swap Tokens -> Pin Icons
-                    // We do this AFTER markdown parsing so the <a> tags don't get escaped or break tables
+                    // We do this AFTER markdown parsing
                     sources.forEach((source, index) => {
                         const iconHtml = `<a href="${source.url}" target="_blank" rel="noopener noreferrer" class="citation-link" title="Source: ${source.name}"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg></a>`;
-                        // Global replace in case the source was cited multiple times
-                        const token = `__CIT_${index}__`;
+                        
+                        // Replace the safe token
+                        const token = `%%CIT_${index}%%`;
                         renderedHtml = renderedHtml.split(token).join(iconHtml);
                     });
 
