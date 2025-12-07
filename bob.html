@@ -1448,34 +1448,34 @@ The table must be the last element of the response before the suggestions block.
                 // --- LOGIC FOR AI MESSAGES (Model) ---
                 if (sender === 'model') {
                     let chartConfig = null;
-                    let rawChartContent = null;
                     
-                    // Chart Detection (Aggressive Hunter)
-                    const tagRegex = /(?:<<<CHART>>>|<chart>|<<>>)([\s\S]*?)(?:<<<END_CHART>>>|<\/chart>|<<>>)/i;
-                    let match = text.match(tagRegex);
+                    // ROBUST CHART EXTRACTION STRATEGY
+                    // 1. Regex to find <chart> OR ```json blocks
+                    const tagRegex = /(?:<<<CHART>>>|<chart>|<<>>)\s*([\s\S]*?)\s*(?:<<<END_CHART>>>|<\/chart>|<<>>)/i;
+                    const codeRegex = /```json\s*({[\s\S]*?"type"[\s\S]*?"data"[\s\S]*?})\s*```/i;
+                    
+                    // Try to match tags first, then fallback to code blocks
+                    let match = text.match(tagRegex) || text.match(codeRegex);
                     
                     if (match) {
-                        rawChartContent = match[1];
-                    } else {
-                        // Fallback: Look for Markdown blocks or raw JSON signature
-                        const codeRegex = /```json\s*({[\s\S]*?"type"[\s\S]*?"data"[\s\S]*?})\s*```/i;
-                        const rawRegex = /({[\s\n]*"type"[\s\n]*:[\s\n]*"(?:bar|line|pie|doughnut)"[\s\S]*?"data"[\s\S]*?})/i;
-                        match = text.match(codeRegex) || text.match(rawRegex);
-                        if (match) rawChartContent = match[1] || match[0];
-                    }
-
-                    if (rawChartContent) {
                         try {
-                            let cleanJson = rawChartContent.trim().replace(/^```json/, '').replace(/```$/, '');
-                            // Find outermost braces to ignore surrounding text
-                            const first = cleanJson.indexOf('{');
-                            const last = cleanJson.lastIndexOf('}');
-                            if(first !== -1 && last !== -1) {
-                                chartConfig = JSON.parse(cleanJson.substring(first, last+1));
-                                // Remove chart code from text so we don't see it
-                                text = text.replace(match[0], ''); 
-                            }
-                        } catch (e) { console.error("Chart parsing failed", e); }
+                            const fullBlock = match[0]; // The whole string including tags
+                            let jsonContent = match[1]; // Just the inner content
+                            
+                            // CLEANUP: Aggressively remove Markdown wrapper if it exists inside the tags
+                            // This handles cases like <chart>\n```json\n{...}\n```\n</chart>
+                            jsonContent = jsonContent.replace(/```json/gi, '').replace(/```/g, '').trim();
+                            
+                            // Parse JSON
+                            chartConfig = JSON.parse(jsonContent);
+                            
+                            // Success! Remove the raw code from the visible text
+                            text = text.replace(fullBlock, ''); 
+                            
+                        } catch (e) {
+                            console.error("Chart parsing failed:", e);
+                            // Note: We don't remove the text if parsing fails, so you can debug the raw output
+                        }
                     }
 
                     // A. Process Text -> Tokens (Using safe %% tokens)
