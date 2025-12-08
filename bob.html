@@ -1377,26 +1377,18 @@ The table must be the last element of the response before the suggestions block.
             // 1. Process Text: Extract links and replace with SAFE TOKENS
             function processCitations(rawText) {
                 // Regex to find standard Markdown links [Name](URL)
-                // We use a "lazy" match for the URL to avoid capturing trailing parentheses
-                const regex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+                const regex = /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g;
                 
                 let sources = [];
                 
                 // Replace Markdown links with tokens like %%CIT_0%%
                 const textWithTokens = rawText.replace(regex, (match, name, url) => {
-                    // SANITIZER: 
-                    // 1. Remove trailing dots, commas, or semicolons (Fixes 404s)
+                    // FIX: Aggressively remove trailing dots, commas, or semicolons from the URL
+                    // This prevents "https://google.com." (which causes 404)
                     let cleanUrl = url.replace(/[.,;!]+$/, ""); 
                     
-                    // 2. Ensure it's a real URL (Basic check)
-                    try {
-                        new URL(cleanUrl); // Will throw error if garbage
-                        sources.push({ name, url: cleanUrl });
-                        return `%%CIT_${sources.length - 1}%%`;
-                    } catch (e) {
-                        // If URL is invalid, return original text (don't make a pin)
-                        return match;
-                    }
+                    sources.push({ name, url: cleanUrl });
+                    return `%%CIT_${sources.length - 1}%%`;
                 });
 
                 return { textWithTokens, sources };
