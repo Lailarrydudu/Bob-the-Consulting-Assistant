@@ -1432,7 +1432,7 @@ The table must be the last element of the response before the suggestions block.
                 `;
             }
 
-            // 3. Render Message Bubble
+            // 3. Render Message Bubble (With Typewriter/Streaming Effect)
             function createMessageBubble(text, sender) {
                 const wrapper = document.createElement('div');
                 wrapper.classList.add('flex', 'message-wrapper', 'mb-4', sender === 'user' ? 'justify-end' : 'justify-start');
@@ -1448,119 +1448,128 @@ The table must be the last element of the response before the suggestions block.
                 // --- LOGIC FOR AI MESSAGES (Model) ---
                 if (sender === 'model') {
                     let chartConfig = null;
+                    let rawChartContent = null;
                     
-                    // STRATEGY 1: Look for explicit tags (Best)
+                    // 1. CHART EXTRACTION (Do this first so we don't type out raw JSON)
                     const tagRegex = /(?:<<<CHART>>>|<chart>|<<>>)\s*([\s\S]*?)\s*(?:<<<END_CHART>>>|<\/chart>|<<>>)/i;
-                    
-                    // STRATEGY 2: Look for Markdown blocks (Common)
                     const codeRegex = /```json\s*({[\s\S]*?"type"[\s\S]*?"data"[\s\S]*?})\s*```/i;
-                    
-                    // STRATEGY 3: Look for Raw JSON signature (Fallback for "messy words")
-                    // Matches { "type": "bar|line...", "data": ... }
                     const rawRegex = /({[\s\n]*"type"[\s\n]*:[\s\n]*"(?:bar|line|pie|doughnut|radar|polarArea)"[\s\S]*?"data"[\s\S]*?})/i;
 
-                    // Execute Search
                     let match = text.match(tagRegex) || text.match(codeRegex) || text.match(rawRegex);
                     
                     if (match) {
                         try {
-                            const fullBlock = match[0]; // The text to remove
-                            let jsonContent = match[1] || match[0]; // The content to parse
-
-                            // Cleaning: Remove any residual markdown artifacts
+                            let fullBlock = match[0];
+                            let jsonContent = match[1] || match[0];
+                            // Clean JSON
                             jsonContent = jsonContent.replace(/```json/gi, '').replace(/```/g, '').trim();
-
-                            // Fix common JSON syntax errors if necessary (e.g. trailing commas)
-                            // But usually, just parsing is enough if the AI is good.
                             
-                            // Find the boundaries of the JSON object to ensure valid parsing
+                            // Validate boundaries
                             const firstBrace = jsonContent.indexOf('{');
                             const lastBrace = jsonContent.lastIndexOf('}');
-                            
                             if (firstBrace !== -1 && lastBrace !== -1) {
                                 jsonContent = jsonContent.substring(firstBrace, lastBrace + 1);
                                 chartConfig = JSON.parse(jsonContent);
-                                
-                                // SUCCESS: Remove the raw code from the UI
+                                // Remove chart code from text so we don't type it
                                 text = text.replace(fullBlock, ''); 
                             }
+                        } catch (e) { console.error("Chart parsing failed:", e); }
+                    }
+
+                    // 2. CITATION PROCESSING (Get Tokens)
+                    const { textWithTokens, sources } = processCitations(text);
+                    
+                    // 3. PREPARE UI ELEMENTS
+                    const contentDiv = document.createElement('div');
+                    contentDiv.classList.add('ai-response-content', 'mb-2');
+                    bubble.appendChild(contentDiv);
+                    wrapper.appendChild(bubble);
+                    chatArea.appendChild(wrapper); // Add to DOM immediately so we can see typing
+
+                    // 4. TYPEWRITER EFFECT
+                    let i = 0;
+                    const speed = 5; // Milliseconds per chunk (lower = faster)
+                    const chunkSize = 3; // Characters to add per tick
+                    
+                    function typeWriter() {
+                        if (i < textWithTokens.length) {
+                            i += chunkSize;
+                            if (i > textWithTokens.length) i = textWithTokens.length;
                             
-                        } catch (e) {
-                            console.error("Chart parsing failed:", e);
-                            // If it fails, we leave the text so you can debug what went wrong
+                            // Render current slice of text
+                            let currentRaw = textWithTokens.substring(0, i);
+                            let renderedHtml = marked.parse(currentRaw);
+
+                            // Swap Citation Tokens for Icons dynamically while typing
+                            sources.forEach((source, index) => {
+                                const iconHtml = `<a href="${source.url}" target="_blank" rel="noopener noreferrer" class="citation-link" title="Source: ${source.name}"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg></a>`;
+                                const token = `%%CIT_${index}%%`;
+                                renderedHtml = renderedHtml.split(token).join(iconHtml);
+                            });
+
+                            contentDiv.innerHTML = renderedHtml;
+                            chatArea.scrollTop = chatArea.scrollHeight; // Auto-scroll
+                            
+                            requestAnimationFrame(typeWriter); // Continue loop
+                        } else {
+                            // --- TYPING FINISHED: RENDER ARTIFACTS ---
+                            finalizeBubble();
                         }
                     }
 
-                    // A. Process Text -> Tokens (Using safe %% tokens)
-                    const { textWithTokens, sources } = processCitations(text);
-                    
-                    // B. Render Markdown (Tokens preserve table structure and aren't bolded)
-                    const contentDiv = document.createElement('div');
-                    contentDiv.classList.add('ai-response-content', 'mb-2');
-                    
-                    // Generate HTML from Markdown
-                    let renderedHtml = marked.parse(textWithTokens);
+                    function finalizeBubble() {
+                        // A. Render Chart (if exists)
+                        if (chartConfig) {
+                            const chartContainer = document.createElement('div');
+                            chartContainer.style.marginTop = '1rem';
+                            chartContainer.style.backgroundColor = '#1f2937';
+                            chartContainer.style.padding = '10px';
+                            chartContainer.style.borderRadius = '8px';
+                            chartContainer.classList.add('animate-fade-in'); // Add fade-in effect
+                            
+                            const canvas = document.createElement('canvas');
+                            chartContainer.appendChild(canvas);
+                            bubble.appendChild(chartContainer);
 
-                    // C. Swap Tokens -> Pin Icons
-                    // We do this AFTER markdown parsing
-                    sources.forEach((source, index) => {
-                        const iconHtml = `<a href="${source.url}" target="_blank" rel="noopener noreferrer" class="citation-link" title="Source: ${source.name}"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg></a>`;
-                        
-                        // Replace the safe token
-                        const token = `%%CIT_${index}%%`;
-                        renderedHtml = renderedHtml.split(token).join(iconHtml);
-                    });
-
-                    contentDiv.innerHTML = renderedHtml;
-                    bubble.appendChild(contentDiv);
-
-                    // D. Render Chart (If config exists)
-                    if (chartConfig) {
-                        const chartContainer = document.createElement('div');
-                        chartContainer.style.marginTop = '1rem';
-                        chartContainer.style.backgroundColor = '#1f2937';
-                        chartContainer.style.padding = '10px';
-                        chartContainer.style.borderRadius = '8px';
-                        const canvas = document.createElement('canvas');
-                        chartContainer.appendChild(canvas);
-                        bubble.appendChild(chartContainer);
-
-                        new Chart(canvas, {
-                            type: chartConfig.type,
-                            data: chartConfig.data,
-                            options: {
-                                responsive: true,
-                                plugins: { legend: { labels: { color: 'white' } } },
-                                scales: {
-                                    x: { display: chartConfig.type!=='pie'&&chartConfig.type!=='doughnut', ticks: {color:'white'}, grid: {color:'#374151'} },
-                                    y: { display: chartConfig.type!=='pie'&&chartConfig.type!=='doughnut', ticks: {color:'white'}, grid: {color:'#374151'} }
+                            new Chart(canvas, {
+                                type: chartConfig.type,
+                                data: chartConfig.data,
+                                options: {
+                                    responsive: true,
+                                    plugins: { legend: { labels: { color: 'white' } } },
+                                    scales: {
+                                        x: { display: chartConfig.type!=='pie'&&chartConfig.type!=='doughnut', ticks: {color:'white'}, grid: {color:'#374151'} },
+                                        y: { display: chartConfig.type!=='pie'&&chartConfig.type!=='doughnut', ticks: {color:'white'}, grid: {color:'#374151'} }
+                                    }
                                 }
-                            }
-                        });
+                            });
+                        }
+
+                        // B. Add Sources Footer
+                        if (sources.length > 0) {
+                            const footerDiv = document.createElement('div');
+                            footerDiv.innerHTML = createSourcesFooter(sources);
+                            bubble.appendChild(footerDiv);
+                        }
+
+                        // C. Copy Button
+                        const copyBtn = document.createElement('button');
+                        copyBtn.className = 'text-xs text-gray-400 hover:text-white mt-2 block ml-auto';
+                        copyBtn.textContent = 'Copy';
+                        copyBtn.onclick = () => {
+                            navigator.clipboard.writeText(text);
+                            copyBtn.textContent = 'Copied!';
+                            setTimeout(() => copyBtn.textContent = 'Copy', 1500);
+                        };
+                        bubble.appendChild(copyBtn);
+                        chatArea.scrollTop = chatArea.scrollHeight;
                     }
 
-                    // E. Add Sources Footer
-                    if (sources.length > 0) {
-                        const footerDiv = document.createElement('div');
-                        footerDiv.innerHTML = createSourcesFooter(sources);
-                        bubble.appendChild(footerDiv);
-                    }
-
-                    // F. Copy Button
-                    const copyBtn = document.createElement('button');
-                    copyBtn.className = 'text-xs text-gray-400 hover:text-white mt-2 block ml-auto';
-                    copyBtn.textContent = 'Copy';
-                    copyBtn.onclick = () => {
-                        navigator.clipboard.writeText(text);
-                        copyBtn.textContent = 'Copied!';
-                        setTimeout(() => copyBtn.textContent = 'Copy', 1500);
-                    };
-                    bubble.appendChild(copyBtn);
-                    
-                    wrapper.appendChild(bubble);
+                    // Start the typing loop
+                    typeWriter();
                 } 
                 
-                // --- LOGIC FOR USER MESSAGES (Edit & Copy) ---
+                // --- LOGIC FOR USER MESSAGES (No Streaming) ---
                 else {
                     bubble.textContent = text;
                     const actionsDiv = document.createElement('div');
@@ -1590,10 +1599,9 @@ The table must be the last element of the response before the suggestions block.
                     actionsDiv.appendChild(copyBtnUser);
                     wrapper.appendChild(actionsDiv);
                     wrapper.appendChild(bubble);
+                    chatArea.appendChild(wrapper);
+                    chatArea.scrollTop = chatArea.scrollHeight;
                 }
-
-                chatArea.appendChild(wrapper);
-                chatArea.scrollTop = chatArea.scrollHeight;
             }
 
             // Clear Chat
