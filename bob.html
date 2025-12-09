@@ -222,7 +222,7 @@
                     </g>
                 </svg>
             </div>
-            <h1 class="font-bold text-lg text-white tracking-wide">Bob Assistant</h1>
+            <h1 class="font-bold text-lg text-white tracking-wide">Duvallo</h1>
         </div>
 
         <!-- PROJECT CONTROLS (Always Visible) -->
@@ -343,7 +343,7 @@
                     </svg>
                 </button>
             </div>
-            <p class="text-center text-xs text-gray-500 mt-2">Bob can make mistakes. Verify important information.</p>
+            <p class="text-center text-xs text-gray-500 mt-2">Duvallo can make mistakes. Verify important information.</p>
         </div>
     </main>
 
@@ -442,13 +442,13 @@
 
             // Load Project List from LocalStorage
             function getProjects() {
-                return JSON.parse(localStorage.getItem('bob_projects_index') || '[]');
+                return JSON.parse(localStorage.getItem('duvallo_projects_index') || '[]');
             }
 
             // Save Chat to Current Project
             function saveCurrentProjectChat() {
                 if (!currentProjectId) return;
-                localStorage.setItem(`bob_project_${currentProjectId}_chat`, JSON.stringify(chatHistory));
+                localStorage.setItem(`duvallo_project_${currentProjectId}_chat`, JSON.stringify(chatHistory));
             }
 
             // Switch to a specific project
@@ -472,7 +472,7 @@
                 chatArea.innerHTML = ''; // Clear screen
                 chatHistory.length = 0; // Clear memory array
                 
-                const savedChat = JSON.parse(localStorage.getItem(`bob_project_${id}_chat`) || '[]');
+                const savedChat = JSON.parse(localStorage.getItem(`duvallo_project_${id}_chat`) || '[]');
                 
                 if (savedChat.length > 0) {
                     savedChat.forEach(msg => {
@@ -500,7 +500,7 @@
                 const id = Date.now().toString();
                 const projects = getProjects();
                 projects.push({ id, name, date: new Date().toISOString() });
-                localStorage.setItem('bob_projects_index', JSON.stringify(projects));
+                localStorage.setItem('duvallo_projects_index', JSON.stringify(projects));
                 
                 activateProject(id, name);
             };
@@ -538,7 +538,7 @@
                     
                     if (confirmDelete) {
                         // 1. Remove the chat history data
-                        localStorage.removeItem(`bob_project_${projectToDelete.id}_chat`);
+                        localStorage.removeItem(`duvallo_project_${projectToDelete.id}_chat`);
                         
                         // 2. Remove from the index array
                         const updatedProjects = projects.filter(p => p.id !== projectToDelete.id);
@@ -1303,7 +1303,7 @@ The table must be the last element of the response before the suggestions block.
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             systemInstruction: { 
-                                parts: [{ text: `You are Bob, a professional consulting assistant. 
+                                parts: [{ text: `You are Duvallo, a professional consulting engine. 
                                 
                                 RULES FOR CITATIONS:
                                 1. Use the Google Search Tool for facts.
@@ -1342,7 +1342,7 @@ The table must be the last element of the response before the suggestions block.
                             chatHistory.push({ role: "model", parts: [{ text: text }] });
                             createMessageBubble(text, "model");
                         } else {
-                            createMessageBubble("⚠️ Bob returned an empty response. Try asking a specific question.", "model");
+                            createMessageBubble("⚠️ Duvallo returned an empty response. Try asking a specific question.", "model");
                         }
                     }
                 } catch (error) {
@@ -1684,7 +1684,7 @@ The table must be the last element of the response before the suggestions block.
                     const result = await response.json();
                     const reportContent = result?.candidates?.[0]?.content?.parts?.[0]?.text;
 
-                    if (!reportContent) throw new Error("No analysis returned from Bob.");
+                    if (!reportContent) throw new Error("No analysis returned from Duvallo.");
 
                     // 4. Create Hidden Container for PDF
                     const reportContainer = document.createElement('div');
@@ -1711,7 +1711,7 @@ The table must be the last element of the response before the suggestions block.
                             ${cleanContent}
                         </div>
                         <div style="margin-top: 50px; border-top: 1px solid #e5e7eb; padding-top: 20px; text-align: center; font-size: 10px; color: #9ca3af;">
-                            Generated by Bob the Consulting Assistant
+                            Generated by Duvallo the Consulting Assistant
                         </div>
                     `;
 
