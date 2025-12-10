@@ -307,7 +307,7 @@
 
         <!-- Input Area (Fixed Bottom) -->
         <div class="p-6 bg-gray-900 z-10">
-            <!-- Unified Input Capsule (Gemini Style) -->
+            <!-- Unified Input Capsule -->
             <div class="max-w-4xl mx-auto relative flex items-end gap-2 bg-[#2f2f2f] p-2 rounded-[2rem] border border-gray-700 shadow-xl focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500 transition-all">
                 
                 <!-- Hidden File Input -->
@@ -320,21 +320,28 @@
                     </svg>
                 </button>
 
+                <!-- "Brief" Mode Button -->
+                <button id="modeBriefBtn" class="mb-2 px-3 py-1.5 text-xs font-bold rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-700 transition-all border border-transparent">
+                    Brief
+                </button>
+
                 <!-- Middle Column: File Preview + Text Input -->
                 <div class="flex-1 flex flex-col justify-end min-w-0">
-                    
                     <!-- File Preview Card (Hidden by default) -->
-                    <div id="filePreviewArea" class="hidden mb-2 px-1">
-                        <!-- Javascript will inject the card here -->
-                    </div>
+                    <div id="filePreviewArea" class="hidden mb-2 px-1"></div>
 
                     <!-- Text Input -->
                     <textarea id="userInput" 
                         placeholder="Ask a question..." 
                         rows="1" 
-                        class="w-full bg-transparent text-gray-100 placeholder-gray-500 border-none focus:ring-0 resize-none overflow-y-hidden py-3 text-base leading-relaxed max-h-32"
+                        class="w-full bg-transparent text-gray-100 placeholder-gray-500 border-none focus:ring-0 resize-none overflow-y-hidden py-3 text-base leading-relaxed max-h-32 text-center"
                         style="min-height: 48px;"></textarea>
                 </div>
+
+                <!-- "Deep" Mode Button -->
+                <button id="modeDeepBtn" class="mb-2 px-3 py-1.5 text-xs font-bold rounded-lg text-emerald-400 bg-emerald-900/30 border border-emerald-500/50 transition-all shadow-[0_0_10px_rgba(16,185,129,0.2)]">
+                    Deep
+                </button>
 
                 <!-- Send Button (Right) -->
                 <button id="sendButton" class="p-3 bg-emerald-600 text-white rounded-full hover:bg-emerald-500 transition-transform transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg flex-shrink-0 mb-0.5">
@@ -430,6 +437,11 @@
             let attachedFileContent = null;
             let attachedFileName = null;
 
+            // SEMANTIC RESIZE STATE
+            let responseDepth = 'deep'; // Default mode
+            const modeBriefBtn = document.getElementById('modeBriefBtn');
+            const modeDeepBtn = document.getElementById('modeDeepBtn');
+            
             // ============================================
             // 0. PROJECT MANAGEMENT SYSTEM
             // ============================================
@@ -1247,6 +1259,24 @@ The table must be the last element of the response before the suggestions block.
                 }
             });
 
+            // --- SEMANTIC RESIZE LOGIC ---
+            function updateModeUI() {
+                if (responseDepth === 'brief') {
+                    // Highlight Brief
+                    modeBriefBtn.className = "mb-2 px-3 py-1.5 text-xs font-bold rounded-lg text-emerald-400 bg-emerald-900/30 border border-emerald-500/50 transition-all shadow-[0_0_10px_rgba(16,185,129,0.2)]";
+                    // Dim Deep
+                    modeDeepBtn.className = "mb-2 px-3 py-1.5 text-xs font-bold rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-700 transition-all border border-transparent";
+                } else {
+                    // Highlight Deep
+                    modeDeepBtn.className = "mb-2 px-3 py-1.5 text-xs font-bold rounded-lg text-emerald-400 bg-emerald-900/30 border border-emerald-500/50 transition-all shadow-[0_0_10px_rgba(16,185,129,0.2)]";
+                    // Dim Brief
+                    modeBriefBtn.className = "mb-2 px-3 py-1.5 text-xs font-bold rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-700 transition-all border border-transparent";
+                }
+            }
+
+            modeBriefBtn.onclick = () => { responseDepth = 'brief'; updateModeUI(); };
+            modeDeepBtn.onclick = () => { responseDepth = 'deep'; updateModeUI(); };
+            
             // SEND MESSAGE
             async function sendMessage() {
                 let prompt = userInput.value.trim();
