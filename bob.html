@@ -254,19 +254,34 @@
             resize: none; 
             max-height: 150px;
         }
-    /* === CITATION STYLES === */
+    /* === CITATION STYLES (Fixed Visibility) === */
         .citation-link {
-            display: inline-block;
+            display: inline-flex; /* Better for icons */
+            align-items: center;
+            justify-content: center;
             vertical-align: middle;
-            margin-left: 2px;
-            background-color: #374151;
+            margin-left: 4px;
+            background-color: #374151; /* Dark Gray Background */
+            border: 1px solid #4b5563; /* Slight border for contrast */
             border-radius: 50%;
-            padding: 2px;
+            width: 20px;
+            height: 20px;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: all 0.2s;
         }
-        .citation-link:hover { background-color: #4b5563; }
-        .citation-link svg { width: 14px; height: 14px; color: #9ca3af; }
+        .citation-link:hover { 
+            background-color: #10b981; /* Emerald Green on Hover */
+            border-color: #10b981;
+            color: white;
+        }
+        .citation-link svg { 
+            width: 12px; 
+            height: 12px; 
+            color: #d1d5db; /* Light Gray Icon */
+        }
+        .citation-link:hover svg {
+            color: white;
+        }
 
         .sources-section {
             margin-top: 1rem;
@@ -534,7 +549,7 @@
                     <textarea id="userInput" 
                         placeholder="Ask a question..." 
                         rows="1" 
-                        class="w-full bg-transparent text-gray-100 placeholder-gray-500 border-none focus:ring-0 resize-none overflow-y-hidden py-3 text-base leading-relaxed max-h-32 text-center"
+                        class="w-full bg-transparent text-gray-100 placeholder-gray-500 border-none focus:ring-0 resize-none overflow-y-hidden py-3 text-base leading-relaxed max-h-32 text-left"
                         style="min-height: 48px;"></textarea>
                 </div>
 
@@ -821,14 +836,13 @@
                 2. **The "5 Whys" Probe:** Ask 3-5 sharp, probing questions to uncover the root cause.
                 3. **Data Request:** What specific data points (revenue, churn, traffic) do you need to confirm this?`,
 
-                'Industry Trends Snapshot': `Act as a Market Researcher. Perform a real-time "Industry Snapshot" analysis.
+                'Industry Trends Snapshot': `Act as a Market Researcher. I need a real-time "Industry Snapshot" analysis.
                 
-                **TARGET INDUSTRY:** [INSERT INDUSTRY HERE - e.g., EV Cars, Coffee, SaaS]
-                
-                **INSTRUCTIONS:**
-                1. Use Google Search to find data from the last 12 months.
-                2. Focus on: Emerging Tech, Regulatory Shifts, and Consumer Behavior.
-                3. **MANDATORY:** Cite every fact with [Source Name](URL).
+                **INSTRUCTION:**
+                1. If I have NOT specified an industry above, STOP and ask me: "Which industry would you like me to analyze?"
+                2. If I HAVE specified an industry (e.g., "[EV Cars]"), proceed immediately.
+                3. Use Google Search to find data from the last 12 months.
+                4. **MANDATORY:** Cite every fact with [Source Name](URL).
 
                 **OUTPUT FORMAT:**
                 1. **Macro-Trend:** (The biggest shift happening now)
@@ -836,7 +850,7 @@
                 2. **Micro-Trend:** (Niche but growing)
                    * Data point with citation.
                 3. **Disruption Alert:** (What is killing the old way?)
-                   * Evidence.`,
+                   * Evidence with citation.`,
               
                 'Initial Project Charter Draft': `Act as a Project Manager. Draft a "Project Charter" to align stakeholders.
                 
@@ -1424,8 +1438,11 @@
                             **RULES FOR SUGGESTIONS:**
                             Append a hidden suggestion block at the end: ---SUGGESTIONS---Action 1|Action 2
                             
-                            **RULES FOR SOURCES:**
-                            Cite sources inline: [Source Name](URL).
+                            **RULES FOR SOURCES (CRITICAL):**
+                            1. You MUST search for external data.
+                            2. You MUST cite sources using this EXACT format: [Source Name](URL)
+                            3. DO NOT use footnotes like [1] or [2]. 
+                            4. Example: "The market grew by 5% [Bloomberg](https://bloomberg.com)."
                             
                             **RULES FOR CHARTS:**
                             If asked to visualize, output JSON in <chart> tags following Chart.js format.` }]
