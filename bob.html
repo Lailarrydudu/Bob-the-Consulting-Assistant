@@ -723,9 +723,8 @@
                         // 1. Restore to memory
                         chatHistory.push(msg); 
                         
-                        // 2. Restore to UI 
-                        // We use the main bubble function so citations, charts, and tables render correctly!
-                        createMessageBubble(msg.parts[0].text, msg.role);
+                        // 2. Restore to UI (NO ANIMATION)
+                        createMessageBubble(msg.parts[0].text, msg.role, false);
                     });
                     
                     // Scroll to bottom
@@ -800,7 +799,7 @@
             };
 
             // ============================================
-            // 1. PROMPT MAP (STRUCTURED & CITATION ENFORCED)
+            // 1. PROMPT MAP (OPTIMIZED & CONTEXT-AWARE)
             // ============================================
             const PROMPT_MAP = {
                 
@@ -808,504 +807,253 @@
                 // PHASE 1: INITIAL SETUP
                 // ========================
                 
-                'Guided Diagnostic (Interviewer Mode)': `Act as a Senior Partner Consultant conducting a root-cause diagnostic interview. I have a business problem: [input BRIEF PROBLEM DESCRIPTION].
+                'Guided Diagnostic (Interviewer Mode)': `Act as a Senior Partner Consultant. I need you to diagnose a business problem I am facing.
+                
+                **CONTEXT:** [DESCRIBE YOUR SITUATION HERE]
+                *(If I have not provided context above, ask me clarifying questions first.)*
 
-Do NOT provide a solution yet. Instead, generate a structured interview protocol.
+                **YOUR TASK:**
+                Do NOT provide a solution yet. Instead, conduct a "Root Cause Interview."
+                
+                **OUTPUT FORMAT:**
+                # Diagnostic Protocol
+                1. **Hypothesis:** Based on what I said, what is the likely core issue?
+                2. **The "5 Whys" Probe:** Ask 3-5 sharp, probing questions to uncover the root cause.
+                3. **Data Request:** What specific data points (revenue, churn, traffic) do you need to confirm this?`,
 
-The output MUST follow this structure:
+                'Industry Trends Snapshot': `Act as a Market Researcher. Perform a real-time "Industry Snapshot" analysis.
+                
+                **TARGET INDUSTRY:** [INSERT INDUSTRY HERE - e.g., EV Cars, Coffee, SaaS]
+                
+                **INSTRUCTIONS:**
+                1. Use Google Search to find data from the last 12 months.
+                2. Focus on: Emerging Tech, Regulatory Shifts, and Consumer Behavior.
+                3. **MANDATORY:** Cite every fact with [Source Name](URL).
 
-# Guided Diagnostic: [Problem Name]
-## Objective
-[Concise statement of the diagnostic goal]
-
-## Diagnostic Questions
-1. **[Topic A - Root Cause]:** [Probing question using the "5 Whys" technique]
-2. **[Topic B - Constraints]:** [Question regarding budget, timeline, or resources]
-3. **[Topic C - Success Metrics]:** [Question defining what "good" looks like quantitatively]
-4. **[Topic D - Stakeholders]:** [Question about decision-makers and blockers]
-
-## Next Steps
-Please answer these questions so I can formulate a hypothesis.`,
-
-                'Industry Trends Snapshot': `Act as a Market Researcher. Use Google Search to find **real-time, quantified data** regarding [input SPECIFIED INDUSTRY]. 
-
-**CRITICAL REQUIREMENT:** Cite every data point using inline markdown: [Source Name](URL).
-
-The output MUST strictly follow this high-readability structure:
-
-# [Industry] Trends Snapshot
-[Concise executive summary of the current industry landscape]
-
-## Key Trend 1: [Trend Name]
-* [Specific data point/statistic with citation]
-* [Impact on business models]
-* [Future projection]
-
-## Key Trend 2: [Trend Name]
-* [Specific data point/statistic with citation]
-* [Impact on business models]
-* [Future projection]
-... (3 to 5 trends total)
-
-## Summary Table
-(Ensure there is an empty line before the table)
-
-| Trend | Primary Impact |
-|---|---|
-| [Trend 1 Name] | * [Impact bullet 1] <br> * [Impact bullet 2] |
-| [Trend 2 Name] | * [Impact bullet 1] <br> * [Impact bullet 2] |
-| [Trend 3 Name] | * [Impact bullet 1] <br> * [Impact bullet 2] |
-
-The table must be the last element of the response before the suggestions block.`,
+                **OUTPUT FORMAT:**
+                1. **Macro-Trend:** (The biggest shift happening now)
+                   * Data point with citation.
+                2. **Micro-Trend:** (Niche but growing)
+                   * Data point with citation.
+                3. **Disruption Alert:** (What is killing the old way?)
+                   * Evidence.`,
               
-                'Initial Project Charter Draft': `Act as a Project Manager. Generate a formal Project Charter for [input SPECIFIC PROJECT TYPE]. 
-
-The output MUST strictly follow this professional structure:
-
-# Project Charter: [Project Title]
-[Short executive summary of the project's strategic value]
-
-## Project Details
-(Ensure there is an empty line before the table)
-
-| Field | Value |
-|---|---|
-| Project Sponsor | [Recommended Title] |
-| Project Manager | [Recommended Title] |
-| Target Completion | [Estimated Quarter/Year] |
-
-## Scope Overview
-[1-2 paragraphs clearly defining what is included (In-Scope) and explicitly what is excluded (Out-of-Scope).]
-
-## Key Objectives
-* [SMART Objective 1]
-* [SMART Objective 2]
-* [SMART Objective 3]
-
-## Success Metrics (KPIs)
-* [Metric 1: Quantitative definition of success]
-* [Metric 2: Quantitative definition of success]
-* [Metric 3: Quantitative definition of success]
-
-## High-Level Timeline
-* Phase 1: Initiation and Planning ([Estimated Duration])
-* Phase 2: Execution and Development ([Estimated Duration])
-* Phase 3: Deployment and Stabilization ([Estimated Duration])
-
-The timeline must be the last element of the response before the suggestions block.`,
+                'Initial Project Charter Draft': `Act as a Project Manager. Draft a "Project Charter" to align stakeholders.
+                
+                **PROJECT GOAL:** [DESCRIBE PROJECT - e.g., Launching a new App]
+                
+                **OUTPUT FORMAT:**
+                1. **Problem Statement:** Why are we doing this? (The Pain)
+                2. **Project Objective:** What does "Done" look like? (The Gain)
+                3. **In-Scope vs. Out-of-Scope:** Define the boundaries clearly.
+                4. **Key Stakeholders:** Who needs to approve this?
+                5. **Success Metrics (KPIs):** List 3 quantifiable metrics.`,
               
-                'Problem Statement Draft': `Act as a Strategy Consultant. Draft a precise Problem Statement for [input SPECIFIC ISSUE]. 
-
-The output MUST strictly follow this structure:
-
-# Preliminary Problem Statement
-[A single, punchy sentence stating the core business issue.]
-
-## 1. Current State (The Symptom)
-[A concise paragraph describing the current measurable negative symptoms.]
-
-## 2. Desired State (The Goal)
-[A concise paragraph describing the measurable target outcome.]
-
-## 3. Impact of Solving (The Value)
-[A concise paragraph describing the financial or strategic value derived by the business upon successful resolution.]
-
-The "Impact of Solving" section must be the last element of the response before the suggestions block.`,
+                'Problem Statement Draft': `Act as a Strategy Consultant. Refine my messy thoughts into a precise "McKinsey-Style" Problem Statement.
+                
+                **MY ISSUE:** [DESCRIBE THE MESSY PROBLEM HERE]
+                
+                **OUTPUT FORMAT:**
+                1. **The Context:** (The situation before the problem)
+                2. **The Complication:** (What changed/broke?)
+                3. **The Key Question:** (The single question the strategy must answer)
+                4. **Impact of Inaction:** (Financial/Strategic cost of doing nothing)`,
               
                 // ========================
                 // PHASE 2: ANALYSIS
                 // ========================
 
-                'MECE Logic Check': `Act as a Logic Auditor. Perform a MECE (Mutually Exclusive, Collectively Exhaustive) audit on: [input PASTE ANALYSIS].
-
-The output MUST follow this structure:
-
-# MECE Logic Audit
-[Assessment: Is this breakdown logic tight or leaky?]
-
-## Logic Gaps (Missing Elements)
-* [Gap 1]
-* [Gap 2]
-
-## Overlaps (Redundancies)
-* [Overlap 1]
-
-## Proposed MECE Framework
-Reorganize the analysis into distinct, non-overlapping buckets:
-1. **[Bucket 1]**
-   * [Point A]
-2. **[Bucket 2]**
-   * [Point B]`,
-
-                'Market Analysis': `Act as a Market Analyst. Conduct a rigorous analysis for [input SPECIFIC MARKET / INDUSTRY]. 
-
-**CRITICAL REQUIREMENT:** Use Google Search for data (TAM/CAGR). Cite sources using [Source Name](URL).
-
-The output MUST strictly follow this structure:
-
-# [Analysis Title]
-[Executive summary of the market health and maturity]
-
-## Key Trends
-* [Trend 1: Data-backed trend with citation]
-* [Trend 2: Data-backed trend with citation]
-...
-
-## Competitive Landscape
-(Ensure there is an empty line before the table)
-
-| Competitor | Market Share/Focus | Key Strengths/Weaknesses |
-|---|---|---|
-| [Name 1] | [Focus] | * [Strength 1] <br> * [Weakness 1] |
-| [Name 2] | [Focus] | * [Strength 1] <br> * [Weakness 1] |
-
-## Future Outlook
-* [Projected Growth Rate (CAGR) with citation]
-* [Disruptive technologies or regulations]
-...
-
-The table must be the last element before the suggestions block.`,
-              
-                'SWOT Analysis': `Act as a Strategic Planner. Perform a SWOT analysis for [input SPECIFIC COMPANY / PROJECT]. 
-
-**CRITICAL REQUIREMENT:** Use Google Search for External factors. Cite sources using [Source Name](URL).
-
-The output MUST strictly follow this structure:
-
-# SWOT Analysis for [Company/Project]
-[A concise paragraph explaining the strategic position.]
-
-## Analysis Matrix
-(Ensure there is an empty line before the table)
-
-| Strengths (Internal) | Weaknesses (Internal) | Opportunities (External) | Threats (External) |
-|---|---|---|---|
-| * [Core Competency 1] | * [Internal Gap 1] | * [Market Trend 1 (Cited)] | * [Competitor Move 1 (Cited)] |
-| * [Core Competency 2] | * [Internal Gap 2] | * [Market Trend 2 (Cited)] | * [Regulation 1 (Cited)] |
-
-The table must be the last element of the response before the suggestions block.`,
-              
-                'Competitor Benchmarking': `Act as a Competitive Intelligence Analyst. Perform a detailed benchmarking analysis for [input COMPANY A] against [input COMPETITOR B] and [input COMPETITOR C]. 
-
-**CRITICAL REQUIREMENT:** Use Google Search for pricing/features. Cite sources using [Source Name](URL).
-
-The output MUST strictly follow this structure:
-
-# Competitor Benchmarking Report
-[A brief introduction defining the competitive scope.]
-
-## Benchmarking Table
-(Ensure there is an empty line before the table)
-
-| Competitor | Market Share | Product Features | Pricing Model | Sentiment |
-|---|---|---|---|---|
-| **[Competitor B]** | [Est. Share] | * [Feature 1] <br> * [Feature 2] | [Pricing] | [Rating] |
-| **[Competitor C]** | [Est. Share] | * [Feature 1] <br> * [Feature 2] | [Pricing] | [Rating] |
-
-The table must be the last element of the response before the suggestions block.`,
-              
-                '5 Forces Analysis': `Act as an Industry Analyst. Conduct a Porter's 5 Forces Analysis for [input SPECIFIC INDUSTRY]. 
-
-**CRITICAL REQUIREMENT:** Use Google Search for evidence. Cite sources using [Source Name](URL).
-
-The output MUST strictly follow this structure:
-
-# Porter's Five Forces Analysis: [Industry]
-[A concise paragraph summarizing the overall industry attractiveness.]
-
-## Industry Structure Summary
-(Ensure there is an empty line before the table)
-
-| Force | Threat Level | Key Drivers/Evidence |
-|---|---|---|
-| **Threat of New Entrants** | [High/Med/Low] | * [Barriers details (Cited)] |
-| **Bargaining Power of Buyers** | [High/Med/Low] | * [Buyer concentration] |
-| **Bargaining Power of Suppliers** | [High/Med/Low] | * [Supplier concentration] |
-| **Threat of Substitutes** | [High/Med/Low] | * [Price/performance trade-off] |
-| **Competitive Rivalry** | [High/Med/Low] | * [Industry growth rate] |
-
-The table must be the last element of the response before the suggestions block.`,
-              
-                'PESTLE Analysis': `Act as a Macro-Economic Analyst. Perform a PESTLE analysis for [input SPECIFIC COMPANY / INDUSTRY]. 
-
-**CRITICAL REQUIREMENT:** Use Google Search for Regulations/Economics. Cite sources using [Source Name](URL).
-
-The output MUST strictly follow this structure:
-
-# PESTLE Analysis for [Company/Industry]
-[A brief introduction explaining the most critical macro-factors.]
-
-The remaining analysis MUST be presented in a specific two-column table format:
-(Ensure there is an empty line before the table)
-
-| Factor | Key Findings |
-|---|---|
-| **Political** | * [Trade/Stability (Cited)] <br> * [Taxation] |
-| **Economic** | * [Inflation/Rates (Cited)] <br> * [Growth] |
-| **Social** | * [Demographics] <br> * [Lifestyle] |
-| **Technological** | * [Innovation] <br> * [Disruption] |
-| **Legal** | * [Employment law] <br> * [Regulations (Cited)] |
-| **Environmental** | * [Carbon footprint] <br> * [Sustainability] |
-
-The table must be the last element of the response before the suggestions block.`,
-
-                'Hofstede Analysis': `Act as a Cross-Cultural Consultant. Perform a Hofstede's Cultural Dimensions analysis for [input SPECIFIC COUNTRY/CULTURE] regarding [input BUSINESS SCENARIO]. 
+                'MECE Logic Check': `Act as a Logic Auditor. Review my analysis below for "MECE" (Mutually Exclusive, Collectively Exhaustive) failures.
                 
-**CRITICAL REQUIREMENT:** Use Google Search for actual scores. Cite sources using [Source Name](URL).
+                **INPUT TO AUDIT:** [PASTE YOUR ANALYSIS OR STRATEGY HERE]
+                
+                **YOUR TASK:**
+                1. Identify **Overlaps**: Are two points saying the same thing?
+                2. Identify **Gaps**: What angle did I completely miss?
+                3. **Restructure:** Rewrite my points into a perfectly MECE structure.`,
 
-The output MUST strictly follow this structure:
+                'Market Analysis': `Act as a Market Analyst. Conduct a rigorous "TAM/SAM/SOM" analysis.
+                
+                **MARKET:** [SPECIFY MARKET/GEOGRAPHY]
+                
+                **INSTRUCTIONS:**
+                Use Google Search to find concrete numbers. Cite sources.
+                
+                **OUTPUT FORMAT:**
+                1. **Total Addressable Market (TAM):** Global market size ($).
+                2. **Serviceable Available Market (SAM):** The segment we can actually reach.
+                3. **Serviceable Obtainable Market (SOM):** Realistic year-1 share.
+                4. **Growth Rate (CAGR):** Historic and projected growth.`,
+              
+                'SWOT Analysis': `Act as a Strategic Planner. Perform a SWOT Analysis.
+                
+                **SUBJECT:** [COMPANY/PRODUCT NAME]
+                
+                **INSTRUCTIONS:**
+                - **Strengths/Weaknesses:** Internal factors (Brand, Tech, Team).
+                - **Opportunities/Threats:** External factors (Macro-economy, Competitors).
+                - Use Google Search to validate External factors.
+                
+                **OUTPUT:**
+                Provide a structured list for each of the 4 quadrants. For "Threats" and "Opportunities," cite your external sources.`,
+              
+                'Competitor Benchmarking': `Act as a Competitive Intelligence Analyst. Compare my company against 2 competitors.
+                
+                **MY COMPANY:** [NAME]
+                **COMPETITOR A:** [NAME]
+                **COMPETITOR B:** [NAME]
+                
+                **COMPARISON CRITERIA:**
+                1. Pricing Strategy
+                2. Unique Value Proposition (UVP)
+                3. Customer Sentiment (Reviews)
+                
+                **OUTPUT:**
+                Produce a detailed comparison. Use Google Search to find their current pricing and recent news.`,
+              
+                '5 Forces Analysis': `Act as an Industry Analyst. Assess industry profitability using Porter's 5 Forces.
+                
+                **INDUSTRY:** [SPECIFY INDUSTRY]
+                
+                **OUTPUT FORMAT:**
+                1. **Supplier Power:** (High/Med/Low) - Why?
+                2. **Buyer Power:** (High/Med/Low) - Why?
+                3. **Competitive Rivalry:** (High/Med/Low) - Why?
+                4. **Threat of Substitutes:** (High/Med/Low) - Why?
+                5. **Threat of New Entrants:** (High/Med/Low) - Why?
+                
+                *Conclusion: Is this industry attractive for investment?*`,
+              
+                'PESTLE Analysis': `Act as a Macro-Economic Analyst. Scan the horizon using the PESTLE framework.
+                
+                **TOPIC:** [COMPANY OR INDUSTRY]
+                
+                **INSTRUCTIONS:**
+                Search for **recent** news (last 6 months) impacting these 6 areas:
+                1. **Political:** (Elections, Trade Wars)
+                2. **Economic:** (Inflation, Rates)
+                3. **Social:** (Gen-Z trends, Remote work)
+                4. **Technological:** (AI, Automation)
+                5. **Legal:** (Antitrust, GDPR)
+                6. **Environmental:** (Carbon tax, Sustainability)
+                
+                Cite sources for every claim.`,
 
-# Hofstede's Cultural Analysis: [Country]
-[A concise introductory paragraph.]
-
-## Cultural Dimensions Summary
-(Ensure there is an empty line before the table)
-
-| Dimension | Score/Rating | Business Implication |
-|---|---|---|
-| **Power Distance (PDI)** | [Score] | * [Implication 1] <br> * [Implication 2] |
-| **Individualism (IDV)** | [Score] | * [Implication 1] <br> * [Implication 2] |
-| **Masculinity (MAS)** | [Score] | * [Implication 1] <br> * [Implication 2] |
-| **Uncertainty Avoidance (UAI)** | [Score] | * [Implication 1] <br> * [Implication 2] |
-| **Long-Term Orientation (LTO)** | [Score] | * [Implication 1] <br> * [Implication 2] |
-| **Indulgence (IVR)** | [Score] | * [Implication 1] <br> * [Implication 2] |
-
-The table must be the last element of the response before the suggestions block.`,
+                'Hofstede Analysis': `Act as a Cross-Cultural Consultant. Analyze cultural friction points using Hofstede's Cultural Dimensions.
+                
+                **TARGET COUNTRY/CULTURE:** [INSERT COUNTRY]
+                
+                **OUTPUT:**
+                1. **Power Distance:** How do they view authority?
+                2. **Individualism vs. Collectivism:** Team or Solo?
+                3. **Uncertainty Avoidance:** Risk-taking or Safety-first?
+                4. **Strategic Advice:** How should I negotiate or market differently in this country based on these scores?`,
                 
                 // ========================
                 // PHASE 3: SOLUTION DESIGN
                 // ========================
 
-                "Devil's Advocate Review": `Act as a "Red Team" Lead. Stress-test my current strategy. Switch personas to a skeptical opponent.
+                "Devil's Advocate Review": `Act as a "Red Team" Attacker. I want you to brutally criticize my strategy to find weak spots.
                 
-The output MUST follow this structure:
+                **MY STRATEGY:** [PASTE STRATEGY HERE]
+                
+                **YOUR TASK:**
+                1. **The Pre-Mortem:** Imagine it is 1 year later and we failed. Tell me exactly *why* we failed.
+                2. **Blind Spots:** What biases (Confirmation Bias, Sunk Cost) am I showing?
+                3. **The "Competitor's Move":** If I do this, how will my biggest competitor destroy me?`,
 
-# Strategic Stress Test
-[Introductory critique - be direct]
-
-## Critical Flaws & Assumptions
-(Ensure there is an empty line before the table)
-
-| Assumption | Probability | Impact |
-|---|---|---|
-| [Assumption 1] | [High/Med/Low] | [High/Med/Low] |
-| [Assumption 2] | [High/Med/Low] | [High/Med/Low] |
-
-## The "Pre-Mortem" (Worst Case)
-* [Detailed scenario description if the plan fails strictly]
-
-## Cognitive Bias Check
-* [Identify biases: Sunk Cost, Confirmation Bias, etc.]`,
-
-                'Business Plan Outline': `Act as a Business Strategy Consultant. Draft a comprehensive business plan outline for a [input YOUR BUSINESS IDEA].
-
-The output MUST strictly follow this structure:
-
-# Business Plan Outline: [Your Business Idea]
-[A concise introductory summary.]
-
-## Executive Summary
-* [Value Proposition]
-* [Target Market]
-* [Revenue Model]
-
-## Company Description
-* [Mission]
-* [Legal Structure]
-* [Team]
-
-## Market Analysis
-* [Trends]
-* [Competitive Advantage]
-* [Market Size]
-
-## Organization & Management
-* [Structure]
-* [Roles]
-
-## Service/Product Line
-* [Description]
-* [Development Status]
-* [IP]
-
-## Marketing & Sales
-* [Channels]
-* [Strategy]
-
-## Financial Projections
-* [Startup Costs]
-* [Revenue Forecast]
-* [Funding Request]
-
-## Appendix
-* [Supporting Documents]
-
-The Appendix section must be the last element of the response before the suggestions block.`,
+                'Business Plan Outline': `Act as a Venture Capitalist. Help me structure a Business Plan that gets funded.
+                
+                **BUSINESS IDEA:** [DESCRIBE IDEA]
+                
+                **OUTPUT FORMAT:**
+                1. **The Hook:** 1-sentence value prop.
+                2. **The Problem:** validated user pain.
+                3. **The Solution:** Product description.
+                4. **Go-to-Market:** How we get customers.
+                5. **Business Model:** How we make money.
+                6. **The Ask:** What resources/money do we need?`,
               
-                'Market Entry Strategy': `Act as a Global Expansion Consultant. Develop a market entry strategy for [input PRODUCT / SERVICE] entering [input SPECIFIC COUNTRY / MARKET]. 
+                'Market Entry Strategy': `Act as a Global Expansion Consultant. I want to enter a new market.
+                
+                **PRODUCT:** [PRODUCT NAME]
+                **NEW MARKET:** [COUNTRY/REGION]
+                
+                **OUTPUT:**
+                1. **Mode of Entry:** (Export, Licensing, Joint Venture, or Wholly Owned?) - Recommend one.
+                2. **Localization:** What needs to change about the product?
+                3. **Regulatory Hurdles:** What laws must we watch out for?
+                4. **First 90 Days:** The immediate launch roadmap.`,
 
-**CRITICAL REQUIREMENT:** Use Google Search for local data. Cite sources using [Source Name](URL).
+                'Go-to-market Strategy': `Act as a Chief Marketing Officer (CMO). Build a GTM Launch Plan.
+                
+                **PRODUCT:** [PRODUCT NAME]
+                **TARGET AUDIENCE:** [WHO IS IT FOR?]
+                
+                **OUTPUT:**
+                1. **Ideal Customer Profile (ICP):** Who specifically are we hunting?
+                2. **Messaging Pillar:** What is the 1 main thing we say?
+                3. **Channel Strategy:** Where do they live? (LinkedIn, TikTok, Email?)
+                4. **Launch Sequence:** Pre-launch -> Launch Day -> Post-launch retention.`,
 
-The output MUST strictly follow this structure:
-
-# Market Entry Strategy: [Product] in [Market]
-[A brief paragraph summarizing the recommended approach.]
-
-## Target Audience
-* [Demographics]
-* [Local Needs]
-
-## Distribution Strategy
-* [Channels]
-* [Logistics]
-
-## Pricing Model
-* [Strategy]
-* [Currency Considerations]
-
-## Market Entry Options Summary
-(Ensure there is an empty line before the table)
-
-| Method | Key Advantages | Key Disadvantages |
-|---|---|---|
-| [Method 1] | * [Advantage 1] <br> * [Advantage 2] | * [Disadvantage 1] <br> * [Disadvantage 2] |
-| [Method 2] | * [Advantage 1] <br> * [Advantage 2] | * [Disadvantage 1] <br> * [Disadvantage 2] |
-| [Method 3] | * [Advantage 1] <br> * [Advantage 2] | * [Disadvantage 1] <br> * [Disadvantage 2] |
-
-The table must be the last element of the response before the suggestions block.`,
-
-                'Go-to-market Strategy': `Act as a CMO. Develop a GTM Strategy for [input PRODUCT / SERVICE] targeting [input SPECIFIC AUDIENCE]. 
-
-The output MUST strictly follow this structure:
-
-# Go-to-Market Strategy: [Product]
-[A brief introductory paragraph.]
-
-## Target Customer Profile (ICP)
-* [Demographic/Firmographic]
-* [Pain Points]
-* [UVP]
-
-## Channel and Tactics Plan
-(Ensure there is an empty line before the table)
-
-| Channel | Tactics | Timeline |
-|---|---|---|
-| **Marketing** | * [Tactic 1] <br> * [Tactic 2] | [Timeline] |
-| **Sales** | * [Tactic 1] <br> * [Tactic 2] | [Timeline] |
-| **Retention** | * [Tactic 1] <br> * [Tactic 2] | [Timeline] |
-
-## Pricing & Packaging
-* [Model]
-* [Offers]
-
-## Launch Metrics (KPIs)
-* [Metric 1]
-* [Metric 2]
-* [Metric 3]
-
-The "Launch Metrics" section must be the last element of the response before the suggestions block.`,
-
-                'Ansoff Matrix': `Act as a Growth Strategist. Apply the Ansoff Matrix to recommend growth strategies for [input COMPANY NAME / PRODUCT IDEA ]. 
-
-The output MUST strictly follow this structure:
-
-# Ansoff Matrix Growth Recommendations
-[A concise introduction.]
-
-## Growth Strategy Matrix
-(Ensure there is an empty line before the table)
-
-| Strategy | Product/Market Status | Key Action/Risk |
-|---|---|---|
-| **Market Penetration** | Existing Product / Existing Market | * [Action 1] <br> * [Action 2] |
-| **Product Development** | New Product / Existing Market | * [Action 1] <br> * [Action 2] |
-| **Market Development** | Existing Product / New Market | * [Action 1] <br> * [Action 2] |
-| **Diversification** | New Product / New Market | * [Action 1] <br> * [Action 2] |
-
-The table must be the last element of the response before the suggestions block.`,
+                'Ansoff Matrix': `Act as a Growth Strategist. Use the Ansoff Matrix to brainstorm growth options.
+                
+                **COMPANY:** [NAME]
+                **CURRENT PRODUCT:** [PRODUCT]
+                
+                **OUTPUT:**
+                1. **Market Penetration:** (Sell more to existing customers)
+                2. **Market Development:** (Sell existing product to new markets)
+                3. **Product Development:** (Sell new product to existing customers)
+                4. **Diversification:** (New product, New market - High Risk)
+                
+                *Recommendation: Which quadrant offers the highest ROI right now?*`,
               
-                'Risk Analysis': `Act as a Risk Manager. Conduct a risk analysis for [input SPECIFIC BUSINESS VENTURE]. 
-
-The output MUST strictly follow this structure:
-
-# High-Level Risk Analysis: [Venture Name]
-[A brief introductory statement.]
-
-## Risk Mitigation Table
-(Ensure there is an empty line before the table)
-
-| Risk Area | Likelihood | Impact | Mitigation Strategy |
-|---|---|---|---|
-| **[Risk 1]** | [H/M/L] | [H/M/L] | * [Strategy 1] <br> * [Strategy 2] |
-| **[Risk 2]** | [H/M/L] | [H/M/L] | * [Strategy 1] <br> * [Strategy 2] |
-| **[Risk 3]** | [H/M/L] | [H/M/L] | * [Strategy 1] <br> * [Strategy 2] |
-
-The table must be the last element of the response before the suggestions block.`,
+                'Risk Analysis': `Act as a Risk Manager. Perform a Risk Assessment.
+                
+                **PROJECT/DECISION:** [DESCRIBE PROJECT]
+                
+                **OUTPUT FORMAT:**
+                1. **Operational Risks:** (Process failures)
+                2. **Financial Risks:** (Budget overrun, ROI failure)
+                3. **Reputational Risks:** (PR backlash)
+                4. **Mitigation Plan:** For each high risk, provide a specific prevention tactic.`,
               
                 // ========================
                 // PHASE 4: EXECUTION
                 // ========================
 
-                'Monday Morning Protocol': `Act as an Implementation Manager. Convert our strategy into a concrete Action Plan.
+                'Monday Morning Protocol': `Act as an Implementation Manager. Turn our strategy into a "Monday Morning" action list.
+                
+                **STRATEGY:** [PASTE STRATEGY/CONTEXT]
+                
+                **OUTPUT:**
+                Create a table with:
+                1. **Who** (Role/Owner)
+                2. **What** (Specific Task - Start with a Verb)
+                3. **When** (Deadline: This Week / Next Week)
+                4. **Definition of Done** (How do we know it's finished?)`,
 
-The output MUST strictly follow this structure:
-
-# Monday Morning Action Protocol
-[Statement of immediate intent]
-
-## Immediate Actions (Next 7 Days)
-(Ensure there is an empty line before the table)
-
-| Role/Owner | Specific Task | Deadline | Definition of Done |
-|---|---|---|---|
-| [Role 1] | [Task] | [Date] | [Outcome] |
-| [Role 2] | [Task] | [Date] | [Outcome] |
-
-## 30-60-90 Day Outlook
-* **30 Days:** [Milestone]
-* **60 Days:** [Milestone]
-* **90 Days:** [Milestone]`,
-
-                'KPI Dashboard Mockup': `Act as a Data Scientist. Design a **KPI Dashboard Mockup** structure for [input SPECIFIC BUSINESS GOAL]. 
-
-**REQUIREMENTS:**
-1. Distinguish between "Leading" and "Lagging" indicators.
-
-The output MUST strictly follow this structure:
-
-# Key Performance Indicator (KPI) Dashboard Mockup
-[A concise statement.]
-
-## Defined Metrics
-(Ensure there is an empty line before the table)
-
-| KPI Name | Type | Formula | Target | Frequency |
-|---|---|---|---|---|
-| **[KPI 1]** | [Type] | [Formula] | [Target] | [Monthly] |
-| **[KPI 2]** | [Type] | [Formula] | [Target] | [Weekly] |
-| **[KPI 3]** | [Type] | [Formula] | [Target] | [Daily] |
-
-The table must be the last element of the response before the suggestions block.`,
+                'KPI Dashboard Mockup': `Act as a Data Scientist. Design a KPI Dashboard to track success.
+                
+                **GOAL:** [DESCRIBE BUSINESS GOAL]
+                
+                **OUTPUT:**
+                1. **North Star Metric:** The one number that matters most.
+                2. **Leading Indicators:** (Predictive metrics - e.g., Site Traffic)
+                3. **Lagging Indicators:** (Outcome metrics - e.g., Revenue)
+                4. **Frequency:** How often should we check each?`,
               
-                'Implementation Plan Outline': `Act as a Program Manager. Generate an **Implementation Plan Outline** for [input PROJECT / STRATEGY]. 
-
-The output MUST strictly follow this structure:
-
-# High-Level Implementation Plan: [Project Title]
-[A brief introductory paragraph.]
-
-## Implementation Phases
-(Ensure there is an empty line before the table)
-
-| Phase | Key Milestones | Resources | Duration |
-|---|---|---|---|
-| **Phase 1: Setup** | * [Milestone 1] <br> * [Milestone 2] | [Team/Budget] | [Duration] |
-| **Phase 2: Development** | * [Milestone 1] <br> * [Milestone 2] | [Team/Budget] | [Duration] |
-| **Phase 3: Deployment** | * [Milestone 1] <br> * [Milestone 2] | [Team/Budget] | [Duration] |
-| **Phase 4: Stabilization** | * [Milestone 1] <br> * [Milestone 2] | [Team/Budget] | [Duration] |
-
-The table must be the last element of the response before the suggestions block.`,
+                'Implementation Plan Outline': `Act as a Program Manager. Create a High-Level Implementation Roadmap.
+                
+                **PROJECT:** [NAME]
+                
+                **OUTPUT:**
+                Break the project into 3 Phases (Setup, Build, Launch).
+                For each phase, list:
+                * Key Milestones
+                * Required Resources (People/Tools)
+                * Potential Bottlenecks`
             };
 
             // ============================================
@@ -1599,13 +1347,13 @@ The table must be the last element of the response before the suggestions block.
 
                // 3. Update UI Bubbles
                 if (hasFile) {
-                    createMessageBubble(`📂 **Uploaded:** ${attachedFileName}`, 'user');
+                    createMessageBubble(`📂 **Uploaded:** ${attachedFileName}`, 'user', true);
                     clearAttachment(); 
                 }
 
                 const userVisibleText = userInput.value.trim();
                 if (userVisibleText) {
-                    createMessageBubble(userVisibleText, 'user');
+                    createMessageBubble(userVisibleText, 'user', true);
                 }
                 
                 chatHistory.push({ role: "user", parts: [{ text: fullPayloadPrompt }] });
@@ -1698,7 +1446,7 @@ The table must be the last element of the response before the suggestions block.
                         const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
                         if (text) {
                             chatHistory.push({ role: "model", parts: [{ text: text }] });
-                            createMessageBubble(text, "model");
+                    createMessageBubble(text, "model", true);
                         } else {
                             createMessageBubble("⚠️ Duvallo returned an empty response.", "model");
                         }
@@ -1788,8 +1536,8 @@ The table must be the last element of the response before the suggestions block.
                 `;
             }
 
-            // 3. Render Message Bubble (With Typewriter, Charts, and Action Chips)
-            function createMessageBubble(text, sender) {
+            // 3. Render Message Bubble (Modified for Instant Loading)
+            function createMessageBubble(text, sender, animate = true) {
                 const wrapper = document.createElement('div');
                 wrapper.classList.add('flex', 'message-wrapper', 'mb-4', sender === 'user' ? 'justify-end' : 'justify-start');
                 
@@ -1806,25 +1554,21 @@ The table must be the last element of the response before the suggestions block.
                     let chartConfig = null;
                     let suggestionsList = [];
                     
-                    // 1. EXTRACT SUGGESTIONS (The Iceberg)
-                    // We look for the ---SUGGESTIONS--- block
+                    // 1. EXTRACT SUGGESTIONS
                     const suggestionRegex = /---SUGGESTIONS---([\s\S]*)$/;
                     const suggestionMatch = text.match(suggestionRegex);
-                    
                     if (suggestionMatch) {
                         const rawSuggestions = suggestionMatch[1];
                         suggestionsList = rawSuggestions.split('|').map(s => s.trim()).filter(s => s);
-                        // Remove the raw block from text so it doesn't get typed out
                         text = text.replace(suggestionRegex, '').trim(); 
                     }
 
-                    // 2. EXTRACT CHART
+                    // 2. EXTRACT CHART (Robust)
                     const tagRegex = /(?:<<<CHART>>>|<chart>|<<>>)\s*([\s\S]*?)\s*(?:<<<END_CHART>>>|<\/chart>|<<>>)/i;
                     const codeRegex = /```json\s*({[\s\S]*?"type"[\s\S]*?"data"[\s\S]*?})\s*```/i;
                     const rawRegex = /({[\s\n]*"type"[\s\n]*:[\s\n]*"(?:bar|line|pie|doughnut|radar|polarArea)"[\s\S]*?"data"[\s\S]*?})/i;
 
                     let match = text.match(tagRegex) || text.match(codeRegex) || text.match(rawRegex);
-                    
                     if (match) {
                         try {
                             let fullBlock = match[0];
@@ -1851,42 +1595,25 @@ The table must be the last element of the response before the suggestions block.
                     wrapper.appendChild(bubble);
                     chatArea.appendChild(wrapper);
 
-                    // 5. TYPEWRITER EFFECT
-                    let i = 0;
-                    const speed = 5; 
-                    const chunkSize = 3; 
-                    
-                    function typeWriter() {
-                        if (i < textWithTokens.length) {
-                            i += chunkSize;
-                            if (i > textWithTokens.length) i = textWithTokens.length;
-                            
-                            let currentRaw = textWithTokens.substring(0, i);
-                            let renderedHtml = marked.parse(currentRaw);
+                    // --- HELPER TO RENDER FINAL CONTENT ---
+                    const renderFinalContent = () => {
+                        // A. Text
+                        let renderedHtml = marked.parse(textWithTokens);
+                        sources.forEach((source, index) => {
+                            const iconHtml = `<a href="${source.url}" target="_blank" rel="noopener noreferrer" class="citation-link" title="Source: ${source.name}"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg></a>`;
+                            const token = `%%CIT_${index}%%`;
+                            renderedHtml = renderedHtml.split(token).join(iconHtml);
+                        });
+                        contentDiv.innerHTML = renderedHtml;
 
-                            sources.forEach((source, index) => {
-                                const iconHtml = `<a href="${source.url}" target="_blank" rel="noopener noreferrer" class="citation-link" title="Source: ${source.name}"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg></a>`;
-                                const token = `%%CIT_${index}%%`;
-                                renderedHtml = renderedHtml.split(token).join(iconHtml);
-                            });
-
-                            contentDiv.innerHTML = renderedHtml;
-                            chatArea.scrollTop = chatArea.scrollHeight; 
-                            requestAnimationFrame(typeWriter); 
-                        } else {
-                            finalizeBubble();
-                        }
-                    }
-
-                    function finalizeBubble() {
-                        // A. Render Chart
+                        // B. Chart
                         if (chartConfig) {
                             const chartContainer = document.createElement('div');
                             chartContainer.style.marginTop = '1rem';
                             chartContainer.style.backgroundColor = '#1f2937';
                             chartContainer.style.padding = '10px';
                             chartContainer.style.borderRadius = '8px';
-                            chartContainer.classList.add('animate-fade-in');
+                            if(animate) chartContainer.classList.add('animate-fade-in');
                             const canvas = document.createElement('canvas');
                             chartContainer.appendChild(canvas);
                             bubble.appendChild(chartContainer);
@@ -1904,61 +1631,73 @@ The table must be the last element of the response before the suggestions block.
                             });
                         }
 
-                        // B. Render Suggestion Chips (The Iceberg)
+                        // C. Suggestions
                         if (suggestionsList.length > 0) {
                             const suggContainer = document.createElement('div');
                             suggContainer.className = 'suggestion-container';
-                            
                             const label = document.createElement('span');
                             label.className = 'suggestion-label';
                             label.textContent = "Recommended Next Steps";
                             suggContainer.appendChild(label);
-
                             suggestionsList.forEach(sugg => {
                                 const btn = document.createElement('button');
                                 btn.className = 'suggestion-chip';
                                 btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3 h-3"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /></svg> ${sugg}`;
-                                
-                                btn.onclick = () => {
-                                    userInput.value = sugg;
-                                    autoResizeTextarea(userInput);
-                                    userInput.focus();
-                                };
+                                btn.onclick = () => { userInput.value = sugg; autoResizeTextarea(userInput); userInput.focus(); };
                                 suggContainer.appendChild(btn);
                             });
-                            
                             bubble.appendChild(suggContainer);
                         }
 
-                        // C. Sources Footer
+                        // D. Footer & Copy
                         if (sources.length > 0) {
                             const footerDiv = document.createElement('div');
                             footerDiv.innerHTML = createSourcesFooter(sources);
                             bubble.appendChild(footerDiv);
                         }
-
-                        // D. Copy Button
                         const copyBtn = document.createElement('button');
                         copyBtn.className = 'text-xs text-gray-400 hover:text-white mt-2 block ml-auto';
                         copyBtn.textContent = 'Copy';
-                        copyBtn.onclick = () => {
-                            navigator.clipboard.writeText(text);
-                            copyBtn.textContent = 'Copied!';
-                            setTimeout(() => copyBtn.textContent = 'Copy', 1500);
-                        };
+                        copyBtn.onclick = () => { navigator.clipboard.writeText(text); copyBtn.textContent = 'Copied!'; setTimeout(() => copyBtn.textContent = 'Copy', 1500); };
                         bubble.appendChild(copyBtn);
                         chatArea.scrollTop = chatArea.scrollHeight;
+                    };
+
+                    // 5. DECIDE: ANIMATE OR INSTANT?
+                    if (animate) {
+                        let i = 0;
+                        const chunkSize = 3; 
+                        
+                        function typeWriter() {
+                            if (i < textWithTokens.length) {
+                                i += chunkSize;
+                                if (i > textWithTokens.length) i = textWithTokens.length;
+                                let currentRaw = textWithTokens.substring(0, i);
+                                let renderedHtml = marked.parse(currentRaw);
+                                // Swap tokens for icons during typing
+                                sources.forEach((source, index) => {
+                                    const iconHtml = `<a href="${source.url}" target="_blank" rel="noopener noreferrer" class="citation-link" title="Source: ${source.name}"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg></a>`;
+                                    const token = `%%CIT_${index}%%`;
+                                    renderedHtml = renderedHtml.split(token).join(iconHtml);
+                                });
+                                contentDiv.innerHTML = renderedHtml;
+                                chatArea.scrollTop = chatArea.scrollHeight; 
+                                requestAnimationFrame(typeWriter); 
+                            } else {
+                                renderFinalContent(); // Finish
+                            }
+                        }
+                        typeWriter();
+                    } else {
+                        // NO ANIMATION: Render everything instantly
+                        renderFinalContent();
                     }
 
-                    typeWriter();
-                } 
-                
-                // --- USER MESSAGES ---
-                else {
+                } else {
+                    // USER MESSAGE
                     bubble.textContent = text;
                     const actionsDiv = document.createElement('div');
                     actionsDiv.className = 'user-action-container';
-                    // (Keep existing edit/copy buttons logic)
                     const editBtn = document.createElement('button');
                     editBtn.className = 'action-icon-btn';
                     editBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>`;
