@@ -32,18 +32,96 @@
         ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
 
         /* Typography for AI Responses */
-        .ai-response-content h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem; color: #bef264; }
-        .ai-response-content h2 { font-size: 1.25rem; font-weight: 700; margin-top: 1rem; margin-bottom: 0.5rem; color: #bef264; }
-        .ai-response-content h3 { font-size: 1.1rem; font-weight: 700; margin-top: 0.75rem; color: #facc15; }
-        .ai-response-content ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.75rem; }
-        .ai-response-content li { margin-bottom: 0.25rem; }
-        .ai-response-content strong { color: #facc15; }
-        
-        /* Table Styling */
-        .ai-response-content table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; font-size: 0.9rem; }
-        .ai-response-content th, .ai-response-content td { border: 1px solid #4b5563; padding: 0.5rem; text-align: left; }
-        .ai-response-content th { background-color: #374151; color: #f3f4f6; }
-        .ai-response-content td { background-color: #1f2937; }
+        .ai-response-content {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+            font-size: 1rem;
+            line-height: 1.75;
+            color: #ececf1; /* Off-White */
+        }
+
+        /* Headings: Clean, Bold, White, Left-Aligned */
+        .ai-response-content h1 {
+            font-size: 1.5rem; /* ~24px */
+            font-weight: 700;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            color: #ffffff;
+            text-align: left; /* Removed center align */
+            border-bottom: 1px solid #374151; /* Subtle divider for main titles */
+            padding-bottom: 0.5rem;
+        }
+
+        .ai-response-content h2 {
+            font-size: 1.25rem; /* ~20px */
+            font-weight: 600;
+            margin-top: 2rem; /* More breathing room before sections */
+            margin-bottom: 0.75rem;
+            color: #ffffff;
+        }
+
+        .ai-response-content h3 {
+            font-size: 1.1rem; /* ~16px */
+            font-weight: 600;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: #ffffff;
+        }
+
+        /* Paragraphs & Text */
+        .ai-response-content p {
+            margin-bottom: 1rem;
+        }
+
+        .ai-response-content strong {
+            font-weight: 700;
+            color: #ffffff; /* Bright white for emphasis, no yellow */
+        }
+
+        /* Lists: Indentation & Bullets */
+        .ai-response-content ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .ai-response-content ol {
+            list-style-type: decimal;
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .ai-response-content li {
+            margin-bottom: 0.5rem;
+            padding-left: 0.25rem; /* Slight padding from bullet */
+        }
+
+        /* Tables: Neutral Grays (No more Green borders) */
+        .ai-response-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid #4b5563;
+        }
+
+        .ai-response-content th, .ai-response-content td {
+            border: 1px solid #4b5563;
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        .ai-response-content th {
+            background-color: #374151; /* Dark Gray Header */
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .ai-response-content td {
+            background-color: transparent; /* Seamless background */
+        }
 
         /* Sidebar Buttons */
         .sidebar-btn {
