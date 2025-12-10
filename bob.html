@@ -109,12 +109,14 @@
             color: #d1d5db; /* Light gray number */
         }
 
-        /* Force Bold Titles in Ordered Lists to be their own line */
-        .ai-response-content ol > li strong {
+        /* Force Bold Titles in ANY List (Ordered or Unordered) to be their own line */
+        .ai-response-content li strong {
             display: block; /* This moves the bold title to its own line */
+            width: 100%;    /* Takes full width */
             font-size: 1.1rem;
-            color: #ffffff;
+            color: #ffffff; /* Bright white title */
             margin-bottom: 0.5rem; /* Space between Title and Explanation */
+            margin-top: 0.5rem; /* Breathing room from previous text */
         }
 
         .ai-response-content li {
@@ -1654,21 +1656,22 @@ The table must be the last element of the response before the suggestions block.
                             systemInstruction: { 
                             parts: [{ text: `You are Duvallo, a professional consulting engine. 
                             
-                            **FORMATTING RULES (CRITICAL):**
-                            1. **Main Points:** Use Numbered Lists (1., 2., 3.).
-                            2. **Line Breaks:** For every Main Point, put the **Bold Title** on the first line, and the explanation on a NEW paragraph below it.
-                               Example:
-                               1. **Market Expansion**
-                                  The market is growing at 5%...
-                            3. **Sub-Points:** Use standard Bullet points (-) for nested details.
+                            **CRITICAL VISUAL FORMATTING RULES:**
+                            1. **Structure:** You MUST use Numbered Lists (1., 2., 3.) for main points. Do NOT use bullet points.
+                            2. **Headings:** Start every numbered item with a **Bold Title**.
+                            3. **Content:** Put the explanation on a NEW LINE (paragraph) under the title.
+                            
+                            *Example of Required Output:*
+                            1. **Market Expansion**
+                               The market is growing rapidly...
                             
                             **CRITICAL FILE INSTRUCTION:** 
-                            If the user message contains text labeled "BEGIN FILE CONTENT", that is an attached document. You MUST read it, analyze it, and reference it. Do NOT say you cannot open files. Treat the text as the file itself.
+                            If the user message contains text labeled "BEGIN FILE CONTENT", treat the text as the file itself. Read it, analyze it, reference it.
 
                             **CURRENT MODE: ${responseDepth ? responseDepth.toUpperCase() : "STANDARD"}**
 
-                            ${responseDepth === 'brief' ? "STRICT CONSTRAINT: Output max 150 words. Bullet points only." : ""}
-                            ${responseDepth === 'deep' ? "Provide a comprehensive Deep Dive. Search for external data." : ""}
+                            ${responseDepth === 'brief' ? "STRICT CONSTRAINT: Output max 150 words." : ""}
+                            ${responseDepth === 'deep' ? "Provide a comprehensive Deep Dive with external data search." : ""}
 
                             **RULES FOR SUGGESTIONS:**
                             Append a hidden suggestion block at the end: ---SUGGESTIONS---Action 1|Action 2
@@ -1677,7 +1680,7 @@ The table must be the last element of the response before the suggestions block.
                             Cite sources inline: [Source Name](URL).
                             
                             **RULES FOR CHARTS:**
-                            If asked to visualize, output JSON in <chart> tags following Chart.js format.` }] 
+                            If asked to visualize, output JSON in <chart> tags following Chart.js format.` }]
                         },
                             messages: chatHistory
                         })
