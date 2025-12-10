@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consulting Assistant</title>
+    <title>Duvallo | AI Strategy Engine</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- PDF.js Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -1291,24 +1291,6 @@ The table must be the last element of the response before the suggestions block.
                 }
             });
 
-            // --- SEMANTIC RESIZE LOGIC ---
-            function updateModeUI() {
-                if (responseDepth === 'brief') {
-                    // Highlight Brief
-                    modeBriefBtn.className = "mb-2 px-3 py-1.5 text-xs font-bold rounded-lg text-emerald-400 bg-emerald-900/30 border border-emerald-500/50 transition-all shadow-[0_0_10px_rgba(16,185,129,0.2)]";
-                    // Dim Deep
-                    modeDeepBtn.className = "mb-2 px-3 py-1.5 text-xs font-bold rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-700 transition-all border border-transparent";
-                } else {
-                    // Highlight Deep
-                    modeDeepBtn.className = "mb-2 px-3 py-1.5 text-xs font-bold rounded-lg text-emerald-400 bg-emerald-900/30 border border-emerald-500/50 transition-all shadow-[0_0_10px_rgba(16,185,129,0.2)]";
-                    // Dim Brief
-                    modeBriefBtn.className = "mb-2 px-3 py-1.5 text-xs font-bold rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-700 transition-all border border-transparent";
-                }
-            }
-
-            modeBriefBtn.onclick = () => { responseDepth = 'brief'; updateModeUI(); };
-            modeDeepBtn.onclick = () => { responseDepth = 'deep'; updateModeUI(); };
-            
             // SEND MESSAGE
             async function sendMessage() {
                 let prompt = userInput.value.trim();
@@ -1365,35 +1347,26 @@ The table must be the last element of the response before the suggestions block.
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             systemInstruction: { 
-                            parts: [{ text: `You are Duvallo, a professional consulting engine. 
-                            
-                            **CURRENT MODE: ${responseDepth ? responseDepth.toUpperCase() : "STANDARD"}**
-
-                            ${responseDepth === 'brief' 
-                                ? "STRICT CONSTRAINT: Output must be extremely concise. Use a maximum of 5 bullet points. Total word count must be under 150 words. Focus ONLY on the 'So What'. Do not use flowery introductions." 
-                                : ""}
+                                parts: [{ text: `You are Duvallo, a professional consulting assistant. 
                                 
-                            ${responseDepth === 'deep' 
-                                ? "Provide a comprehensive Deep Dive. You MUST search for external data to back up your claims. Structure the response with clear headers, detailed analysis, and extensive reasoning."
-                                : ""}
+                                RULES FOR CITATIONS:
+                                1. Use the Google Search Tool for facts.
+                                2. Cite sources inline: [Source Name](URL).
+                                
+                                RULES FOR CHARTS:
+                                If the user asks to visualize data, compare numbers, or create a graph:
+                                1. Generate a standard textual analysis first.
+                                2. At the very end, output the chart data in a JSON block wrapped in <chart> and </chart> tags.
+                                3. The JSON must follow Chart.js format: { "type": "bar" (or line/pie/doughnut), "data": { "labels": [], "datasets": [{ "label": "Title", "data": [] }] } }.
+                                
+                                Example Output:
+                                Here is the analysis...
+                                <chart>
+                                { "type": "bar", "data": { "labels": ["Q1", "Q2"], "datasets": [{ "label": "Revenue", "data": [100, 200] }] } }
+                                </chart>
 
-                            ${responseDepth === null 
-                                ? "Provide a balanced, professional response. Not too short, not too long."
-                                : ""}
-
-                            **RULES FOR SOURCES (MANDATORY):**
-                            1. You have access to Google Search. USE IT. Do not rely solely on training data.
-                            2. If stating a fact, statistic, or strategy, you MUST verify it with a search.
-                            3. Cite sources inline immediately after the fact: [Source Name](URL).
-                            
-                            **RULES FOR CHARTS:**
-                            If the user asks to visualize data, compare numbers, or create a graph:
-                            1. Generate a standard textual analysis first.
-                            2. At the very end, output the chart data in a JSON block wrapped in <chart> and </chart> tags.
-                            3. The JSON must follow Chart.js format: { "type": "bar" (or line/pie/doughnut), "data": { "labels": [], "datasets": [{ "label": "Title", "data": [] }] } }.
-                            
-                            Format the rest of your response using professional Markdown.` }] 
-                        },
+                                Format the rest of your response using professional Markdown.` }] 
+                            },
                             messages: chatHistory
                         })
                     });
@@ -1413,7 +1386,7 @@ The table must be the last element of the response before the suggestions block.
                             chatHistory.push({ role: "model", parts: [{ text: text }] });
                             createMessageBubble(text, "model");
                         } else {
-                            createMessageBubble("⚠️ Duvallo returned an empty response. Try asking a specific question.", "model");
+                            createMessageBubble("⚠️ Bob returned an empty response. Try asking a specific question.", "model");
                         }
                     }
                 } catch (error) {
