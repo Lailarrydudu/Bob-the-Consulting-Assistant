@@ -201,6 +201,55 @@
         }
         .source-item:hover { background-color: #1f2937; text-decoration: underline; }
         .source-favicon { width: 16px; height: 16px; background-color: #fff; border-radius: 2px; }
+
+        /* Suggestion/Action Chips (The Iceberg) */
+        .suggestion-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid #374151; /* Gray-700 */
+            animation: fade-in 0.5s ease-in-out;
+        }
+        
+        .suggestion-chip {
+            background-color: #111827; /* Gray-900 */
+            border: 1px solid #059669; /* Emerald-600 */
+            color: #d1fae5; /* Emerald-100 */
+            padding: 0.4rem 0.8rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        
+        .suggestion-chip:hover {
+            background-color: #059669;
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(5, 150, 105, 0.3);
+        }
+
+        .suggestion-label {
+            color: #9ca3af;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+            display: block;
+            width: 100%;
+        }
+        
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
     </style>
 </head>
 <body class="flex h-screen w-full bg-gray-900">
@@ -1347,26 +1396,39 @@ The table must be the last element of the response before the suggestions block.
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             systemInstruction: { 
-                                parts: [{ text: `You are Duvallo, a professional consulting assistant. 
-                                
-                                RULES FOR CITATIONS:
-                                1. Use the Google Search Tool for facts.
-                                2. Cite sources inline: [Source Name](URL).
-                                
-                                RULES FOR CHARTS:
-                                If the user asks to visualize data, compare numbers, or create a graph:
-                                1. Generate a standard textual analysis first.
-                                2. At the very end, output the chart data in a JSON block wrapped in <chart> and </chart> tags.
-                                3. The JSON must follow Chart.js format: { "type": "bar" (or line/pie/doughnut), "data": { "labels": [], "datasets": [{ "label": "Title", "data": [] }] } }.
-                                
-                                Example Output:
-                                Here is the analysis...
-                                <chart>
-                                { "type": "bar", "data": { "labels": ["Q1", "Q2"], "datasets": [{ "label": "Revenue", "data": [100, 200] }] } }
-                                </chart>
+                            parts: [{ text: `You are Duvallo, a professional consulting engine. 
+                            
+                            **CURRENT MODE: ${responseDepth ? responseDepth.toUpperCase() : "STANDARD"}**
 
-                                Format the rest of your response using professional Markdown.` }] 
-                            },
+                            ${responseDepth === 'brief' 
+                                ? "STRICT CONSTRAINT: Output must be extremely concise. Use a maximum of 5 bullet points. Total word count must be under 150 words. Focus ONLY on the 'So What'. Do not use flowery introductions." 
+                                : ""}
+                                
+                            ${responseDepth === 'deep' 
+                                ? "Provide a comprehensive Deep Dive. You MUST search for external data to back up your claims. Structure the response with clear headers, detailed analysis, and extensive reasoning."
+                                : ""}
+
+                            ${responseDepth === null 
+                                ? "Provide a balanced, professional response. Not too short, not too long."
+                                : ""}
+
+                            **RULES FOR SUGGESTIONS (THE ICEBERG):**
+                            At the very end of your response, you MUST append a hidden suggestion block.
+                            Format: ---SUGGESTIONS---Action 1|Action 2|Action 3
+                            Guidelines:
+                            1. Suggest specific CONSULTING FRAMEWORKS or NEXT STEPS.
+                            2. Do NOT ask generic questions ("Do you want more?").
+                            3. Example: If user says "Sales down", suggest "Run Root Cause Analysis|Competitor Price Benchmarking|Customer Sentiment Survey".
+                            
+                            **RULES FOR SOURCES (MANDATORY):**
+                            1. You have access to Google Search. USE IT.
+                            2. Cite sources inline immediately after the fact: [Source Name](URL).
+                            
+                            **RULES FOR CHARTS:**
+                            If the user asks to visualize data, output JSON in <chart> tags following Chart.js format.
+                            
+                            Format the rest of your response using professional Markdown.` }] 
+                        },
                             messages: chatHistory
                         })
                     });
@@ -1476,7 +1538,7 @@ The table must be the last element of the response before the suggestions block.
                 `;
             }
 
-            // 3. Render Message Bubble (With Typewriter/Streaming Effect)
+            // 3. Render Message Bubble (With Typewriter, Charts, and Action Chips)
             function createMessageBubble(text, sender) {
                 const wrapper = document.createElement('div');
                 wrapper.classList.add('flex', 'message-wrapper', 'mb-4', sender === 'user' ? 'justify-end' : 'justify-start');
@@ -1492,9 +1554,21 @@ The table must be the last element of the response before the suggestions block.
                 // --- LOGIC FOR AI MESSAGES (Model) ---
                 if (sender === 'model') {
                     let chartConfig = null;
-                    let rawChartContent = null;
+                    let suggestionsList = [];
                     
-                    // 1. CHART EXTRACTION (Do this first so we don't type out raw JSON)
+                    // 1. EXTRACT SUGGESTIONS (The Iceberg)
+                    // We look for the ---SUGGESTIONS--- block
+                    const suggestionRegex = /---SUGGESTIONS---([\s\S]*)$/;
+                    const suggestionMatch = text.match(suggestionRegex);
+                    
+                    if (suggestionMatch) {
+                        const rawSuggestions = suggestionMatch[1];
+                        suggestionsList = rawSuggestions.split('|').map(s => s.trim()).filter(s => s);
+                        // Remove the raw block from text so it doesn't get typed out
+                        text = text.replace(suggestionRegex, '').trim(); 
+                    }
+
+                    // 2. EXTRACT CHART
                     const tagRegex = /(?:<<<CHART>>>|<chart>|<<>>)\s*([\s\S]*?)\s*(?:<<<END_CHART>>>|<\/chart>|<<>>)/i;
                     const codeRegex = /```json\s*({[\s\S]*?"type"[\s\S]*?"data"[\s\S]*?})\s*```/i;
                     const rawRegex = /({[\s\n]*"type"[\s\n]*:[\s\n]*"(?:bar|line|pie|doughnut|radar|polarArea)"[\s\S]*?"data"[\s\S]*?})/i;
@@ -1505,46 +1579,41 @@ The table must be the last element of the response before the suggestions block.
                         try {
                             let fullBlock = match[0];
                             let jsonContent = match[1] || match[0];
-                            // Clean JSON
                             jsonContent = jsonContent.replace(/```json/gi, '').replace(/```/g, '').trim();
                             
-                            // Validate boundaries
                             const firstBrace = jsonContent.indexOf('{');
                             const lastBrace = jsonContent.lastIndexOf('}');
                             if (firstBrace !== -1 && lastBrace !== -1) {
                                 jsonContent = jsonContent.substring(firstBrace, lastBrace + 1);
                                 chartConfig = JSON.parse(jsonContent);
-                                // Remove chart code from text so we don't type it
                                 text = text.replace(fullBlock, ''); 
                             }
                         } catch (e) { console.error("Chart parsing failed:", e); }
                     }
 
-                    // 2. CITATION PROCESSING (Get Tokens)
+                    // 3. CITATION PROCESSING
                     const { textWithTokens, sources } = processCitations(text);
                     
-                    // 3. PREPARE UI ELEMENTS
+                    // 4. PREPARE UI
                     const contentDiv = document.createElement('div');
                     contentDiv.classList.add('ai-response-content', 'mb-2');
                     bubble.appendChild(contentDiv);
                     wrapper.appendChild(bubble);
-                    chatArea.appendChild(wrapper); // Add to DOM immediately so we can see typing
+                    chatArea.appendChild(wrapper);
 
-                    // 4. TYPEWRITER EFFECT
+                    // 5. TYPEWRITER EFFECT
                     let i = 0;
-                    const speed = 5; // Milliseconds per chunk (lower = faster)
-                    const chunkSize = 3; // Characters to add per tick
+                    const speed = 5; 
+                    const chunkSize = 3; 
                     
                     function typeWriter() {
                         if (i < textWithTokens.length) {
                             i += chunkSize;
                             if (i > textWithTokens.length) i = textWithTokens.length;
                             
-                            // Render current slice of text
                             let currentRaw = textWithTokens.substring(0, i);
                             let renderedHtml = marked.parse(currentRaw);
 
-                            // Swap Citation Tokens for Icons dynamically while typing
                             sources.forEach((source, index) => {
                                 const iconHtml = `<a href="${source.url}" target="_blank" rel="noopener noreferrer" class="citation-link" title="Source: ${source.name}"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg></a>`;
                                 const token = `%%CIT_${index}%%`;
@@ -1552,29 +1621,25 @@ The table must be the last element of the response before the suggestions block.
                             });
 
                             contentDiv.innerHTML = renderedHtml;
-                            chatArea.scrollTop = chatArea.scrollHeight; // Auto-scroll
-                            
-                            requestAnimationFrame(typeWriter); // Continue loop
+                            chatArea.scrollTop = chatArea.scrollHeight; 
+                            requestAnimationFrame(typeWriter); 
                         } else {
-                            // --- TYPING FINISHED: RENDER ARTIFACTS ---
                             finalizeBubble();
                         }
                     }
 
                     function finalizeBubble() {
-                        // A. Render Chart (if exists)
+                        // A. Render Chart
                         if (chartConfig) {
                             const chartContainer = document.createElement('div');
                             chartContainer.style.marginTop = '1rem';
                             chartContainer.style.backgroundColor = '#1f2937';
                             chartContainer.style.padding = '10px';
                             chartContainer.style.borderRadius = '8px';
-                            chartContainer.classList.add('animate-fade-in'); // Add fade-in effect
-                            
+                            chartContainer.classList.add('animate-fade-in');
                             const canvas = document.createElement('canvas');
                             chartContainer.appendChild(canvas);
                             bubble.appendChild(chartContainer);
-
                             new Chart(canvas, {
                                 type: chartConfig.type,
                                 data: chartConfig.data,
@@ -1589,14 +1654,40 @@ The table must be the last element of the response before the suggestions block.
                             });
                         }
 
-                        // B. Add Sources Footer
+                        // B. Render Suggestion Chips (The Iceberg)
+                        if (suggestionsList.length > 0) {
+                            const suggContainer = document.createElement('div');
+                            suggContainer.className = 'suggestion-container';
+                            
+                            const label = document.createElement('span');
+                            label.className = 'suggestion-label';
+                            label.textContent = "Recommended Next Steps";
+                            suggContainer.appendChild(label);
+
+                            suggestionsList.forEach(sugg => {
+                                const btn = document.createElement('button');
+                                btn.className = 'suggestion-chip';
+                                btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3 h-3"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /></svg> ${sugg}`;
+                                
+                                btn.onclick = () => {
+                                    userInput.value = sugg;
+                                    autoResizeTextarea(userInput);
+                                    userInput.focus();
+                                };
+                                suggContainer.appendChild(btn);
+                            });
+                            
+                            bubble.appendChild(suggContainer);
+                        }
+
+                        // C. Sources Footer
                         if (sources.length > 0) {
                             const footerDiv = document.createElement('div');
                             footerDiv.innerHTML = createSourcesFooter(sources);
                             bubble.appendChild(footerDiv);
                         }
 
-                        // C. Copy Button
+                        // D. Copy Button
                         const copyBtn = document.createElement('button');
                         copyBtn.className = 'text-xs text-gray-400 hover:text-white mt-2 block ml-auto';
                         copyBtn.textContent = 'Copy';
@@ -1609,35 +1700,24 @@ The table must be the last element of the response before the suggestions block.
                         chatArea.scrollTop = chatArea.scrollHeight;
                     }
 
-                    // Start the typing loop
                     typeWriter();
                 } 
                 
-                // --- LOGIC FOR USER MESSAGES (No Streaming) ---
+                // --- USER MESSAGES ---
                 else {
                     bubble.textContent = text;
                     const actionsDiv = document.createElement('div');
                     actionsDiv.className = 'user-action-container';
-
+                    // (Keep existing edit/copy buttons logic)
                     const editBtn = document.createElement('button');
                     editBtn.className = 'action-icon-btn';
-                    editBtn.title = "Edit prompt";
                     editBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>`;
-                    editBtn.onclick = () => {
-                        userInput.value = text;
-                        autoResizeTextarea(userInput);
-                        userInput.focus();
-                    };
+                    editBtn.onclick = () => { userInput.value = text; autoResizeTextarea(userInput); userInput.focus(); };
 
                     const copyBtnUser = document.createElement('button');
                     copyBtnUser.className = 'action-icon-btn';
-                    copyBtnUser.title = "Copy text";
-                    copyBtnUser.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v2.25A2.25 2.25 0 0113.5 22.5h-8.25a2.25 2.25 0 01-2.25-2.25v-8.25a2.25 2.25 0 012.25-2.25H5.25a2.25 2.25 0 012.25-2.25h1.5a.75.75 0 010 1.5H6a.75.75 0 00-.75.75v8.25c0 .414.336.75.75.75H13.5a.75.75 0 00.75-.75V11.25H18a.75.75 0 01.75.75v4.5a.75.75 0 00.75.75h1.5A2.25 2.25 0 0122.5 17.25v2.25a.75.75 0 001.5 0V17.25A2.25 2.25 0 0021.75 15h-1.5a.75.75 0 01-.75-.75V9.75a2.25 2.25 0 00-2.25-2.25H15z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 7.125h-10.5a2.25 2.25 0 00-2.25 2.25v10.5" /></svg>`;
-                    copyBtnUser.onclick = () => {
-                        navigator.clipboard.writeText(text);
-                        copyBtnUser.style.color = '#34d399';
-                        setTimeout(() => copyBtnUser.style.color = '', 500);
-                    };
+                    copyBtnUser.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v2.25A2.25 2.25 0 0113.5 22.5h-8.25a2.25 2.25 0 01-2.25-2.25v-8.25a2.25 2.25 0 012.25-2.25H5.25a2.25 2.25 0 012.25-2.25h1.5a.75.75 0 010 1.5H6a.75.75 0 00-.75.75v8.25c0 .414.336.75.75.75H13.5a.75.75 0 00.75-.75V11.25H18a.75.75 0 01.75.75v4.5a.75.75 0 00.75.75h1.5A2.25 2.25 0 0122.5 17.25v2.25a.75.75 0 001.5 0V17.25A2.25 2.25 0 00-2.25-2.25H15z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 7.125h-10.5a2.25 2.25 0 00-2.25 2.25v10.5" /></svg>`;
+                    copyBtnUser.onclick = () => { navigator.clipboard.writeText(text); };
 
                     actionsDiv.appendChild(editBtn);
                     actionsDiv.appendChild(copyBtnUser);
