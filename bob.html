@@ -339,7 +339,7 @@
                 </div>
 
                 <!-- "Deep" Mode Button -->
-                <button id="modeDeepBtn" class="mb-2 px-3 py-1.5 text-xs font-bold rounded-lg text-emerald-400 bg-emerald-900/30 border border-emerald-500/50 transition-all shadow-[0_0_10px_rgba(16,185,129,0.2)]">
+                <button id="modeDeepBtn" class="mb-2 px-3 py-1.5 text-xs font-bold rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-700 transition-all border border-transparent">
                     Deep
                 </button>
 
@@ -442,11 +442,6 @@
             const modeBriefBtn = document.getElementById('modeBriefBtn');
             const modeDeepBtn = document.getElementById('modeDeepBtn');
             
-            // SEMANTIC RESIZE STATE
-            let responseDepth = null; // Default is null (Both start Gray/Neutral)
-            const modeBriefBtn = document.getElementById('modeBriefBtn');
-            const modeDeepBtn = document.getElementById('modeDeepBtn');
-            
             // --- SEMANTIC RESIZE LOGIC ---
             function updateModeUI() {
                 // Define the styles
@@ -465,7 +460,7 @@
                 }
             }
 
-            // Toggle Logic: If clicking the one that is already active, set to null (turn off).
+            // Toggle Logic
             modeBriefBtn.onclick = () => { 
                 responseDepth = (responseDepth === 'brief') ? null : 'brief'; 
                 updateModeUI(); 
@@ -476,7 +471,7 @@
                 updateModeUI(); 
             };
 
-            // Run once on load to ensure both start gray
+            // Run once on load to ensure state matches
             updateModeUI();
             
             // ============================================
