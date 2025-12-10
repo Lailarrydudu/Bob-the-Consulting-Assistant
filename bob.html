@@ -442,16 +442,22 @@
             const modeBriefBtn = document.getElementById('modeBriefBtn');
             const modeDeepBtn = document.getElementById('modeDeepBtn');
             
+            // SEMANTIC RESIZE STATE
+            let responseDepth = null; // Default is null (Both start Gray/Neutral)
+            const modeBriefBtn = document.getElementById('modeBriefBtn');
+            const modeDeepBtn = document.getElementById('modeDeepBtn');
+            
             // --- SEMANTIC RESIZE LOGIC ---
             function updateModeUI() {
-                // Reset both to Gray first
+                // Define the styles
                 const inactiveClass = "mb-2 px-3 py-1.5 text-xs font-bold rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-700 transition-all border border-transparent";
                 const activeClass = "mb-2 px-3 py-1.5 text-xs font-bold rounded-lg text-emerald-400 bg-emerald-900/30 border border-emerald-500/50 transition-all shadow-[0_0_10px_rgba(16,185,129,0.2)]";
                 
+                // 1. Reset both to Inactive (Gray)
                 modeBriefBtn.className = inactiveClass;
                 modeDeepBtn.className = inactiveClass;
 
-                // Apply Active Style if selected
+                // 2. Only light up the specific one if active
                 if (responseDepth === 'brief') {
                     modeBriefBtn.className = activeClass;
                 } else if (responseDepth === 'deep') {
@@ -459,17 +465,19 @@
                 }
             }
 
+            // Toggle Logic: If clicking the one that is already active, set to null (turn off).
             modeBriefBtn.onclick = () => { 
-                // Toggle: If already brief, turn off (null). Else set to brief.
                 responseDepth = (responseDepth === 'brief') ? null : 'brief'; 
                 updateModeUI(); 
             };
             
             modeDeepBtn.onclick = () => { 
-                // Toggle: If already deep, turn off (null). Else set to deep.
                 responseDepth = (responseDepth === 'deep') ? null : 'deep'; 
                 updateModeUI(); 
             };
+
+            // Run once on load to ensure both start gray
+            updateModeUI();
             
             // ============================================
             // 0. PROJECT MANAGEMENT SYSTEM
