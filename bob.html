@@ -1456,13 +1456,33 @@ The table must be the last element of the response before the suggestions block.
                 
                 if (!prompt && !hasFile) return;
 
+                // 0. AGENT TRIGGER CHECK (If user wants deep research)
+                const lower = prompt.toLowerCase();
+                if (!hasFile && (lower.includes('deep dive') || lower.includes('research') || lower.includes('investigate'))) {
+                    userInput.value = '';
+                    autoResizeTextarea(userInput);
+                    createMessageBubble(prompt, 'user');
+                    const topic = prompt.replace(/deep dive|research|investigate|on|about/gi, '').trim();
+                    await startAutonomousResearch(topic || prompt);
+                    return;
+                }
+
                 // 1. UI: Hide Hero Text
                 heroText.style.display = 'none';
 
-                // 2. Construct Payload
+                // 2. Construct Payload (FIXED FOR FILE READING)
                 let fullPayloadPrompt = prompt;
+                
                 if (hasFile) {
-                    const filePrompt = `\n\n[USER ATTACHED FILE: ${attachedFileName}]\n\`\`\`\n${attachedFileContent}\n\`\`\`\n`;
+                    // Safety Check: Ensure file isn't empty (e.g. Scanned PDF issues)
+                    if (!attachedFileContent || attachedFileContent.trim().length < 10) {
+                        alert("⚠️ Error: The attached file appears to be empty. Please ensure it is a text-based PDF/Document.");
+                        return;
+                    }
+
+                    // CRITICAL FIX: Wrap file content in System Tags so AI treats it as data, not instructions
+                    const filePrompt = `\n\n[SYSTEM INSTRUCTION: The user has attached a file named "${attachedFileName}". The content is provided below between the "BEGIN" and "END" tags. You MUST read this content to answer the user's question. Do not refuse to read it. Treat the text as the file itself.]\n\n=== BEGIN FILE CONTENT ===\n${attachedFileContent}\n=== END FILE CONTENT ===\n`;
+                    
                     if (prompt === "") {
                         prompt = `Analyze the attached file: ${attachedFileName}`;
                         fullPayloadPrompt = prompt + filePrompt;
@@ -1471,10 +1491,9 @@ The table must be the last element of the response before the suggestions block.
                     }
                 }
 
-               // 3. Update UI Bubbles (User Side)
+               // 3. Update UI Bubbles
                 if (hasFile) {
                     createMessageBubble(`📂 **Uploaded:** ${attachedFileName}`, 'user');
-                    // Reset File UI using new helper
                     clearAttachment(); 
                 }
 
@@ -1485,50 +1504,41 @@ The table must be the last element of the response before the suggestions block.
                 
                 chatHistory.push({ role: "user", parts: [{ text: fullPayloadPrompt }] });
 
-                // 4. Reset Input State
+                // 4. Reset Input
                 userInput.value = '';
                 autoResizeTextarea(userInput);
                 userInput.disabled = true;
                 sendButton.disabled = true;
 
-                // 5. Loading Indicator (The Waiting Lobby)
+                // 5. Loading Indicator (Waiting Lobby)
                 const loadingBubble = document.createElement('div');
                 loadingBubble.classList.add('flex', 'justify-start');
-                // Create the outer bubble
                 const innerBubble = document.createElement('div');
                 innerBubble.className = "bg-gray-800 text-gray-300 rounded-xl rounded-bl-none p-4 max-w-sm shadow-md border border-gray-700";
                 loadingBubble.appendChild(innerBubble);
                 chatArea.appendChild(loadingBubble);
                 
-                // DEFINE THINKING STEPS BASED ON CONTEXT
+                // Define Steps based on context
                 let thinkingSteps = [];
 
-                // Scenario 1: File Attached
                 if (hasFile) {
                     thinkingSteps = [
-                        { text: "Scanning document structure...", icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />' },
-                        { text: "Extracting key financial data...", icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5m.75-9l3-3 2.148 2.148A12.061 12.061 0 0116.5 7.605" />' },
-                        { text: "Synthesizing insights...", icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 2.625v-8.513a2.25 2.25 0 00-1.125-1.967l-2.25-1.125a2.25 2.25 0 00-2.25 1.125L7.875 6.875a2.25 2.25 0 00-1.125 1.967v8.513" />' }
+                        { text: "Scanning document structure...", icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.51-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>' },
+                        { text: "Extracting key data...", icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 2.625v-8.513a2.25 2.25 0 00-1.125-1.967l-2.25-1.125a2.25 2.25 0 00-2.25 1.125L7.875 6.875a2.25 2.25 0 00-1.125 1.967v8.513" /></svg>' }
                     ];
-                } 
-                // Scenario 2: Deep Mode (Web Search)
-                else if (responseDepth === 'deep') {
+                } else if (responseDepth === 'deep') {
                     thinkingSteps = [
-                        { text: "Analyzing query intent...", icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />' },
-                        { text: "Searching live sources...", icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />' },
-                        { text: "Vetting sources & citations...", icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />' },
-                        { text: "Structuring strategic argument...", icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12" />' }
+                         { text: "Analyzing query intent...", icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" /></svg>' },
+                         { text: "Searching live sources...", icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>' },
+                         { text: "Vetting citations...", icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75" /></svg>' }
+                    ];
+                } else {
+                    thinkingSteps = [
+                        { text: "Processing context...", icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /></svg>' },
+                        { text: "Generating response...", icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" /></svg>' }
                     ];
                 }
-                // Scenario 3: Standard Chat
-                else {
-                    thinkingSteps = [
-                        { text: "Processing context...", icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />' },
-                        { text: "Generating response...", icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />' }
-                    ];
-                }
-
-                // Start the Animation
+                
                 startThinkingAnimation(innerBubble, thinkingSteps);
 
                 // 6. API Call
@@ -1540,60 +1550,42 @@ The table must be the last element of the response before the suggestions block.
                             systemInstruction: { 
                             parts: [{ text: `You are Duvallo, a professional consulting engine. 
                             
+                            **CRITICAL FILE INSTRUCTION:** 
+                            If the user message contains text labeled "BEGIN FILE CONTENT", that is an attached document. You MUST read it, analyze it, and reference it. Do NOT say you cannot open files. Treat the text as the file itself.
+
                             **CURRENT MODE: ${responseDepth ? responseDepth.toUpperCase() : "STANDARD"}**
 
-                            ${responseDepth === 'brief' 
-                                ? "STRICT CONSTRAINT: Output must be extremely concise. Use a maximum of 5 bullet points. Total word count must be under 150 words. Focus ONLY on the 'So What'. Do not use flowery introductions." 
-                                : ""}
-                                
-                            ${responseDepth === 'deep' 
-                                ? "Provide a comprehensive Deep Dive. You MUST search for external data to back up your claims. Structure the response with clear headers, detailed analysis, and extensive reasoning."
-                                : ""}
+                            ${responseDepth === 'brief' ? "STRICT CONSTRAINT: Output max 150 words. Bullet points only." : ""}
+                            ${responseDepth === 'deep' ? "Provide a comprehensive Deep Dive. Search for external data." : ""}
 
-                            ${responseDepth === null 
-                                ? "Provide a balanced, professional response. Not too short, not too long."
-                                : ""}
-
-                            **RULES FOR SUGGESTIONS (THE ICEBERG):**
-                            At the very end of your response, you MUST append a hidden suggestion block.
-                            Format: ---SUGGESTIONS---Action 1|Action 2|Action 3
-                            Guidelines:
-                            1. Suggest specific CONSULTING FRAMEWORKS or NEXT STEPS.
-                            2. Do NOT ask generic questions ("Do you want more?").
-                            3. Example: If user says "Sales down", suggest "Run Root Cause Analysis|Competitor Price Benchmarking|Customer Sentiment Survey".
+                            **RULES FOR SUGGESTIONS:**
+                            Append a hidden suggestion block at the end: ---SUGGESTIONS---Action 1|Action 2
                             
-                            **RULES FOR SOURCES (MANDATORY):**
-                            1. You have access to Google Search. USE IT.
-                            2. Cite sources inline immediately after the fact: [Source Name](URL).
+                            **RULES FOR SOURCES:**
+                            Cite sources inline: [Source Name](URL).
                             
                             **RULES FOR CHARTS:**
-                            If the user asks to visualize data, output JSON in <chart> tags following Chart.js format.
-                            
-                            Format the rest of your response using professional Markdown.` }] 
+                            If asked to visualize, output JSON in <chart> tags following Chart.js format.` }] 
                         },
                             messages: chatHistory
                         })
                     });
 
                     const result = await response.json();
-
-                    // STOP THINKING ANIMATION
-                    clearInterval(thinkingInterval); // Stop the loop
                     
-                    // Remove loading bubble
+                    // Cleanup Animation
+                    clearInterval(thinkingInterval);
                     if(chatArea.contains(loadingBubble)) chatArea.removeChild(loadingBubble);
 
-                    // 7. Error Handling & Response Display
                     if (result.error) {
-                        console.error("API Error:", result.error);
-                        createMessageBubble(`⚠️ **System Error:** ${result.error.message || "Unknown API Error"}`, "model");
+                        createMessageBubble(`⚠️ **System Error:** ${result.error.message}`, "model");
                     } else {
                         const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
                         if (text) {
                             chatHistory.push({ role: "model", parts: [{ text: text }] });
                             createMessageBubble(text, "model");
                         } else {
-                            createMessageBubble("⚠️ Bob returned an empty response. Try asking a specific question.", "model");
+                            createMessageBubble("⚠️ Duvallo returned an empty response.", "model");
                         }
                     }
                 } catch (error) {
@@ -1601,12 +1593,10 @@ The table must be the last element of the response before the suggestions block.
                     createMessageBubble(`❌ **Connection Error:** ${error.message}`, "model");
                 }
 
-                // 8. RE-ENABLE CONTROLS
+                // 7. Cleanup
                 userInput.disabled = false;
                 sendButton.disabled = false;
                 userInput.focus();
-                
-                // CRITICAL FIX: Save the chat to the project memory
                 saveCurrentProjectChat();
             }
 
