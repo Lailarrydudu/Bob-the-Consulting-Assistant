@@ -1,6 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Clerk Auth Protection -->
+    <script
+      async
+      crossorigin="anonymous"
+      data-clerk-publishable-key="pk_test_c2VsZWN0LWd1cHB5LTQwLmNsZXJrLmFjY291bnRzLmRldiQ"
+      src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"
+      type="text/javascript"
+    ></script>
+    <script>
+        window.addEventListener("load", async function () {
+            await Clerk.load();
+            if (!Clerk.user) {
+                // Not logged in? Kick them out.
+                window.location.href = "login.html";
+            } else {
+                // Logged in? Update UI with user info (Optional)
+                console.log("User:", Clerk.user.firstName);
+            }
+        });
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Duvallo | AI Strategy Engine</title>
