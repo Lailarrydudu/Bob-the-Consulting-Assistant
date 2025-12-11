@@ -1479,33 +1479,30 @@
             
             // 1. Process Text: Extract links and replace with SAFE TOKENS
             function processCitations(rawText) {
-                // Regex to find standard Markdown links [Name](URL)
-                const regex = /\[([^\]]+)\]\s*\(\s*(https?:\/\/[^\s)]+)\s*\)/g;
-                
                 let sources = [];
-                
-                // Replace Markdown links with tokens like %%CIT_0%%
-                const textWithTokens = rawText.replace(regex, (match, name, url) => {
-                    // FIX 1: Aggressively remove trailing dots/commas
-                    let cleanUrl = url.replace(/[.,;!]+$/, ""); 
-                    
-                    // FIX 2: Filter out "Google Grounding" redirects (The 404 cause)
-                    if (cleanUrl.includes('grounding-api-redirect') || cleanUrl.includes('googleusercontent')) {
-                        // If it's a broken internal link, return just the Name (no link)
-                        return name; 
-                    }
+                let processedText = rawText;
 
-                    // FIX 3: Ensure it's a real URL
-                    try {
-                        new URL(cleanUrl); 
-                        sources.push({ name, url: cleanUrl });
-                        return `%%CIT_${sources.length - 1}%%`;
-                    } catch (e) {
-                        return match; // Return original text if invalid
-                    }
+                // STRATEGY A: Standard Markdown [Name](URL)
+                // We use a replacer function to swap them for tokens
+                processedText = processedText.replace(/\[([^\]]+)\]\s*\(\s*(https?:\/\/[^\s)]+)\s*\)/g, (match, name, url) => {
+                    let cleanUrl = url.replace(/[.,;!]+$/, ""); // Strip trailing punctuation
+                    if (cleanUrl.includes('grounding-api')) return name; // Skip Google internal links
+                    
+                    sources.push({ name, url: cleanUrl });
+                    return `%%CIT_${sources.length - 1}%%`;
                 });
 
-                return { textWithTokens, sources };
+                // STRATEGY B: Raw URLs (e.g. "Source: https://bloomberg.com")
+                // Only runs if Strategy A didn't catch it
+                processedText = processedText.replace(/(?<!\()https?:\/\/[^\s)]+/g, (url) => {
+                    let cleanUrl = url.replace(/[.,;!]+$/, "");
+                    let name = new URL(cleanUrl).hostname.replace('www.', '');
+                    
+                    sources.push({ name, url: cleanUrl });
+                    return `%%CIT_${sources.length - 1}%%`;
+                });
+
+                return { textWithTokens: processedText, sources };
             }
 
             // 2. Generate the Footer List
@@ -1599,25 +1596,28 @@
                         text = text.replace(suggestionRegex, '').trim(); 
                     }
 
-                    // 2. EXTRACT CHART (Robust)
-                    const tagRegex = /(?:<<<CHART>>>|<chart>|<<>>)\s*([\s\S]*?)\s*(?:<<<END_CHART>>>|<\/chart>|<<>>)/i;
+                    // 2. EXTRACT CHART (Robust & Whitespace Tolerant)
+                    // We look for <chart> tags or just raw JSON starting with { "type":
+                    const tagRegex = /<chart>([\s\S]*?)<\/chart>/i;
                     const codeRegex = /```json\s*({[\s\S]*?"type"[\s\S]*?"data"[\s\S]*?})\s*```/i;
                     const rawRegex = /({[\s\n]*"type"[\s\n]*:[\s\n]*"(?:bar|line|pie|doughnut|radar|polarArea)"[\s\S]*?"data"[\s\S]*?})/i;
 
                     let match = text.match(tagRegex) || text.match(codeRegex) || text.match(rawRegex);
+                    
                     if (match) {
                         try {
-                            let fullBlock = match[0];
-                            let jsonContent = match[1] || match[0];
+                            let fullBlock = match[0]; // The whole string to remove
+                            let jsonContent = match[1] || match[0]; // The JSON part
+                            
+                            // Cleanup JSON
                             jsonContent = jsonContent.replace(/```json/gi, '').replace(/```/g, '').trim();
                             
-                            const firstBrace = jsonContent.indexOf('{');
-                            const lastBrace = jsonContent.lastIndexOf('}');
-                            if (firstBrace !== -1 && lastBrace !== -1) {
-                                jsonContent = jsonContent.substring(firstBrace, lastBrace + 1);
-                                chartConfig = JSON.parse(jsonContent);
-                                text = text.replace(fullBlock, ''); 
-                            }
+                            // Parse
+                            chartConfig = JSON.parse(jsonContent);
+                            
+                            // CRITICAL: Remove the code block from the text so it doesn't print
+                            text = text.replace(fullBlock, '').trim(); 
+                            
                         } catch (e) { console.error("Chart parsing failed:", e); }
                     }
 
