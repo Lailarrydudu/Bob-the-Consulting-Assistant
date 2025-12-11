@@ -1403,22 +1403,20 @@
                             systemInstruction: { 
                             parts: [{ text: `You are Duvallo, a professional consulting engine. 
                             
-                            **CRITICAL: CITATION TOOL IS INVISIBLE**
-                            Although you have Google Search, the user CANNOT see the automatic citations it generates.
-                            You MUST manually write every link in the text using Markdown.
-                            *   ❌ Bad: "Apple stock is up." (User sees no proof)
-                            *   ✅ Good: "Apple stock is up [Yahoo Finance](https://finance.yahoo.com)."
-                            *   **Requirement:** Append [Source Name](URL) immediately after every fact.
+                            **CRITICAL: CITATION RULES**
+                            1. You CANNOT use the automatic tool output. You MUST manually write citations.
+                            2. **Format:** Use Markdown links: [Source Name](URL).
+                            3. **Placement:** Put the link *immediately* after the fact.
+                            4. **NO** Footnotes. **NO** "Sources:" lists at the bottom. Inline only.
                             
                             **CRITICAL: CHARTING RULES**
-                            1. If asked to visualize, output valid JSON wrapped in <chart> tags.
-                            2. **IMPORTANT:** Do NOT put trailing commas after the last item in a list/object. This breaks the parser.
-                            3. Structure: { "type": "bar", "data": {...}, "options": {...} }
+                            1. To visualize data, output a JSON block wrapped in <chart> tags.
+                            2. **SYNTAX WARNING:** Do NOT use trailing commas. (e.g., Bad: [1, 2,]. Good: [1, 2]).
+                            3. Structure: <chart>{ "type": "bar", "data": {...}, "options": {...} }</chart>
                             
                             **VISUAL FORMATTING:**
                             1. Use Numbered Lists (1., 2.) for main points.
-                            2. Put Bold Titles on their own line.
-                            3. Put explanations on a new line.
+                            2. Bold Titles on the first line. Explanation on the new line.
 
                             **CRITICAL FILE INSTRUCTION:** 
                             If the user message contains text labeled "BEGIN FILE CONTENT", treat the text as the file itself. Read it, analyze it, reference it.
@@ -1485,20 +1483,28 @@
                 let processedText = rawText;
 
                 // STRATEGY A: Standard Markdown [Name](URL)
-                // We use a replacer function to swap them for tokens
+                // The regex handles optional spaces: [Name] ( URL )
                 processedText = processedText.replace(/\[([^\]]+)\]\s*\(\s*(https?:\/\/[^\s)]+)\s*\)/g, (match, name, url) => {
-                    let cleanUrl = url.replace(/[.,;!]+$/, ""); // Strip trailing punctuation
-                    if (cleanUrl.includes('grounding-api')) return name; // Skip Google internal links
+                    // CLEANUP: Remove trailing dots, commas, parens
+                    let cleanUrl = url.replace(/[.,;!)]+$/, ""); 
+                    
+                    // FILTER: Skip Google internal redirects (The 404 cause)
+                    if (cleanUrl.includes('grounding-api') || cleanUrl.includes('googleusercontent')) {
+                        return name; // Return just text, no link
+                    }
                     
                     sources.push({ name, url: cleanUrl });
                     return `%%CIT_${sources.length - 1}%%`;
                 });
 
-                // STRATEGY B: Raw URLs (e.g. "Source: https://bloomberg.com")
-                // Only runs if Strategy A didn't catch it
+                // STRATEGY B: Raw URLs (Fallback if AI forgets brackets)
+                // Matches https://... until a space
                 processedText = processedText.replace(/(?<!\()https?:\/\/[^\s)]+/g, (url) => {
                     let cleanUrl = url.replace(/[.,;!]+$/, "");
-                    let name = new URL(cleanUrl).hostname.replace('www.', '');
+                    
+                    // Create a name from the domain (e.g., "bloomberg.com")
+                    let name;
+                    try { name = new URL(cleanUrl).hostname.replace('www.', ''); } catch(e) { name = "Source"; }
                     
                     sources.push({ name, url: cleanUrl });
                     return `%%CIT_${sources.length - 1}%%`;
@@ -1598,10 +1604,11 @@
                         text = text.replace(suggestionRegex, '').trim(); 
                     }
 
-                    // 2. EXTRACT CHART (Robust & Fault Tolerant)
-                    // Regex: Matches <chart>... and grabs everything until </chart> OR end of string ($)
+                    // 2. EXTRACT CHART (Self-Healing)
+                    // Matches <chart>... and grabs everything until </chart> OR end of string
                     const tagRegex = /(?:<<<CHART>>>|<chart>|<<>>)\s*([\s\S]*?)(?:<<<END_CHART>>>|<\/chart>|<<>>|$)/i;
                     const codeRegex = /```json\s*({[\s\S]*?"type"[\s\S]*?"data"[\s\S]*?})\s*```/i;
+                    // Fallback for raw JSON without tags
                     const rawRegex = /({[\s\n]*"type"[\s\n]*:[\s\n]*"(?:bar|line|pie|doughnut|radar|polarArea)"[\s\S]*?"data"[\s\S]*?})/i;
 
                     let match = text.match(tagRegex) || text.match(codeRegex) || text.match(rawRegex);
@@ -1611,27 +1618,28 @@
                             let fullBlock = match[0]; 
                             let jsonContent = match[1] || match[0];
                             
-                            // CLEANUP: Remove Markdown and HTML artifacts
+                            // CLEANUP: Remove Markdown artifacts
                             jsonContent = jsonContent.replace(/```json/gi, '').replace(/```/g, '').trim();
                             
-                            // REPAIR: Remove trailing commas (Common AI Error: "item", } -> "item" })
+                            // REPAIR 1: Remove trailing commas (The #1 AI Error)
                             jsonContent = jsonContent.replace(/,(\s*[}\]])/g, '$1');
 
-                            // Locate the actual JSON object boundaries
+                            // REPAIR 2: Find actual JSON boundaries (ignore text outside brackets)
                             const firstBrace = jsonContent.indexOf('{');
                             const lastBrace = jsonContent.lastIndexOf('}');
                             
                             if (firstBrace !== -1 && lastBrace !== -1) {
                                 jsonContent = jsonContent.substring(firstBrace, lastBrace + 1);
+                                
+                                // Attempt Parse
                                 chartConfig = JSON.parse(jsonContent);
                                 
-                                // REMOVE: Strip the raw code from the text bubble
+                                // SUCCESS: Remove the raw code from the text bubble
                                 text = text.replace(fullBlock, '').trim(); 
                             }
                         } catch (e) { 
                             console.error("Chart parsing failed:", e);
-                            console.log("Failed JSON Content:", match[1]); // Log for debugging
-                            // Note: If parsing fails, we leave the text so the user can at least see the data.
+                            // Note: If parsing STILL fails, we leave the text so the user sees the data.
                         }
                     }
 
