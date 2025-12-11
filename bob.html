@@ -837,6 +837,17 @@
                 1. **Hypothesis:** Based on what I said, what is the likely core issue?
                 2. **The "5 Whys" Probe:** Ask 3-5 sharp, probing questions to uncover the root cause.
                 3. **Data Request:** What specific data points (revenue, churn, traffic) do you need to confirm this?`,
+              
+                'Initial Project Charter Draft': `Act as a Project Manager. Draft a "Project Charter" to align stakeholders.
+                
+                **PROJECT GOAL:** [DESCRIBE PROJECT - e.g., Launching a new App]
+                
+                **OUTPUT FORMAT:**
+                1. **Problem Statement:** Why are we doing this? (The Pain)
+                2. **Project Objective:** What does "Done" look like? (The Gain)
+                3. **In-Scope vs. Out-of-Scope:** Define the boundaries clearly.
+                4. **Key Stakeholders:** Who needs to approve this?
+                5. **Success Metrics (KPIs):** List 3 quantifiable metrics.`,
 
                 'Industry Trends Snapshot': `Act as a Market Researcher. I want to run a real-time "Industry Snapshot" analysis on [INPUT SPECIFIC INDUSTRY].
                 
@@ -853,17 +864,6 @@
                    * Data point with citation.
                 3. **Disruption Alert:** (What is killing the old way?)
                    * Evidence with citation.`,
-              
-                'Initial Project Charter Draft': `Act as a Project Manager. Draft a "Project Charter" to align stakeholders.
-                
-                **PROJECT GOAL:** [DESCRIBE PROJECT - e.g., Launching a new App]
-                
-                **OUTPUT FORMAT:**
-                1. **Problem Statement:** Why are we doing this? (The Pain)
-                2. **Project Objective:** What does "Done" look like? (The Gain)
-                3. **In-Scope vs. Out-of-Scope:** Define the boundaries clearly.
-                4. **Key Stakeholders:** Who needs to approve this?
-                5. **Success Metrics (KPIs):** List 3 quantifiable metrics.`,
               
                 'Problem Statement Draft': `Act as a Strategy Consultant. Refine my messy thoughts into a precise "McKinsey-Style" Problem Statement.
                 
@@ -1143,9 +1143,9 @@
 
             // 1. Initial Setup + The "Interviewer"
             populateMenu('initialSetupMenu', [
-                'Guided Diagnostic (Interviewer Mode)', // NEW
-                'Industry Trends Snapshot', 
+                'Guided Diagnostic (Interviewer Mode)',
                 'Initial Project Charter Draft', 
+                'Industry Trends Snapshot', 
                 'Problem Statement Draft'
             ]);
 
