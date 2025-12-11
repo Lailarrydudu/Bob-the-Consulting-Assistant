@@ -836,21 +836,36 @@
                 2. **The "5 Whys" Probe:** Ask 3-5 sharp, probing questions to uncover the root cause.
                 3. **Data Request:** What specific data points (revenue, churn, traffic) do you need to confirm this?`,
 
-                'Industry Trends Snapshot': `Act as a Market Researcher. I need a real-time "Industry Snapshot" analysis.
-                
-                **INSTRUCTION:**
-                1. If I have NOT specified an industry above, STOP and ask me: "Which industry would you like me to analyze?"
-                2. If I HAVE specified an industry (e.g., "[EV Cars]"), proceed immediately.
-                3. Use Google Search to find data from the last 12 months.
-                4. **MANDATORY:** Cite every fact with [Source Name](URL).
+                'Industry Trends Snapshot': `Act as a Market Researcher. Use Google Search to find **real-time, quantified data** regarding [input SPECIFIED INDUSTRY]. 
 
-                **OUTPUT FORMAT:**
-                1. **Macro-Trend:** (The biggest shift happening now)
-                   * Data point with citation.
-                2. **Micro-Trend:** (Niche but growing)
-                   * Data point with citation.
-                3. **Disruption Alert:** (What is killing the old way?)
-                   * Evidence with citation.`,
+                **CRITICAL REQUIREMENT:** Cite every data point using inline markdown: [Source Name](URL).
+                
+                The output MUST strictly follow this high-readability structure:
+                
+                # [Industry] Trends Snapshot
+                [Concise executive summary of the current industry landscape]
+                
+                ## Key Trend 1: [Trend Name]
+                * [Specific data point/statistic with citation]
+                * [Impact on business models]
+                * [Future projection]
+                
+                ## Key Trend 2: [Trend Name]
+                * [Specific data point/statistic with citation]
+                * [Impact on business models]
+                * [Future projection]
+                ... (3 to 5 trends total)
+                
+                ## Summary Table
+                (Ensure there is an empty line before the table)
+                
+                | Trend | Primary Impact |
+                |---|---|
+                | [Trend 1 Name] | * [Impact bullet 1] <br> * [Impact bullet 2] |
+                | [Trend 2 Name] | * [Impact bullet 1] <br> * [Impact bullet 2] |
+                | [Trend 3 Name] | * [Impact bullet 1] <br> * [Impact bullet 2] |
+                
+                The table must be the last element of the response before the suggestions block.`,
               
                 'Initial Project Charter Draft': `Act as a Project Manager. Draft a "Project Charter" to align stakeholders.
                 
@@ -1439,10 +1454,11 @@
                             Append a hidden suggestion block at the end: ---SUGGESTIONS---Action 1|Action 2
                             
                             **RULES FOR SOURCES (CRITICAL):**
-                            1. You MUST search for external data.
-                            2. You MUST cite sources using this EXACT format: [Source Name](URL)
-                            3. DO NOT use footnotes like [1] or [2]. 
-                            4. Example: "The market grew by 5% [Bloomberg](https://bloomberg.com)."
+                            1. You MUST search for external data using Google Search.
+                            2. You MUST cite sources manually in the text.
+                            3. FORMAT: Put the citation immediately after the statement. 
+                            4. SYNTAX: [Source Name](URL)
+                            5. DO NOT use XML tags like <citation>. DO NOT use footnotes [1]. Use Markdown Links only.
                             
                             **RULES FOR CHARTS:**
                             If asked to visualize, output JSON in <chart> tags following Chart.js format.` }]
@@ -1498,7 +1514,7 @@
             // 1. Process Text: Extract links and replace with SAFE TOKENS
             function processCitations(rawText) {
                 // Regex to find standard Markdown links [Name](URL)
-                const regex = /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g;
+                const regex = /\[([^\]]+)\]\s*\(\s*(https?:\/\/[^\s)]+)\s*\)/g;
                 
                 let sources = [];
                 
