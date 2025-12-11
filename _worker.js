@@ -8,7 +8,8 @@ export default {
         headers: {
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': 'POST, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type',
+          // WE ADDED 'Authorization' TO THE LIST BELOW:
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization', 
         },
       });
     }
@@ -57,7 +58,10 @@ export default {
       } catch (error) {
         return new Response(JSON.stringify({ error: error.message }), {
           status: 500,
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+          headers: { 
+              'Content-Type': 'application/json', 
+              'Access-Control-Allow-Origin': '*' 
+          },
         });
       }
     }
