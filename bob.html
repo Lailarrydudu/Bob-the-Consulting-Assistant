@@ -255,29 +255,31 @@
             max-height: 150px;
         }
     /* === CITATION STYLES (Fixed Visibility) === */
+        /* === CITATION STYLES (High Visibility) === */
         .citation-link {
-            display: inline-flex; /* Better for icons */
+            display: inline-flex;
             align-items: center;
             justify-content: center;
             vertical-align: middle;
-            margin-left: 4px;
-            background-color: #374151; /* Dark Gray Background */
-            border: 1px solid #4b5563; /* Slight border for contrast */
+            margin-left: 5px;
+            background-color: #065f46; /* Dark Green */
+            border: 1px solid #34d399; /* Bright Green Border */
             border-radius: 50%;
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
             cursor: pointer;
             transition: all 0.2s;
+            position: relative;
+            top: -2px; /* Slight superscript alignment */
         }
         .citation-link:hover { 
-            background-color: #10b981; /* Emerald Green on Hover */
-            border-color: #10b981;
-            color: white;
+            background-color: #10b981; /* Brighter Green */
+            transform: scale(1.1);
         }
         .citation-link svg { 
-            width: 12px; 
-            height: 12px; 
-            color: #d1d5db; /* Light Gray Icon */
+            width: 10px; 
+            height: 10px; 
+            color: #ffffff; /* White Icon */
         }
         .citation-link:hover svg {
             color: white;
@@ -836,36 +838,21 @@
                 2. **The "5 Whys" Probe:** Ask 3-5 sharp, probing questions to uncover the root cause.
                 3. **Data Request:** What specific data points (revenue, churn, traffic) do you need to confirm this?`,
 
-                'Industry Trends Snapshot': `Act as a Market Researcher. Use Google Search to find **real-time, quantified data** regarding [input SPECIFIED INDUSTRY]. 
+                'Industry Trends Snapshot': `Act as a Market Researcher. I want to run a real-time "Industry Snapshot" analysis on [INPUT SPECIFIC INDUSTRY].
+                
+                **INSTRUCTION:**
+                1. If I have NOT specified an industry above, STOP and ask me: "Which industry would you like me to analyze?"
+                2. If I HAVE specified an industry (e.g., "[EV Cars]"), proceed immediately.
+                3. Use Google Search to find data from the last 12 months.
+                4. **MANDATORY:** Cite every fact with [Source Name](URL).
 
-                **CRITICAL REQUIREMENT:** Cite every data point using inline markdown: [Source Name](URL).
-                
-                The output MUST strictly follow this high-readability structure:
-                
-                # [Industry] Trends Snapshot
-                [Concise executive summary of the current industry landscape]
-                
-                ## Key Trend 1: [Trend Name]
-                * [Specific data point/statistic with citation]
-                * [Impact on business models]
-                * [Future projection]
-                
-                ## Key Trend 2: [Trend Name]
-                * [Specific data point/statistic with citation]
-                * [Impact on business models]
-                * [Future projection]
-                ... (3 to 5 trends total)
-                
-                ## Summary Table
-                (Ensure there is an empty line before the table)
-                
-                | Trend | Primary Impact |
-                |---|---|
-                | [Trend 1 Name] | * [Impact bullet 1] <br> * [Impact bullet 2] |
-                | [Trend 2 Name] | * [Impact bullet 1] <br> * [Impact bullet 2] |
-                | [Trend 3 Name] | * [Impact bullet 1] <br> * [Impact bullet 2] |
-                
-                The table must be the last element of the response before the suggestions block.`,
+                **OUTPUT FORMAT:**
+                1. **Macro-Trend:** (The biggest shift happening now)
+                   * Data point with citation.
+                2. **Micro-Trend:** (Niche but growing)
+                   * Data point with citation.
+                3. **Disruption Alert:** (What is killing the old way?)
+                   * Evidence with citation.`,
               
                 'Initial Project Charter Draft': `Act as a Project Manager. Draft a "Project Charter" to align stakeholders.
                 
@@ -1434,13 +1421,16 @@
                             parts: [{ text: `You are Duvallo, a professional consulting engine. 
                             
                             **CRITICAL VISUAL FORMATTING RULES:**
-                            1. **Structure:** You MUST use Numbered Lists (1., 2., 3.) for main points. Do NOT use bullet points.
+                            1. **Structure:** Use Numbered Lists (1., 2., 3.) for main points.
                             2. **Headings:** Start every numbered item with a **Bold Title**.
-                            3. **Content:** Put the explanation on a NEW LINE (paragraph) under the title.
+                            3. **Spacing:** Put the explanation on a NEW LINE (paragraph) under the title.
                             
-                            *Example of Required Output:*
-                            1. **Market Expansion**
-                               The market is growing rapidly...
+                            **CRITICAL CITATION RULES (MANDATORY):**
+                            1. You have access to Google Search. USE IT for every claim.
+                            2. You MUST cite sources inline immediately after the fact.
+                            3. **FORMAT:** [Source Name](URL)
+                            4. Example: "Nvidia stock is $185 [Yahoo Finance](https://finance.yahoo.com)."
+                            5. DO NOT use footnotes like [1]. DO NOT output a list of sources at the end. Inline only.
                             
                             **CRITICAL FILE INSTRUCTION:** 
                             If the user message contains text labeled "BEGIN FILE CONTENT", treat the text as the file itself. Read it, analyze it, reference it.
@@ -1452,13 +1442,6 @@
 
                             **RULES FOR SUGGESTIONS:**
                             Append a hidden suggestion block at the end: ---SUGGESTIONS---Action 1|Action 2
-                            
-                            **RULES FOR SOURCES (CRITICAL):**
-                            1. You MUST search for external data using Google Search.
-                            2. You MUST cite sources manually in the text.
-                            3. FORMAT: Put the citation immediately after the statement. 
-                            4. SYNTAX: [Source Name](URL)
-                            5. DO NOT use XML tags like <citation>. DO NOT use footnotes [1]. Use Markdown Links only.
                             
                             **RULES FOR CHARTS:**
                             If asked to visualize, output JSON in <chart> tags following Chart.js format.` }]
