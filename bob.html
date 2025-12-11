@@ -1486,12 +1486,23 @@
                 
                 // Replace Markdown links with tokens like %%CIT_0%%
                 const textWithTokens = rawText.replace(regex, (match, name, url) => {
-                    // FIX: Aggressively remove trailing dots, commas, or semicolons from the URL
-                    // This prevents "https://google.com." (which causes 404)
+                    // FIX 1: Aggressively remove trailing dots/commas
                     let cleanUrl = url.replace(/[.,;!]+$/, ""); 
                     
-                    sources.push({ name, url: cleanUrl });
-                    return `%%CIT_${sources.length - 1}%%`;
+                    // FIX 2: Filter out "Google Grounding" redirects (The 404 cause)
+                    if (cleanUrl.includes('grounding-api-redirect') || cleanUrl.includes('googleusercontent')) {
+                        // If it's a broken internal link, return just the Name (no link)
+                        return name; 
+                    }
+
+                    // FIX 3: Ensure it's a real URL
+                    try {
+                        new URL(cleanUrl); 
+                        sources.push({ name, url: cleanUrl });
+                        return `%%CIT_${sources.length - 1}%%`;
+                    } catch (e) {
+                        return match; // Return original text if invalid
+                    }
                 });
 
                 return { textWithTokens, sources };
@@ -1535,7 +1546,33 @@
                 `;
             }
 
-            // 3. Render Message Bubble (Modified for Instant Loading)
+            // Helper: Create the "Remix" Action Bar
+            function createRemixBar(originalText) {
+                const bar = document.createElement('div');
+                bar.className = 'mt-3 pt-3 border-t border-gray-700 flex gap-2 overflow-x-auto';
+                
+                const actions = [
+                    { label: '📊 Slide Deck', prompt: 'Convert the above response into a Slide Deck structure (Slide 1, Slide 2...). Use Markdown.' },
+                    { label: '📝 Memo', prompt: 'Rewrite the above response as a formal Executive Memo (To/From/Date/Subject).' },
+                    { label: '🧠 Quiz', prompt: 'Create a 3-question multiple choice quiz to test my understanding of this analysis.' }
+                ];
+
+                actions.forEach(action => {
+                    const btn = document.createElement('button');
+                    btn.className = 'px-3 py-1.5 bg-gray-700 hover:bg-emerald-600 text-xs font-medium text-gray-300 hover:text-white rounded-lg transition whitespace-nowrap';
+                    btn.textContent = action.label;
+                    btn.onclick = () => {
+                        userInput.value = action.prompt;
+                        autoResizeTextarea(userInput);
+                        userInput.focus();
+                    };
+                    bar.appendChild(btn);
+                });
+                
+                return bar;
+            }
+
+            // 3. Render Message Bubble (Modified with Remix Bar)
             function createMessageBubble(text, sender, animate = true) {
                 const wrapper = document.createElement('div');
                 wrapper.classList.add('flex', 'message-wrapper', 'mb-4', sender === 'user' ? 'justify-end' : 'justify-start');
@@ -1594,7 +1631,7 @@
                     wrapper.appendChild(bubble);
                     chatArea.appendChild(wrapper);
 
-                    // --- HELPER TO RENDER FINAL CONTENT ---
+                    // --- HELPER TO RENDER FINAL CONTENT (Instant Mode) ---
                     const renderFinalContent = () => {
                         // A. Text
                         let renderedHtml = marked.parse(textWithTokens);
@@ -1659,6 +1696,10 @@
                         copyBtn.textContent = 'Copy';
                         copyBtn.onclick = () => { navigator.clipboard.writeText(text); copyBtn.textContent = 'Copied!'; setTimeout(() => copyBtn.textContent = 'Copy', 1500); };
                         bubble.appendChild(copyBtn);
+
+                        // E. REMIX BAR (NEW FEATURE)
+                        bubble.appendChild(createRemixBar(text));
+
                         chatArea.scrollTop = chatArea.scrollHeight;
                     };
 
@@ -1683,7 +1724,8 @@
                                 chatArea.scrollTop = chatArea.scrollHeight; 
                                 requestAnimationFrame(typeWriter); 
                             } else {
-                                renderFinalContent(); // Finish
+                                // FINISH ANIMATION -> CALL RENDERER
+                                renderFinalContent(); 
                             }
                         }
                         typeWriter();
