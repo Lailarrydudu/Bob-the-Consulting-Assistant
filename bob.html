@@ -1416,38 +1416,56 @@
 
                 // 6. API Call
                 try {
+                    // --- PHASE 5 SECURITY: Get Token ---
+                    // 1. Check if user is logged in via Clerk
+                    if (!window.Clerk || !window.Clerk.session) {
+                        alert("Security Error: You are not logged in.");
+                        window.location.href = "login.html"; // Kick them out
+                        return;
+                    }
+
+                    // 2. Get the secure Token
+                    const token = await window.Clerk.session.getToken();
+
+                    // 3. Send Request with Token
                     const response = await fetch('/api/chat', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}` // <--- Attaching the ID Card here
+                        },
                         body: JSON.stringify({
                             systemInstruction: { 
                             parts: [{ text: `You are Duvallo, a professional consulting engine. 
                             
-                            **CRITICAL: CITATION RULES**
-                            1. You CANNOT use the automatic tool output. You MUST manually write citations.
-                            2. **Format:** Use Markdown links: [Source Name](URL).
-                            3. **Placement:** Put the link *immediately* after the fact.
-                            4. **NO** Footnotes. **NO** "Sources:" lists at the bottom. Inline only.
+                            **CRITICAL VISUAL FORMATTING RULES:**
+                            1. **Structure:** You MUST use Numbered Lists (1., 2., 3.) for main points. Do NOT use bullet points.
+                            2. **Headings:** Start every numbered item with a **Bold Title**.
+                            3. **Spacing:** Put the explanation on a NEW LINE (paragraph) under the title.
                             
-                            **CRITICAL: CHARTING RULES**
-                            1. To visualize data, output a JSON block wrapped in <chart> tags.
-                            2. **SYNTAX WARNING:** Do NOT use trailing commas. (e.g., Bad: [1, 2,]. Good: [1, 2]).
-                            3. Structure: <chart>{ "type": "bar", "data": {...}, "options": {...} }</chart>
+                            *Example of Required Output:*
+                            1. **Market Expansion**
+                               The market is growing rapidly...
                             
-                            **VISUAL FORMATTING:**
-                            1. Use Numbered Lists (1., 2.) for main points.
-                            2. Bold Titles on the first line. Explanation on the new line.
-
                             **CRITICAL FILE INSTRUCTION:** 
                             If the user message contains text labeled "BEGIN FILE CONTENT", treat the text as the file itself. Read it, analyze it, reference it.
 
                             **CURRENT MODE: ${responseDepth ? responseDepth.toUpperCase() : "STANDARD"}**
 
                             ${responseDepth === 'brief' ? "STRICT CONSTRAINT: Output max 150 words." : ""}
-                            ${responseDepth === 'deep' ? "Provide a comprehensive Deep Dive." : ""}
+                            ${responseDepth === 'deep' ? "Provide a comprehensive Deep Dive with external data search." : ""}
 
                             **RULES FOR SUGGESTIONS:**
-                            Append a hidden suggestion block at the end: ---SUGGESTIONS---Action 1|Action 2` }]
+                            Append a hidden suggestion block at the end: ---SUGGESTIONS---Action 1|Action 2
+                            
+                            **RULES FOR SOURCES (CRITICAL):**
+                            1. You MUST search for external data using Google Search.
+                            2. You MUST cite sources using this EXACT format: [Source Name](URL)
+                            3. DO NOT use footnotes like [1] or [2]. 
+                            4. Example: "The market grew by 5% [Bloomberg](https://bloomberg.com)."
+                            
+                            **RULES FOR CHARTS:**
+                            If asked to visualize, output JSON in <chart> tags following Chart.js format.` }]
                         },
                             messages: chatHistory
                         })
