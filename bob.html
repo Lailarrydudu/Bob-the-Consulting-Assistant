@@ -1403,31 +1403,33 @@
                             systemInstruction: { 
                             parts: [{ text: `You are Duvallo, a professional consulting engine. 
                             
-                            **CRITICAL VISUAL FORMATTING RULES:**
-                            1. **Structure:** Use Numbered Lists (1., 2., 3.) for main points.
-                            2. **Headings:** Start every numbered item with a **Bold Title**.
-                            3. **Spacing:** Put the explanation on a NEW LINE (paragraph) under the title.
+                            **CRITICAL: CITATION TOOL IS INVISIBLE**
+                            Although you have Google Search, the user CANNOT see the automatic citations it generates.
+                            You MUST manually write every link in the text using Markdown.
+                            *   ❌ Bad: "Apple stock is up." (User sees no proof)
+                            *   ✅ Good: "Apple stock is up [Yahoo Finance](https://finance.yahoo.com)."
+                            *   **Requirement:** Append [Source Name](URL) immediately after every fact.
                             
-                            **CRITICAL CITATION RULES (MANDATORY):**
-                            1. You have access to Google Search. USE IT for every claim.
-                            2. You MUST cite sources inline immediately after the fact.
-                            3. **FORMAT:** [Source Name](URL)
-                            4. Example: "Nvidia stock is $185 [Yahoo Finance](https://finance.yahoo.com)."
-                            5. DO NOT use footnotes like [1]. DO NOT output a list of sources at the end. Inline only.
+                            **CRITICAL: CHARTING RULES**
+                            1. If asked to visualize, output valid JSON wrapped in <chart> tags.
+                            2. **IMPORTANT:** Do NOT put trailing commas after the last item in a list/object. This breaks the parser.
+                            3. Structure: { "type": "bar", "data": {...}, "options": {...} }
                             
+                            **VISUAL FORMATTING:**
+                            1. Use Numbered Lists (1., 2.) for main points.
+                            2. Put Bold Titles on their own line.
+                            3. Put explanations on a new line.
+
                             **CRITICAL FILE INSTRUCTION:** 
                             If the user message contains text labeled "BEGIN FILE CONTENT", treat the text as the file itself. Read it, analyze it, reference it.
 
                             **CURRENT MODE: ${responseDepth ? responseDepth.toUpperCase() : "STANDARD"}**
 
                             ${responseDepth === 'brief' ? "STRICT CONSTRAINT: Output max 150 words." : ""}
-                            ${responseDepth === 'deep' ? "Provide a comprehensive Deep Dive with external data search." : ""}
+                            ${responseDepth === 'deep' ? "Provide a comprehensive Deep Dive." : ""}
 
                             **RULES FOR SUGGESTIONS:**
-                            Append a hidden suggestion block at the end: ---SUGGESTIONS---Action 1|Action 2
-                            
-                            **RULES FOR CHARTS:**
-                            If asked to visualize, output JSON in <chart> tags following Chart.js format.` }]
+                            Append a hidden suggestion block at the end: ---SUGGESTIONS---Action 1|Action 2` }]
                         },
                             messages: chatHistory
                         })
@@ -1596,9 +1598,9 @@
                         text = text.replace(suggestionRegex, '').trim(); 
                     }
 
-                    // 2. EXTRACT CHART (Robust & Whitespace Tolerant)
-                    // We look for <chart> tags or just raw JSON starting with { "type":
-                    const tagRegex = /<chart>([\s\S]*?)<\/chart>/i;
+                    // 2. EXTRACT CHART (Robust & Fault Tolerant)
+                    // Regex: Matches <chart>... and grabs everything until </chart> OR end of string ($)
+                    const tagRegex = /(?:<<<CHART>>>|<chart>|<<>>)\s*([\s\S]*?)(?:<<<END_CHART>>>|<\/chart>|<<>>|$)/i;
                     const codeRegex = /```json\s*({[\s\S]*?"type"[\s\S]*?"data"[\s\S]*?})\s*```/i;
                     const rawRegex = /({[\s\n]*"type"[\s\n]*:[\s\n]*"(?:bar|line|pie|doughnut|radar|polarArea)"[\s\S]*?"data"[\s\S]*?})/i;
 
@@ -1606,19 +1608,31 @@
                     
                     if (match) {
                         try {
-                            let fullBlock = match[0]; // The whole string to remove
-                            let jsonContent = match[1] || match[0]; // The JSON part
+                            let fullBlock = match[0]; 
+                            let jsonContent = match[1] || match[0];
                             
-                            // Cleanup JSON
+                            // CLEANUP: Remove Markdown and HTML artifacts
                             jsonContent = jsonContent.replace(/```json/gi, '').replace(/```/g, '').trim();
                             
-                            // Parse
-                            chartConfig = JSON.parse(jsonContent);
+                            // REPAIR: Remove trailing commas (Common AI Error: "item", } -> "item" })
+                            jsonContent = jsonContent.replace(/,(\s*[}\]])/g, '$1');
+
+                            // Locate the actual JSON object boundaries
+                            const firstBrace = jsonContent.indexOf('{');
+                            const lastBrace = jsonContent.lastIndexOf('}');
                             
-                            // CRITICAL: Remove the code block from the text so it doesn't print
-                            text = text.replace(fullBlock, '').trim(); 
-                            
-                        } catch (e) { console.error("Chart parsing failed:", e); }
+                            if (firstBrace !== -1 && lastBrace !== -1) {
+                                jsonContent = jsonContent.substring(firstBrace, lastBrace + 1);
+                                chartConfig = JSON.parse(jsonContent);
+                                
+                                // REMOVE: Strip the raw code from the text bubble
+                                text = text.replace(fullBlock, '').trim(); 
+                            }
+                        } catch (e) { 
+                            console.error("Chart parsing failed:", e);
+                            console.log("Failed JSON Content:", match[1]); // Log for debugging
+                            // Note: If parsing fails, we leave the text so the user can at least see the data.
+                        }
                     }
 
                     // 3. CITATION PROCESSING
