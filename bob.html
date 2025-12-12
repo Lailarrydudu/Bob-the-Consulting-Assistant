@@ -277,119 +277,100 @@
             resize: none; 
             max-height: 150px;
         }
-    /* === CITATION STYLES (Fixed Visibility) === */
-        /* === CITATION STYLES (High Visibility) === */
-        .citation-link {
+    /* === GEMINI-STYLE CITATIONS === */
+        
+        /* 1. The "Sources" Chip Container at bottom */
+        .source-chip-container {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #374151; /* Gray-700 separator */
+            animation: fade-in 0.5s ease-out;
+        }
+
+        /* 2. The Toggle Button ("G" icon + "5 Sources") */
+        .source-toggle-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background-color: #1f2937; /* Gray-800 */
+            border: 1px solid #4b5563; /* Gray-600 */
+            border-radius: 100px; /* Pill shape */
+            padding: 6px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #d1d5db;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .source-toggle-btn:hover {
+            background-color: #374151;
+            color: white;
+            border-color: #10b981; /* Emerald border on hover */
+        }
+
+        /* 3. The Expandable Panel */
+        .source-panel {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        /* 4. Individual Source Cards */
+        .source-link-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            background-color: #111827; /* Darker bg */
+            border: 1px solid #374151;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #e5e7eb;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        .source-link-card:hover {
+            background-color: #1f2937;
+            border-color: #10b981;
+        }
+
+        .source-favicon {
+            width: 16px; height: 16px; border-radius: 2px; background: white; padding: 1px;
+        }
+
+        /* 5. Inline Footnotes [1] */
+        .inline-source-pin {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            vertical-align: middle;
-            margin-left: 5px;
-            background-color: #065f46; /* Dark Green */
-            border: 1px solid #34d399; /* Bright Green Border */
-            border-radius: 50%;
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-            transition: all 0.2s;
-            position: relative;
-            top: -2px; /* Slight superscript alignment */
-        }
-        .citation-link:hover { 
-            background-color: #10b981; /* Brighter Green */
-            transform: scale(1.1);
-        }
-        .citation-link svg { 
-            width: 10px; 
-            height: 10px; 
-            color: #ffffff; /* White Icon */
-        }
-        .citation-link:hover svg {
-            color: white;
-        }
-
-        .sources-section {
-            margin-top: 1rem;
-            border-top: 1px solid #374151;
-            padding-top: 0.75rem;
-        }
-
-        .sources-toggle-btn {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            background-color: transparent;
-            border: 1px solid #6b7280;
-            color: #d1d5db;
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-        .sources-toggle-btn:hover { background-color: #374151; border-color: #9ca3af; }
-
-        .sources-list {
-            margin-top: 0.75rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-        .source-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.8rem;
-            color: #93c5fd;
+            background-color: #1f2937;
+            border: 1px solid #4b5563;
+            color: #10b981; /* Green Text */
+            font-size: 10px;
+            font-weight: bold;
+            border-radius: 4px;
+            min-width: 16px;
+            height: 16px;
+            padding: 0 4px;
+            vertical-align: super;
+            margin-left: 2px;
+            cursor: help;
             text-decoration: none;
-            padding: 0.25rem;
-            border-radius: 0.25rem;
-        }
-        .source-item:hover { background-color: #1f2937; text-decoration: underline; }
-        .source-favicon { width: 16px; height: 16px; background-color: #fff; border-radius: 2px; }
-
-        /* Suggestion/Action Chips (The Iceberg) */
-        .suggestion-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-top: 1rem;
-            padding-top: 0.75rem;
-            border-top: 1px solid #374151; /* Gray-700 */
-            animation: fade-in 0.5s ease-in-out;
-        }
-        
-        .suggestion-chip {
-            background-color: #111827; /* Gray-900 */
-            border: 1px solid #059669; /* Emerald-600 */
-            color: #d1fae5; /* Emerald-100 */
-            padding: 0.4rem 0.8rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            cursor: pointer;
             transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
         }
-        
-        .suggestion-chip:hover {
-            background-color: #059669;
+        .inline-source-pin:hover {
+            background-color: #10b981;
             color: white;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 6px -1px rgba(5, 150, 105, 0.3);
+            border-color: #10b981;
         }
 
-        .suggestion-label {
-            color: #9ca3af;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 0.25rem;
-            display: block;
-            width: 100%;
-        }
+        /* 6. Suggestion Chips */
+        .suggestion-container { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid #374151; }
+        .suggestion-chip { background-color: #111827; border: 1px solid #059669; color: #d1fae5; padding: 0.4rem 0.8rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 0.4rem; }
+        .suggestion-chip:hover { background-color: #059669; color: white; transform: translateY(-1px); }
+        .suggestion-label { color: #9ca3af; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; display: block; width: 100%; }
         
         @keyframes fade-in {
             from { opacity: 0; transform: translateY(5px); }
@@ -810,8 +791,8 @@
                         // 1. Restore to memory
                         chatHistory.push(msg); 
                         
-                        // 2. Restore to UI (NO ANIMATION)
-                        createMessageBubble(msg.parts[0].text, msg.role, false);
+                        // 2. Restore to UI (NO ANIMATION) -> PASS METADATA
+                        createMessageBubble(msg.parts[0].text, msg.role, false, msg.metadata);
                     });
                     
                     // Scroll to bottom
@@ -1512,38 +1493,48 @@
 
                 // 6. API Call
                 try {
-                    // Clerk Security
-                    if (!window.Clerk || !window.Clerk.session) {
-                        alert("Security Error: You are not logged in.");
-                        window.location.href = "login.html";
-                        return;
-                    }
+                    // Security
+                    if (!window.Clerk || !window.Clerk.session) throw new Error("Please log in.");
                     const token = await window.Clerk.session.getToken();
 
-                    // Context Vault Injection
+                    // --- PHASE 2: BUILD CONTEXT VAULT ---
                     let vaultContext = "";
                     if (projectFiles.length > 0) {
-                        vaultContext = "\n\n=== 🗄️ PROJECT KNOWLEDGE VAULT ===\n";
+                        vaultContext = "\n\n=== 🗄️ PROJECT KNOWLEDGE VAULT (ACTIVE FILES) ===\n";
                         projectFiles.forEach((file, idx) => {
+                            // Limit file size slightly to prevent token overflow
                             vaultContext += `\n--- FILE ${idx+1}: ${file.name} ---\n${file.content.substring(0, 60000)}\n---------------------------\n`;
                         });
-                        vaultContext += "\n=== END VAULT ===\n\nINSTRUCTION: Use the Vault data. Cite specific files if used: [File: filename.pdf].";
+                        vaultContext += "\n=== END VAULT ===\n\nINSTRUCTION: Use the data in the Vault above to answer questions. Cite specific files if used (e.g. [File: Annual_Report.pdf]).";
                     }
 
+                    // API CALL
                     const response = await fetch('/api/chat', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                         body: JSON.stringify({
                             systemInstruction: { 
                             parts: [{ text: `You are Duvallo, a professional consulting engine. 
+                            
                             ${vaultContext}
+
+                            **CRITICAL: CITATION RULES (GEMINI STYLE)**
+                            1. You have Google Search. USE IT.
+                            2. **DO NOT** write Markdown links like [Source](url).
+                            3. **INSTEAD:** Cite facts using simple footnotes like [1], [2], [3] at the end of sentences.
+                            4. Google Grounding will handle the actual links automatically.
+                            5. Example Output: "Nvidia revenue grew 15% [1]. Analysts project further growth [2]."
+
                             **VISUAL RULES:**
-                            1. Use Numbered Lists (1., 2.) for main points.
-                            2. **Bold Titles** for every point.
-                            **CITATION RULES:**
-                            1. **Web:** The system handles citations. You focus on the answer.
-                            2. **Files:** Cite vault files as: [File: filename.pdf]
-                            **CHARTS:** Output JSON in <chart> tags.` }]
+                            1. Use Numbered Lists.
+                            2. **Bold Titles** on own line.
+                            3. If asked to visualize, output JSON in <chart> tags.
+                            
+                            **FILE RULES:**
+                            If using a Vault file, cite as: [File: Filename.pdf]
+                            
+                            **SUGGESTIONS:**
+                            Append hidden block: ---SUGGESTIONS---Action 1|Action 2` }]
                         },
                             messages: chatHistory
                         })
@@ -1551,44 +1542,30 @@
 
                     const result = await response.json();
                     
+                    // Cleanup
                     clearInterval(thinkingInterval);
                     if(chatArea.contains(loadingBubble)) chatArea.removeChild(loadingBubble);
 
-                    if (result.error) {
-                        createMessageBubble(`⚠️ **System Error:** ${result.error.message}`, "model");
+                    if(result.error) {
+                        createMessageBubble("Error: " + result.error.message, "model");
                     } else {
-                        let text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
-                        
-                        // --- 🔥 CRITICAL FIX: METADATA INJECTOR ---
-                        // This grabs the REAL links from Google and forces them into the text
-                        const metadata = result?.candidates?.[0]?.groundingMetadata;
-                        
-                        if (metadata && metadata.groundingChunks) {
-                            let addedLinks = new Set();
-                            text += "\n\n**Sources:** "; // Start a sources line
-                            
-                            metadata.groundingChunks.forEach(chunk => {
-                                if (chunk.web && chunk.web.uri && chunk.web.title) {
-                                    if (!addedLinks.has(chunk.web.uri)) {
-                                        addedLinks.add(chunk.web.uri);
-                                        // Append in the format our parser expects: [Title](URL)
-                                        text += ` [${chunk.web.title}](${chunk.web.uri})`;
-                                    }
-                                }
-                            });
-                        }
-                        // ------------------------------------------
+                        const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                        const metadata = result?.candidates?.[0]?.groundingMetadata; // <--- THIS IS THE KEY
 
                         if (text) {
-                            chatHistory.push({ role: "model", parts: [{ text: text }] });
-                            createMessageBubble(text, "model", true);
+                            // SAVE METADATA TO HISTORY SO IT LOADS ON REFRESH
+                            chatHistory.push({ role: "model", parts: [{ text: text }], metadata: metadata });
+                            
+                            // RENDER WITH METADATA
+                            createMessageBubble(text, "model", true, metadata);
                         } else {
                             createMessageBubble("⚠️ Duvallo returned an empty response.", "model");
                         }
                     }
-                } catch (error) {
+
+                } catch(e) {
                     if(chatArea.contains(loadingBubble)) chatArea.removeChild(loadingBubble);
-                    createMessageBubble(`❌ **Connection Error:** ${error.message}`, "model");
+                    createMessageBubble("Error: " + e.message, "model");
                 }
 
                 userInput.disabled = false;
@@ -1610,318 +1587,187 @@
             // 3. UTILITIES (Bubbles, Prompts, Clear, Etc)
             // ============================================
             
-           // --- CITATION HELPER FUNCTIONS (SAFE TOKEN STRATEGY) ---
-            
-            // 1. Process Text: Extract links and replace with SAFE TOKENS
-            function processCitations(rawText) {
-                let sources = [];
-                let processedText = rawText;
-
-                // STRATEGY A: Detect FILE References [File: Name.pdf]
-                // We convert these into citations with type: 'file'
-                processedText = processedText.replace(/\[File:\s*([^\]]+)\]/g, (match, filename) => {
-                    sources.push({ name: filename.trim(), url: null, type: 'file' });
-                    return `%%CIT_${sources.length - 1}%%`;
-                });
-
-                // STRATEGY B: Standard Markdown [Name](URL)
-                processedText = processedText.replace(/\[([^\]]+)\]\s*\(\s*(https?:\/\/[^\s)]+)\s*\)/g, (match, name, url) => {
-                    let cleanUrl = url.replace(/[.,;!)]+$/, ""); 
-                    if (cleanUrl.includes('grounding-api') || cleanUrl.includes('googleusercontent')) return name;
-                    
-                    sources.push({ name: name, url: cleanUrl, type: 'web' });
-                    return `%%CIT_${sources.length - 1}%%`;
-                });
-
-                // STRATEGY C: Raw URLs (Fallback)
-                processedText = processedText.replace(/(?<!\()https?:\/\/[^\s)]+/g, (url) => {
-                    let cleanUrl = url.replace(/[.,;!]+$/, "");
-                    let name;
-                    try { name = new URL(cleanUrl).hostname.replace('www.', ''); } catch(e) { name = "Source"; }
-                    
-                    sources.push({ name: name, url: cleanUrl, type: 'web' });
-                    return `%%CIT_${sources.length - 1}%%`;
-                });
-
-                return { textWithTokens: processedText, sources };
-            }
-
-            // 2. Generate the Footer List
-            function createSourcesFooter(sources) {
-                if (!sources || sources.length === 0) return '';
+           // --- NEW: RENDER GROUNDING SOURCES (THE GEMINI WAY) ---
+            function renderGroundingSources(metadata) {
+                if (!metadata || !metadata.groundingChunks || metadata.groundingChunks.length === 0) return '';
                 
-                // Remove duplicates based on URL
-                const uniqueSources = Array.from(new Map(sources.map(s => [s.url, s])).values());
-
-                const listItems = uniqueSources.map((s, i) => {
-                    let faviconUrl = '';
-                    try {
-                        const urlObj = new URL(s.url);
-                        faviconUrl = `https://www.google.com/s2/favicons?domain=${urlObj.hostname}`;
-                    } catch (e) {
-                        faviconUrl = 'https://www.google.com/s2/favicons?domain=google.com'; 
+                // 1. Deduplicate & Extract URLs
+                const uniqueSources = new Map();
+                metadata.groundingChunks.forEach(chunk => {
+                    if (chunk.web && chunk.web.uri) {
+                        uniqueSources.set(chunk.web.uri, chunk.web.title);
                     }
+                });
 
-                    return `
-                    <a href="${s.url}" target="_blank" rel="noopener noreferrer" class="source-item">
-                        <span class="text-gray-500 font-mono text-xs">[${i+1}]</span>
-                        <img src="${faviconUrl}" class="source-favicon" onerror="this.style.display='none'">
-                        ${s.name}
-                    </a>
+                if (uniqueSources.size === 0) return '';
+
+                let listItems = '';
+                let index = 1;
+                uniqueSources.forEach((title, url) => {
+                    // Try to extract root domain for favicon
+                    let domain = "google.com";
+                    try { domain = new URL(url).hostname; } catch(e){}
+                    
+                    listItems += `
+                        <a href="${url}" target="_blank" rel="noopener noreferrer" class="source-link-card">
+                            <span class="text-gray-500 font-mono">[${index}]</span>
+                            <img src="https://www.google.com/s2/favicons?domain=${domain}" class="source-favicon">
+                            <div class="truncate w-full">${title}</div>
+                        </a>
                     `;
-                }).join('');
+                    index++;
+                });
 
-                const listId = `sources-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+                // Generate a unique ID for toggle
+                const id = `src-${Date.now()}-${Math.random().toString(36).substr(2,5)}`;
 
                 return `
-                    <div class="sources-section">
-                        <button class="sources-toggle-btn" onclick="document.getElementById('${listId}').classList.toggle('hidden')">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg>
-                            Sources
+                    <div class="source-chip-container">
+                        <button class="source-toggle-btn" onclick="document.getElementById('${id}').classList.toggle('hidden')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21a9 9 0 0 0 9-9c0-4.97-4.03-9-9-9a9 9 0 0 0-9 9c0 4.97 4.03 9 9 9Z"/><path d="M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M20 12h2"/><path d="M2 12h2"/></svg>
+                            ${uniqueSources.size} Sources
                         </button>
-                        <div id="${listId}" class="sources-list hidden">${listItems}</div>
+                        <div id="${id}" class="source-panel hidden">
+                            ${listItems}
+                        </div>
                     </div>
                 `;
             }
 
-            // Helper: Create the "Remix" Action Bar
-            function createRemixBar(originalText) {
+            // --- HELPER: REMIX ACTION BAR ---
+            function createRemixBar(text) {
                 const bar = document.createElement('div');
                 bar.className = 'mt-3 pt-3 border-t border-gray-700 flex gap-2 overflow-x-auto';
-                
                 const actions = [
-                    { label: '📊 Slide Deck', prompt: 'Convert the above response into a Slide Deck structure (Slide 1, Slide 2...). Use Markdown.' },
-                    { label: '📝 Memo', prompt: 'Rewrite the above response as a formal Executive Memo (To/From/Date/Subject).' },
-                    { label: '🧠 Quiz', prompt: 'Create a 3-question multiple choice quiz to test my understanding of this analysis.' }
+                    { label: '📊 Slide Deck', prompt: 'Convert this into a Slide Deck format.' },
+                    { label: '📝 Memo', prompt: 'Rewrite this as a Formal Executive Memo.' },
+                    { label: '🧠 Quiz', prompt: 'Create a quiz to test knowledge on this.' }
                 ];
-
-                actions.forEach(action => {
+                actions.forEach(a => {
                     const btn = document.createElement('button');
-                    btn.className = 'px-3 py-1.5 bg-gray-700 hover:bg-emerald-600 text-xs font-medium text-gray-300 hover:text-white rounded-lg transition whitespace-nowrap';
-                    btn.textContent = action.label;
-                    btn.onclick = () => {
-                        userInput.value = action.prompt;
-                        autoResizeTextarea(userInput);
-                        userInput.focus();
-                    };
+                    btn.className = 'px-3 py-1 bg-gray-700 hover:bg-emerald-600 text-xs rounded transition whitespace-nowrap';
+                    btn.textContent = a.label;
+                    btn.onclick = () => { userInput.value = a.prompt; autoResizeTextarea(userInput); userInput.focus(); };
                     bar.appendChild(btn);
                 });
-                
                 return bar;
             }
 
-            // 3. Render Message Bubble (Modified with Remix Bar)
-            function createMessageBubble(text, sender, animate = true) {
+            // --- MAIN RENDERER ---
+            function createMessageBubble(text, sender, animate = true, metadata = null) {
                 const wrapper = document.createElement('div');
                 wrapper.classList.add('flex', 'message-wrapper', 'mb-4', sender === 'user' ? 'justify-end' : 'justify-start');
                 
                 const bubble = document.createElement('div');
-                bubble.classList.add(
-                    'rounded-xl', 'p-4', 'max-w-2xl', 'shadow-md',
-                    sender === 'user' ? 'bg-emerald-600' : 'bg-gray-800',
-                    'text-gray-100'
-                );
-                bubble.style.overflow = 'hidden'; 
-
-                // --- LOGIC FOR AI MESSAGES (Model) ---
+                bubble.classList.add('rounded-xl', 'p-4', 'max-w-2xl', 'shadow-md', 
+                    sender === 'user' ? 'bg-emerald-600' : 'bg-gray-800', 'text-gray-100');
+                
                 if (sender === 'model') {
+                    // 1. Chart Extraction
                     let chartConfig = null;
-                    let suggestionsList = [];
-                    
-                    // 1. EXTRACT SUGGESTIONS
-                    const suggestionRegex = /---SUGGESTIONS---([\s\S]*)$/;
-                    const suggestionMatch = text.match(suggestionRegex);
-                    if (suggestionMatch) {
-                        const rawSuggestions = suggestionMatch[1];
-                        suggestionsList = rawSuggestions.split('|').map(s => s.trim()).filter(s => s);
-                        text = text.replace(suggestionRegex, '').trim(); 
-                    }
-
-                    // 2. EXTRACT CHART (Self-Healing)
-                    // Matches <chart>... and grabs everything until </chart> OR end of string
                     const tagRegex = /(?:<<<CHART>>>|<chart>|<<>>)\s*([\s\S]*?)(?:<<<END_CHART>>>|<\/chart>|<<>>|$)/i;
-                    const codeRegex = /```json\s*({[\s\S]*?"type"[\s\S]*?"data"[\s\S]*?})\s*```/i;
-                    // Fallback for raw JSON without tags
-                    const rawRegex = /({[\s\n]*"type"[\s\n]*:[\s\n]*"(?:bar|line|pie|doughnut|radar|polarArea)"[\s\S]*?"data"[\s\S]*?})/i;
-
-                    let match = text.match(tagRegex) || text.match(codeRegex) || text.match(rawRegex);
-                    
-                    if (match) {
+                    let match = text.match(tagRegex);
+                    if(match) {
                         try {
-                            let fullBlock = match[0]; 
-                            let jsonContent = match[1] || match[0];
-                            
-                            // CLEANUP: Remove Markdown artifacts
-                            jsonContent = jsonContent.replace(/```json/gi, '').replace(/```/g, '').trim();
-                            
-                            // REPAIR 1: Remove trailing commas (The #1 AI Error)
-                            jsonContent = jsonContent.replace(/,(\s*[}\]])/g, '$1');
-
-                            // REPAIR 2: Find actual JSON boundaries (ignore text outside brackets)
-                            const firstBrace = jsonContent.indexOf('{');
-                            const lastBrace = jsonContent.lastIndexOf('}');
-                            
-                            if (firstBrace !== -1 && lastBrace !== -1) {
-                                jsonContent = jsonContent.substring(firstBrace, lastBrace + 1);
-                                
-                                // Attempt Parse
-                                chartConfig = JSON.parse(jsonContent);
-                                
-                                // SUCCESS: Remove the raw code from the text bubble
-                                text = text.replace(fullBlock, '').trim(); 
+                            // Basic JSON cleanup
+                            let jsonStr = match[1].replace(/```json/gi,'').replace(/```/g,'').trim().replace(/,(\s*[}\]])/g, '$1');
+                            let start = jsonStr.indexOf('{'), end = jsonStr.lastIndexOf('}');
+                            if(start > -1 && end > -1) {
+                                chartConfig = JSON.parse(jsonStr.substring(start, end+1));
+                                text = text.replace(match[0], ''); 
                             }
-                        } catch (e) { 
-                            console.error("Chart parsing failed:", e);
-                            // Note: If parsing STILL fails, we leave the text so the user sees the data.
-                        }
+                        } catch(e) { console.error("Chart Error", e); }
                     }
 
-                    // 3. CITATION PROCESSING
-                    const { textWithTokens, sources } = processCitations(text);
-                    
-                    // 4. PREPARE UI
+                    // 2. Suggestions
+                    let suggestions = [];
+                    let sugMatch = text.match(/---SUGGESTIONS---([\s\S]*)$/);
+                    if(sugMatch) {
+                        suggestions = sugMatch[1].split('|').map(s=>s.trim());
+                        text = text.replace(/---SUGGESTIONS---([\s\S]*)$/, '');
+                    }
+
                     const contentDiv = document.createElement('div');
-                    contentDiv.classList.add('ai-response-content', 'mb-2');
+                    contentDiv.className = 'ai-response-content mb-2';
                     bubble.appendChild(contentDiv);
-                    wrapper.appendChild(bubble);
-                    chatArea.appendChild(wrapper);
-
-                    // --- HELPER TO RENDER FINAL CONTENT (Instant Mode) ---
-                    const renderFinalContent = () => {
-                        // A. Text
-                        let renderedHtml = marked.parse(textWithTokens);
-                        // Swap tokens for icons during typing
-                        sources.forEach((source, index) => {
-                            let iconHtml;
-                            if (source.type === 'file') {
-                                // FILE ICON (No Link)
-                                iconHtml = `<span class="citation-link" title="Context File: ${source.name}" style="cursor: help;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.51-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg></span>`;
-                            } else {
-                                // WEB LINK (Standard Pin)
-                                iconHtml = `<a href="${source.url}" target="_blank" rel="noopener noreferrer" class="citation-link" title="Source: ${source.name}"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg></a>`;
-                            }
-                            const token = `%%CIT_${index}%%`;
-                            renderedHtml = renderedHtml.split(token).join(iconHtml);
+                    
+                    // --- FOOTNOTE REPLACER ---
+                    // Replace [1] with <sup class="inline-source-pin">1</sup>
+                    // This creates the visual pin inline.
+                    const replaceFootnotes = (raw) => {
+                        // 1. Handle Web Footnotes [1], [2]
+                        let processed = raw.replace(/\[(\d+)\]/g, (match, num) => {
+                            // Link to the toggle button technically, but for MVP just a visual indicator
+                            return `<a href="#" onclick="return false;" class="inline-source-pin" title="Source ${num}">${num}</a>`;
                         });
-                        contentDiv.innerHTML = renderedHtml;
+                        
+                        // 2. Handle File References [File: Name.pdf] (Keep this from before)
+                        processed = processed.replace(/\[File:\s*([^\]]+)\]/g, `<span class="citation-link" title="Context File" style="cursor: help; background:#374151; border:1px solid #6b7280;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:12px;height:12px;"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.51-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg></span>`);
 
-                        // B. Chart
-                        if (chartConfig) {
-                            const chartContainer = document.createElement('div');
-                            chartContainer.style.marginTop = '1rem';
-                            chartContainer.style.backgroundColor = '#1f2937';
-                            chartContainer.style.padding = '10px';
-                            chartContainer.style.borderRadius = '8px';
-                            if(animate) chartContainer.classList.add('animate-fade-in');
+                        return processed;
+                    };
+
+                    const renderFinal = () => {
+                        contentDiv.innerHTML = marked.parse(replaceFootnotes(text));
+                        
+                        // Render Chart
+                        if(chartConfig) {
+                            const cvsContainer = document.createElement('div');
+                            cvsContainer.style.marginTop = '10px';
+                            cvsContainer.style.height = '300px';
                             const canvas = document.createElement('canvas');
-                            chartContainer.appendChild(canvas);
-                            bubble.appendChild(chartContainer);
-                            new Chart(canvas, {
-                                type: chartConfig.type,
-                                data: chartConfig.data,
-                                options: {
-                                    responsive: true,
-                                    plugins: { legend: { labels: { color: 'white' } } },
-                                    scales: {
-                                        x: { display: chartConfig.type!=='pie'&&chartConfig.type!=='doughnut', ticks: {color:'white'}, grid: {color:'#374151'} },
-                                        y: { display: chartConfig.type!=='pie'&&chartConfig.type!=='doughnut', ticks: {color:'white'}, grid: {color:'#374151'} }
-                                    }
-                                }
-                            });
+                            cvsContainer.appendChild(canvas);
+                            bubble.appendChild(cvsContainer);
+                            new Chart(canvas, { type: chartConfig.type, data: chartConfig.data, options: { responsive: true, maintainAspectRatio: false } });
                         }
 
-                        // C. Suggestions
-                        if (suggestionsList.length > 0) {
-                            const suggContainer = document.createElement('div');
-                            suggContainer.className = 'suggestion-container';
-                            const label = document.createElement('span');
-                            label.className = 'suggestion-label';
-                            label.textContent = "Recommended Next Steps";
-                            suggContainer.appendChild(label);
-                            suggestionsList.forEach(sugg => {
-                                const btn = document.createElement('button');
-                                btn.className = 'suggestion-chip';
-                                btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3 h-3"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /></svg> ${sugg}`;
-                                btn.onclick = () => { userInput.value = sugg; autoResizeTextarea(userInput); userInput.focus(); };
-                                suggContainer.appendChild(btn);
-                            });
-                            bubble.appendChild(suggContainer);
+                        // Render Google Sources Chip
+                        if(metadata) {
+                            bubble.insertAdjacentHTML('beforeend', renderGroundingSources(metadata));
                         }
 
-                        // D. Footer & Copy
-                        if (sources.length > 0) {
-                            const footerDiv = document.createElement('div');
-                            footerDiv.innerHTML = createSourcesFooter(sources);
-                            bubble.appendChild(footerDiv);
+                        // Render Suggestions
+                        if(suggestions.length) {
+                             const sDiv = document.createElement('div');
+                             sDiv.className = 'flex flex-wrap gap-2 mt-2 pt-2 border-t border-gray-700';
+                             suggestions.forEach(s => {
+                                 const b = document.createElement('button');
+                                 b.className = 'text-xs bg-gray-900 border border-emerald-500 text-emerald-100 px-2 py-1 rounded hover:bg-emerald-900 transition';
+                                 b.textContent = s;
+                                 b.onclick = () => { userInput.value = s; sendMessage(); };
+                                 sDiv.appendChild(b);
+                             });
+                             bubble.appendChild(sDiv);
                         }
-                        const copyBtn = document.createElement('button');
-                        copyBtn.className = 'text-xs text-gray-400 hover:text-white mt-2 block ml-auto';
-                        copyBtn.textContent = 'Copy';
-                        copyBtn.onclick = () => { navigator.clipboard.writeText(text); copyBtn.textContent = 'Copied!'; setTimeout(() => copyBtn.textContent = 'Copy', 1500); };
-                        bubble.appendChild(copyBtn);
 
-                        // E. REMIX BAR (NEW FEATURE)
+                        // Render Remix Bar
                         bubble.appendChild(createRemixBar(text));
 
+                        wrapper.appendChild(bubble);
+                        chatArea.appendChild(wrapper);
                         chatArea.scrollTop = chatArea.scrollHeight;
                     };
 
-                    // 5. DECIDE: ANIMATE OR INSTANT?
-                    if (animate) {
+                    if(animate) {
                         let i = 0;
-                        const chunkSize = 3; 
-                        
-                        function typeWriter() {
-                            if (i < textWithTokens.length) {
-                                i += chunkSize;
-                                if (i > textWithTokens.length) i = textWithTokens.length;
-                                let currentRaw = textWithTokens.substring(0, i);
-                                let renderedHtml = marked.parse(currentRaw);
-                                
-                                // Swap tokens for icons during typing
-                                sources.forEach((source, index) => {
-                                    let iconHtml;
-                                    if (source.type === 'file') {
-                                        iconHtml = `<span class="citation-link" title="Context File: ${source.name}" style="cursor: help;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.51-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg></span>`;
-                                    } else {
-                                        iconHtml = `<a href="${source.url}" target="_blank" rel="noopener noreferrer" class="citation-link" title="Source: ${source.name}"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg></a>`;
-                                    }
-                                    const token = `%%CIT_${index}%%`;
-                                    renderedHtml = renderedHtml.split(token).join(iconHtml);
-                                });
-
-                                contentDiv.innerHTML = renderedHtml;
-                                chatArea.scrollTop = chatArea.scrollHeight; 
-                                requestAnimationFrame(typeWriter); 
+                        function type() {
+                            if(i < text.length) {
+                                i += 5;
+                                contentDiv.innerHTML = marked.parse(replaceFootnotes(text.substring(0, i)));
+                                requestAnimationFrame(type);
                             } else {
-                                // FINISH ANIMATION -> CALL RENDERER
-                                renderFinalContent(); 
+                                renderFinal();
                             }
                         }
-                        typeWriter();
+                        wrapper.appendChild(bubble);
+                        chatArea.appendChild(wrapper);
+                        type();
                     } else {
-                        // NO ANIMATION: Render everything instantly
-                        renderFinalContent();
+                        renderFinal();
                     }
 
                 } else {
-                    // USER MESSAGE
                     bubble.textContent = text;
-                    const actionsDiv = document.createElement('div');
-                    actionsDiv.className = 'user-action-container';
-                    const editBtn = document.createElement('button');
-                    editBtn.className = 'action-icon-btn';
-                    editBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>`;
-                    editBtn.onclick = () => { userInput.value = text; autoResizeTextarea(userInput); userInput.focus(); };
-
-                    const copyBtnUser = document.createElement('button');
-                    copyBtnUser.className = 'action-icon-btn';
-                    copyBtnUser.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v2.25A2.25 2.25 0 0113.5 22.5h-8.25a2.25 2.25 0 01-2.25-2.25v-8.25a2.25 2.25 0 012.25-2.25H5.25a2.25 2.25 0 012.25-2.25h1.5a.75.75 0 010 1.5H6a.75.75 0 00-.75.75v8.25c0 .414.336.75.75.75H13.5a.75.75 0 00.75-.75V11.25H18a.75.75 0 01.75.75v4.5a.75.75 0 00.75.75h1.5A2.25 2.25 0 0122.5 17.25v2.25a.75.75 0 001.5 0V17.25A2.25 2.25 0 00-2.25-2.25H15z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 7.125h-10.5a2.25 2.25 0 00-2.25 2.25v10.5" /></svg>`;
-                    copyBtnUser.onclick = () => { navigator.clipboard.writeText(text); };
-
-                    actionsDiv.appendChild(editBtn);
-                    actionsDiv.appendChild(copyBtnUser);
-                    wrapper.appendChild(actionsDiv);
                     wrapper.appendChild(bubble);
                     chatArea.appendChild(wrapper);
                     chatArea.scrollTop = chatArea.scrollHeight;
