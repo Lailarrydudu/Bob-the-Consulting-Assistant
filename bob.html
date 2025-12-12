@@ -2062,7 +2062,7 @@
             // 6. ARTIFACT ENGINE (PPTX & CSV)
             // ============================================
 
-            // --- A. POWERPOINT GENERATOR ---
+            // --- A. POWERPOINT GENERATOR (SMART TABLES) ---
             const exportPptxBtn = document.getElementById('exportPptxBtn');
             
             exportPptxBtn.onclick = async () => {
@@ -2077,56 +2077,125 @@
                     pptx.author = 'Duvallo';
                     pptx.company = 'Duvallo Strategy Engine';
                     
-                    // 1. Title Slide
-                    let slide = pptx.addSlide();
-                    slide.background = { color: '111827' }; // Dark Theme
-                    slide.addText(currentProjectNameDisplay.textContent || "Strategy Deck", { x: 1, y: 2, w: '80%', fontSize: 36, color: 'ffffff', bold: true });
-                    slide.addText(`Generated on ${new Date().toLocaleDateString()}`, { x: 1, y: 3, w: '80%', fontSize: 18, color: '10b981' });
+                    // 1. MASTER TITLE SLIDE
+                    let titleSlide = pptx.addSlide();
+                    titleSlide.background = { color: '111827' }; // Duvallo Dark
+                    titleSlide.addText(currentProjectNameDisplay.textContent || "Strategy Deck", { 
+                        x: 1, y: 2.5, w: '80%', fontSize: 44, color: 'ffffff', bold: true, fontFace: 'Arial' 
+                    });
+                    titleSlide.addText(`Generated on ${new Date().toLocaleDateString()}`, { 
+                        x: 1, y: 3.5, w: '80%', fontSize: 18, color: '10b981', fontFace: 'Arial' 
+                    });
 
-                    // 2. Parse Chat History into Slides
+                    // 2. CONTENT PARSING LOOP
                     chatHistory.forEach(msg => {
                         if (msg.role === 'model') {
                             let text = msg.parts[0].text;
                             
-                            // Remove Chart JSON from text
-                            text = text.replace(/(?:<<<CHART>>>|<chart>|<<>>)([\s\S]*?)(?:<<<END_CHART>>>|<\/chart>|<<>>|$)/gi, '');
+                            // CLEANUP: Remove Artifacts
+                            text = text.replace(/(?:<<<CHART>>>|<chart>|<<>>)([\s\S]*?)(?:<<<END_CHART>>>|<\/chart>|<<>>|$)/gi, ''); // Charts
+                            text = text.replace(/---SUGGESTIONS---([\s\S]*)$/gi, ''); // Suggestions
                             
-                            // Split by Markdown Headers (# or ##) to create new slides
+                            // Split by Headers to create distinct slides
                             let sections = text.split(/^#+\s/gm);
                             
                             sections.forEach(section => {
-                                if (section.trim().length > 10) {
-                                    let slide = pptx.addSlide();
-                                    slide.background = { color: 'ffffff' }; // Light slides for readability
+                                if (section.trim().length < 5) return; // Skip empty sections
+
+                                let slide = pptx.addSlide();
+                                slide.background = { color: 'ffffff' };
+                                
+                                // Parse Title vs Body
+                                let lines = section.trim().split('\n');
+                                let slideTitle = lines[0].replace(/\*\*/g, '').substring(0, 90);
+                                let bodyText = lines.slice(1).join('\n').trim();
+
+                                // HEADER
+                                slide.addText(slideTitle, { 
+                                    x: 0.5, y: 0.4, w: '90%', h: 0.8,
+                                    fontSize: 24, color: '064e3b', bold: true, fontFace: 'Arial',
+                                    border: { pt: 0, pb: 0, color: '10b981' } // Underline effect
+                                });
+                                slide.addShape(pptx.ShapeType.line, { x:0.5, y:1.1, w:'90%', h:0, line:'10b981', lineSize:2 });
+
+                                // --- SMART TABLE DETECTION ---
+                                // Check if the body contains a Markdown Table structure
+                                if (bodyText.includes('|') && bodyText.includes('---')) {
+                                    // It's a table! Let's parse it.
+                                    let tableRows = [];
+                                    let bodyLines = bodyText.split('\n');
+                                    let preTableText = "";
                                     
-                                    // Extract first line as title
-                                    let lines = section.trim().split('\n');
-                                    let title = lines[0].replace(/\*\*/g, '').substring(0, 80);
-                                    let body = lines.slice(1).join('\n').replace(/\*\*/g, ''); // Simple cleanup
+                                    bodyLines.forEach(line => {
+                                        line = line.trim();
+                                        // Detect table row (must start/end with | or contain |)
+                                        if (line.indexOf('|') > -1) {
+                                            // Skip separator lines (e.g. |---|---|)
+                                            if (line.includes('---')) return;
+                                            
+                                            // Extract cells
+                                            let cells = line.split('|').filter((cell, i, arr) => {
+                                                // Filter out empty start/end matches from split if pipe is at boundary
+                                                if (i === 0 && cell === "") return false;
+                                                if (i === arr.length - 1 && cell === "") return false;
+                                                return true;
+                                            }).map(c => c.trim().replace(/\*\*/g, '')); // Clean bolding
+                                            
+                                            tableRows.push(cells);
+                                        } else {
+                                            if (tableRows.length === 0 && line.length > 0) preTableText += line + "\n";
+                                        }
+                                    });
+
+                                    // Render Text before table (if any)
+                                    if (preTableText.length > 5) {
+                                        slide.addText(preTableText, { x: 0.5, y: 1.3, w: '90%', fontSize: 12, color: '374151' });
+                                    }
+
+                                    // Render Native Table
+                                    if (tableRows.length > 0) {
+                                        slide.addTable(tableRows, {
+                                            x: 0.5, y: (preTableText.length > 5 ? 2.5 : 1.5), w: '90%',
+                                            fill: { color: 'f3f4f6' },
+                                            border: { pt: 1, color: 'd1d5db' },
+                                            fontFace: 'Arial',
+                                            fontSize: 11,
+                                            color: '1f2937',
+                                            colW: [2.5, 2.5, 2.5, 2.5], // Auto-distribute approx width
+                                            rowH: 0.4,
+                                            // Header Styling (First Row)
+                                            autoPage: true,
+                                            newSlideStartY: 1.5
+                                        });
+                                    }
+
+                                } else {
+                                    // --- STANDARD TEXT SLIDE ---
+                                    // Clean up bullet points for PPT
+                                    let cleanBody = bodyText.replace(/\*\*/g, ''); // Remove bold markdown chars
                                     
-                                    // Header
-                                    slide.addText(title, { x: 0.5, y: 0.5, w: '90%', fontSize: 24, color: '111827', bold: true, border: { pt: 0, pb: '1', color: '10b981' } });
-                                    
-                                    // Body content
-                                    slide.addText(body, { x: 0.5, y: 1.5, w: '90%', h: '70%', fontSize: 14, color: '374151', valign: 'top' });
-                                    
-                                    // Logo Footer
-                                    slide.addText('Generated by Duvallo', { x: 11, y: 7, fontSize: 10, color: '9ca3af' });
+                                    slide.addText(cleanBody, { 
+                                        x: 0.5, y: 1.4, w: '90%', h: '75%', 
+                                        fontSize: 14, color: '374151', fontFace: 'Arial', 
+                                        valign: 'top', lineSpacing: 24 
+                                    });
                                 }
+                                
+                                // Footer
+                                slide.addText('Duvallo Strategy Engine', { x: 11, y: 7, fontSize: 10, color: '9ca3af', align: 'right' });
                             });
                         }
                     });
 
-                    pptx.writeFile({ fileName: `${(currentProjectNameDisplay.textContent || "Project").replace(/\s+/g, '_')}_Strategy_Deck.pptx` });
+                    pptx.writeFile({ fileName: `${(currentProjectNameDisplay.textContent || "Project").replace(/\s+/g, '_')}_Deck.pptx` });
                     
-                    // Create Success Bubble
-                    createMessageBubble("✅ **Slides Generated:** PowerPoint deck has been downloaded.", "model", false);
+                    createMessageBubble("✅ **Slides Generated:** Professional deck downloaded.", "model", false);
                     
                 } catch (e) {
                     console.error("PPTX Error:", e);
                     alert("Error generating slides. See console.");
                 } finally {
-                    exportPptxBtn.textContent = originalText; // Reset button
+                    exportPptxBtn.textContent = originalText;
                 }
             };
 
