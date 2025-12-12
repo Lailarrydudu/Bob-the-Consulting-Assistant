@@ -522,6 +522,23 @@
                 <div id="executionMenu" class="sidebar-menu hidden"></div>
             </div>
             
+            <!-- KNOWLEDGE VAULT (New) -->
+            <div class="mt-8 pt-4 border-t border-gray-700">
+                <div class="flex justify-between items-center mb-2 px-1">
+                    <span class="text-xs text-gray-500 font-bold uppercase tracking-widest">Context Vault</span>
+                    <!-- Hidden Vault Input -->
+                    <input type="file" id="vaultFileInput" style="display: none;" accept=".txt,.md,.csv,.json,.pdf">
+                    <button id="addVaultFileBtn" class="text-xs bg-emerald-900/50 text-emerald-400 border border-emerald-700 hover:bg-emerald-800 px-2 py-1 rounded transition">
+                        + Add Source
+                    </button>
+                </div>
+                <!-- List of Vault Files -->
+                <div id="vaultList" class="space-y-2 max-h-40 overflow-y-auto pr-1">
+                    <!-- Files will be injected here via JS -->
+                    <div id="emptyVaultMsg" class="text-xs text-gray-600 italic px-1">No context files loaded.</div>
+                </div>
+            </div>
+
             <!-- Current Project Indicator -->
             <div id="currentProjectBadge" class="mt-6 p-3 bg-gray-900 rounded border border-gray-700 text-center hidden">
                 <div class="text-xs text-gray-500">Active Project</div>
@@ -697,6 +714,13 @@
             let attachedFileContent = null;
             let attachedFileName = null;
 
+            // VAULT STATE
+            let projectFiles = []; // Array to store {name: "filename", content: "text content"}
+            const vaultFileInput = document.getElementById('vaultFileInput');
+            const addVaultFileBtn = document.getElementById('addVaultFileBtn');
+            const vaultList = document.getElementById('vaultList');
+            const emptyVaultMsg = document.getElementById('emptyVaultMsg');
+
             // SEMANTIC RESIZE STATE
             let responseDepth = null; // Default is null (Standard Mode)
             const modeBriefBtn = document.getElementById('modeBriefBtn');
@@ -770,6 +794,9 @@
                 
                 // 3. Update Badge
                 currentProjectBadge.classList.remove('hidden');
+                // Reset Vault for new session (MVP: Clears on load. Future: Load from DB)
+                projectFiles = []; 
+                renderVaultFiles();
                 currentProjectNameDisplay.textContent = name;
 
                 // 4. Load Chat History
@@ -1344,6 +1371,77 @@
                     }
                 }, 1800); // Show a new step every 1.8 seconds
             }
+
+            // ============================================
+            // 1.5. KNOWLEDGE VAULT LOGIC
+            // ============================================
+
+            function renderVaultFiles() {
+                vaultList.innerHTML = '';
+                if (projectFiles.length === 0) {
+                    vaultList.appendChild(emptyVaultMsg);
+                    return;
+                }
+
+                projectFiles.forEach((file, index) => {
+                    const item = document.createElement('div');
+                    item.className = "flex justify-between items-center bg-gray-800 p-2 rounded border border-gray-700 text-xs group";
+                    item.innerHTML = `
+                        <div class="flex items-center gap-2 overflow-hidden">
+                            <svg class="w-3 h-3 text-emerald-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                            <span class="text-gray-300 truncate">${file.name}</span>
+                        </div>
+                        <button onclick="removeVaultFile(${index})" class="text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition">
+                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                    `;
+                    vaultList.appendChild(item);
+                });
+            }
+
+            // Make remove function global
+            window.removeVaultFile = (index) => {
+                projectFiles.splice(index, 1);
+                renderVaultFiles();
+            };
+
+            // Handle Vault Button Click
+            if(addVaultFileBtn) addVaultFileBtn.addEventListener('click', () => vaultFileInput.click());
+
+            // Handle Vault File Selection
+            if(vaultFileInput) vaultFileInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                // Helper to add file to memory
+                const onVaultLoad = (content, name) => {
+                    projectFiles.push({ name: name, content: content });
+                    renderVaultFiles();
+                    createMessageBubble(`💾 **Added to Vault:** ${name} is now available for context.`, 'model', false);
+                };
+
+                // PDF Logic
+                if (file.type === 'application/pdf') {
+                    try {
+                        const arrayBuffer = await file.arrayBuffer();
+                        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                        let fullText = "";
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            const page = await pdf.getPage(i);
+                            const textContent = await page.getTextContent();
+                            fullText += textContent.items.map(item => item.str).join(' ');
+                        }
+                        onVaultLoad(fullText, file.name);
+                    } catch (error) { alert("Error reading PDF"); }
+                } else {
+                    // Text Logic
+                    const reader = new FileReader();
+                    reader.onload = (e) => onFileLoaded(e.target.result, file.name); // Using standard text loader
+                    // Note: Reusing the same text loader logic as main chat
+                    reader.readAsText(file);
+                }
+                vaultFileInput.value = ""; // Reset
+            });
             
             // SEND MESSAGE
             async function sendMessage() {
@@ -1440,43 +1538,47 @@
                 // 6. API Call
                 try {
                     // --- PHASE 5 SECURITY: Get Token ---
-                    // 1. Check if user is logged in via Clerk
                     if (!window.Clerk || !window.Clerk.session) {
                         alert("Security Error: You are not logged in.");
-                        window.location.href = "login.html"; // Kick them out
+                        window.location.href = "login.html";
                         return;
                     }
-
-                    // 2. Get the secure Token
                     const token = await window.Clerk.session.getToken();
 
-                    // 3. Send Request with Token
+                    // --- PHASE 2: BUILD CONTEXT VAULT ---
+                    let vaultContext = "";
+                    if (projectFiles.length > 0) {
+                        vaultContext = "\n\n=== 🗄️ PROJECT KNOWLEDGE VAULT (ACTIVE FILES) ===\n";
+                        projectFiles.forEach((file, idx) => {
+                            // Limit file size slightly to prevent token overflow
+                            vaultContext += `\n--- FILE ${idx+1}: ${file.name} ---\n${file.content.substring(0, 60000)}\n---------------------------\n`;
+                        });
+                        vaultContext += "\n=== END VAULT ===\n\nINSTRUCTION: Use the data in the Vault above to answer questions. Cite specific files if used (e.g. [File: Annual_Report.pdf]).";
+                    }
+
                     const response = await fetch('/api/chat', {
                         method: 'POST',
                         headers: { 
                             'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}` // <--- Attaching the ID Card here
+                            'Authorization': `Bearer ${token}`
                         },
                         body: JSON.stringify({
                             systemInstruction: { 
                             parts: [{ text: `You are Duvallo, a professional consulting engine. 
                             
-                            **CRITICAL: DYNAMIC FORMATTING RULES**
-                            1. **Default Text:** Use Numbered Lists (1., 2.) for explanations and prose.
-                            2. **Data/Comparisons:** If asked to "compare", "list prices", or "show data", you MUST use a Markdown Table.
+                            ${vaultContext}
+
+                            **CRITICAL VISUAL FORMATTING RULES:**
+                            1. **Structure:** You MUST use Numbered Lists (1., 2., 3.) for main points. Do NOT use bullet points.
+                            2. **Headings:** Start every numbered item with a **Bold Title**.
+                            3. **Spacing:** Put the explanation on a NEW LINE (paragraph) under the title.
                             
-                            **Example Table Output:**
-                            | Item | Price | Notes |
-                            |---|---|---|
-                            | A | $10 | Good |
-                            
-                            **CRITICAL: CITATION TOOL IS INVISIBLE**
-                            Although you have Google Search, the user CANNOT see the automatic citations.
-                            You MUST manually write every link in the text using Markdown.
-                            *   Requirement: Append [Source Name](URL) immediately after every fact.
-                            
-                            **RULES FOR CHARTS:**
-                            If asked to visualize trends (graphs), output JSON in <chart> tags following Chart.js format.
+                            **CRITICAL CITATION RULES (MANDATORY):**
+                            1. You have access to Google Search. USE IT for every claim.
+                            2. You MUST cite sources inline immediately after the fact.
+                            3. **FORMAT:** [Source Name](URL)
+                            4. Example: "Nvidia stock is $185 [Yahoo Finance](https://finance.yahoo.com)."
+                            5. DO NOT use footnotes like [1]. DO NOT output a list of sources at the end. Inline only.
                             
                             **CRITICAL FILE INSTRUCTION:** 
                             If the user message contains text labeled "BEGIN FILE CONTENT", treat the text as the file itself. Read it, analyze it, reference it.
@@ -1488,12 +1590,6 @@
 
                             **RULES FOR SUGGESTIONS:**
                             Append a hidden suggestion block at the end: ---SUGGESTIONS---Action 1|Action 2
-                            
-                            **RULES FOR SOURCES (CRITICAL):**
-                            1. You MUST search for external data using Google Search.
-                            2. You MUST cite sources using this EXACT format: [Source Name](URL)
-                            3. DO NOT use footnotes like [1] or [2]. 
-                            4. Example: "The market grew by 5% [Bloomberg](https://bloomberg.com)."
                             
                             **RULES FOR CHARTS:**
                             If asked to visualize, output JSON in <chart> tags following Chart.js format.` }]
