@@ -2062,7 +2062,7 @@
             // 6. ARTIFACT ENGINE (PPTX & CSV)
             // ============================================
 
-            // --- A. POWERPOINT GENERATOR (SMART TABLES) ---
+            // --- A. POWERPOINT GENERATOR (FIXED LAYOUT) ---
             const exportPptxBtn = document.getElementById('exportPptxBtn');
             
             exportPptxBtn.onclick = async () => {
@@ -2073,7 +2073,7 @@
                 
                 try {
                     let pptx = new PptxGenJS();
-                    pptx.layout = 'LAYOUT_16x9';
+                    pptx.layout = 'LAYOUT_16x9'; // 10 inches x 5.625 inches
                     pptx.author = 'Duvallo';
                     pptx.company = 'Duvallo Strategy Engine';
                     
@@ -2081,10 +2081,10 @@
                     let titleSlide = pptx.addSlide();
                     titleSlide.background = { color: '111827' }; // Duvallo Dark
                     titleSlide.addText(currentProjectNameDisplay.textContent || "Strategy Deck", { 
-                        x: 1, y: 2.5, w: '80%', fontSize: 44, color: 'ffffff', bold: true, fontFace: 'Arial' 
+                        x: 0.5, y: 2.0, w: '90%', fontSize: 44, color: 'ffffff', bold: true, fontFace: 'Arial', align: 'center' 
                     });
                     titleSlide.addText(`Generated on ${new Date().toLocaleDateString()}`, { 
-                        x: 1, y: 3.5, w: '80%', fontSize: 18, color: '10b981', fontFace: 'Arial' 
+                        x: 0.5, y: 3.0, w: '90%', fontSize: 18, color: '10b981', fontFace: 'Arial', align: 'center' 
                     });
 
                     // 2. CONTENT PARSING LOOP
@@ -2093,55 +2093,58 @@
                             let text = msg.parts[0].text;
                             
                             // CLEANUP: Remove Artifacts
-                            text = text.replace(/(?:<<<CHART>>>|<chart>|<<>>)([\s\S]*?)(?:<<<END_CHART>>>|<\/chart>|<<>>|$)/gi, ''); // Charts
-                            text = text.replace(/---SUGGESTIONS---([\s\S]*)$/gi, ''); // Suggestions
+                            text = text.replace(/(?:<<<CHART>>>|<chart>|<<>>)([\s\S]*?)(?:<<<END_CHART>>>|<\/chart>|<<>>|$)/gi, ''); 
+                            text = text.replace(/---SUGGESTIONS---([\s\S]*)$/gi, ''); 
                             
                             // Split by Headers to create distinct slides
                             let sections = text.split(/^#+\s/gm);
                             
                             sections.forEach(section => {
-                                if (section.trim().length < 5) return; // Skip empty sections
+                                if (section.trim().length < 5) return; 
 
                                 let slide = pptx.addSlide();
                                 slide.background = { color: 'ffffff' };
                                 
                                 // Parse Title vs Body
                                 let lines = section.trim().split('\n');
-                                let slideTitle = lines[0].replace(/\*\*/g, '').substring(0, 90);
+                                let rawTitle = lines[0].replace(/\*\*/g, '').trim();
+                                
+                                // --- TITLE CLEANER ---
+                                // Removes "Here is", "Below is", "Table of" to make it punchy
+                                let cleanTitle = rawTitle.replace(/^(Here is|Below is|The following is|A comparison of|Table of)\s+(a|an|the)?\s*/i, '');
+                                cleanTitle = cleanTitle.charAt(0).toUpperCase() + cleanTitle.slice(1); // Capitalize first letter
+                                // Truncate if too long to prevent overflow
+                                if (cleanTitle.length > 70) cleanTitle = cleanTitle.substring(0, 67) + "...";
+
                                 let bodyText = lines.slice(1).join('\n').trim();
 
-                                // HEADER
-                                slide.addText(slideTitle, { 
-                                    x: 0.5, y: 0.4, w: '90%', h: 0.8,
+                                // HEADER RENDERING (Adjusted Y positions)
+                                slide.addText(cleanTitle, { 
+                                    x: 0.5, y: 0.4, w: '90%', h: 0.6,
                                     fontSize: 24, color: '064e3b', bold: true, fontFace: 'Arial',
-                                    border: { pt: 0, pb: 0, color: '10b981' } // Underline effect
+                                    valign: 'middle'
                                 });
+                                // Green Separator Line (Moved down to y:1.1)
                                 slide.addShape(pptx.ShapeType.line, { x:0.5, y:1.1, w:'90%', h:0, line:'10b981', lineSize:2 });
 
-                                // --- SMART TABLE DETECTION ---
-                                // Check if the body contains a Markdown Table structure
+                                // --- SMART TABLE DETECTION & RESIZING ---
                                 if (bodyText.includes('|') && bodyText.includes('---')) {
-                                    // It's a table! Let's parse it.
                                     let tableRows = [];
                                     let bodyLines = bodyText.split('\n');
                                     let preTableText = "";
                                     
                                     bodyLines.forEach(line => {
                                         line = line.trim();
-                                        // Detect table row (must start/end with | or contain |)
                                         if (line.indexOf('|') > -1) {
-                                            // Skip separator lines (e.g. |---|---|)
-                                            if (line.includes('---')) return;
+                                            if (line.includes('---')) return; // Skip separator
                                             
-                                            // Extract cells
                                             let cells = line.split('|').filter((cell, i, arr) => {
-                                                // Filter out empty start/end matches from split if pipe is at boundary
                                                 if (i === 0 && cell === "") return false;
                                                 if (i === arr.length - 1 && cell === "") return false;
                                                 return true;
-                                            }).map(c => c.trim().replace(/\*\*/g, '')); // Clean bolding
+                                            }).map(c => c.trim().replace(/\*\*/g, '')); 
                                             
-                                            tableRows.push(cells);
+                                            if (cells.length > 0) tableRows.push(cells);
                                         } else {
                                             if (tableRows.length === 0 && line.length > 0) preTableText += line + "\n";
                                         }
@@ -2149,40 +2152,49 @@
 
                                     // Render Text before table (if any)
                                     if (preTableText.length > 5) {
-                                        slide.addText(preTableText, { x: 0.5, y: 1.3, w: '90%', fontSize: 12, color: '374151' });
+                                        slide.addText(preTableText, { x: 0.5, y: 1.3, w: '90%', h: 0.5, fontSize: 12, color: '374151' });
                                     }
 
-                                    // Render Native Table
+                                    // --- DYNAMIC COLUMN WIDTH CALCULATION ---
                                     if (tableRows.length > 0) {
+                                        const numCols = tableRows[0].length;
+                                        const slideWidth = 10.0; 
+                                        const margin = 1.0; // 0.5 left + 0.5 right
+                                        const usableWidth = slideWidth - margin;
+                                        
+                                        // Calculate width per column (equal distribution)
+                                        const colWidth = usableWidth / numCols;
+                                        const colWidthsArray = Array(numCols).fill(colWidth);
+
                                         slide.addTable(tableRows, {
-                                            x: 0.5, y: (preTableText.length > 5 ? 2.5 : 1.5), w: '90%',
+                                            x: 0.5, 
+                                            y: (preTableText.length > 5 ? 2.0 : 1.3), // Push down if text exists
+                                            w: usableWidth,
+                                            colW: colWidthsArray, // Apply dynamic widths
                                             fill: { color: 'f3f4f6' },
                                             border: { pt: 1, color: 'd1d5db' },
                                             fontFace: 'Arial',
-                                            fontSize: 11,
+                                            fontSize: 10, // Smaller font to fit data
                                             color: '1f2937',
-                                            colW: [2.5, 2.5, 2.5, 2.5], // Auto-distribute approx width
-                                            rowH: 0.4,
-                                            // Header Styling (First Row)
-                                            autoPage: true,
-                                            newSlideStartY: 1.5
+                                            autoPage: true, // Handle overflow to next slide
+                                            newSlideStartY: 1.5,
+                                            verbose: false
                                         });
                                     }
 
                                 } else {
                                     // --- STANDARD TEXT SLIDE ---
-                                    // Clean up bullet points for PPT
-                                    let cleanBody = bodyText.replace(/\*\*/g, ''); // Remove bold markdown chars
+                                    let cleanBody = bodyText.replace(/\*\*/g, ''); 
                                     
                                     slide.addText(cleanBody, { 
-                                        x: 0.5, y: 1.4, w: '90%', h: '75%', 
+                                        x: 0.5, y: 1.3, w: '90%', h: '75%', 
                                         fontSize: 14, color: '374151', fontFace: 'Arial', 
-                                        valign: 'top', lineSpacing: 24 
+                                        valign: 'top', lineSpacing: 20, bullet: { type: 'bullet', code: '2022' } 
                                     });
                                 }
                                 
                                 // Footer
-                                slide.addText('Duvallo Strategy Engine', { x: 11, y: 7, fontSize: 10, color: '9ca3af', align: 'right' });
+                                slide.addText('Duvallo Strategy Engine', { x: 0.5, y: 5.25, w:'90%', fontSize: 9, color: '9ca3af', align: 'right' });
                             });
                         }
                     });
