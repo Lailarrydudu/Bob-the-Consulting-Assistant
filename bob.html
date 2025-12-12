@@ -1605,10 +1605,32 @@
                     if (result.error) {
                         createMessageBubble(`⚠️ **System Error:** ${result.error.message}`, "model");
                     } else {
-                        const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                        let text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                        
+                        // --- NEW: FORCE INJECT GOOGLE SEARCH SOURCES ---
+                        // Gemini returns real links in 'groundingMetadata'. We extract them and append to text.
+                        const metadata = result?.candidates?.[0]?.groundingMetadata;
+                        
+                        if (metadata && metadata.groundingChunks) {
+                            let addedLinks = new Set(); // Prevent duplicates
+                            
+                            // Loop through the search results provided by Google
+                            metadata.groundingChunks.forEach(chunk => {
+                                if (chunk.web && chunk.web.uri && chunk.web.title) {
+                                    if (!addedLinks.has(chunk.web.uri)) {
+                                        addedLinks.add(chunk.web.uri);
+                                        // Append in the exact format our Citation Engine expects: [Name](URL)
+                                        // We add a space to ensure it doesn't merge with the last word.
+                                        text += ` [${chunk.web.title}](${chunk.web.uri})`;
+                                    }
+                                }
+                            });
+                        }
+                        // ------------------------------------------------
+
                         if (text) {
                             chatHistory.push({ role: "model", parts: [{ text: text }] });
-                    createMessageBubble(text, "model", true);
+                            createMessageBubble(text, "model", true);
                         } else {
                             createMessageBubble("⚠️ Duvallo returned an empty response.", "model");
                         }
