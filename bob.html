@@ -1573,12 +1573,10 @@
                             2. **Headings:** Start every numbered item with a **Bold Title**.
                             3. **Spacing:** Put the explanation on a NEW LINE (paragraph) under the title.
                             
-                            **CRITICAL CITATION RULES (MANDATORY):**
-                            1. You have access to Google Search. USE IT for every claim.
-                            2. You MUST cite sources inline immediately after the fact.
-                            3. **FORMAT:** [Source Name](URL)
-                            4. Example: "Nvidia stock is $185 [Yahoo Finance](https://finance.yahoo.com)."
-                            5. DO NOT use footnotes like [1]. DO NOT output a list of sources at the end. Inline only.
+                            **CRITICAL CITATION RULES:**
+                            1. **Web Search:** If you use Google Search, cite as: [Source Name](URL)
+                            2. **Vault Files:** If you use data from the user's uploaded files (Vault), you MUST cite as: [File: exact_filename.pdf]
+                            3. **Strictness:** Do not combine them. Do not just write the filename. Use the brackets format.
                             
                             **CRITICAL FILE INSTRUCTION:** 
                             If the user message contains text labeled "BEGIN FILE CONTENT", treat the text as the file itself. Read it, analyze it, reference it.
@@ -1647,31 +1645,29 @@
                 let sources = [];
                 let processedText = rawText;
 
-                // STRATEGY A: Standard Markdown [Name](URL)
-                // The regex handles optional spaces: [Name] ( URL )
-                processedText = processedText.replace(/\[([^\]]+)\]\s*\(\s*(https?:\/\/[^\s)]+)\s*\)/g, (match, name, url) => {
-                    // CLEANUP: Remove trailing dots, commas, parens
-                    let cleanUrl = url.replace(/[.,;!)]+$/, ""); 
-                    
-                    // FILTER: Skip Google internal redirects (The 404 cause)
-                    if (cleanUrl.includes('grounding-api') || cleanUrl.includes('googleusercontent')) {
-                        return name; // Return just text, no link
-                    }
-                    
-                    sources.push({ name, url: cleanUrl });
+                // STRATEGY A: Detect FILE References [File: Name.pdf]
+                // We convert these into citations with type: 'file'
+                processedText = processedText.replace(/\[File:\s*([^\]]+)\]/g, (match, filename) => {
+                    sources.push({ name: filename.trim(), url: null, type: 'file' });
                     return `%%CIT_${sources.length - 1}%%`;
                 });
 
-                // STRATEGY B: Raw URLs (Fallback if AI forgets brackets)
-                // Matches https://... until a space
+                // STRATEGY B: Standard Markdown [Name](URL)
+                processedText = processedText.replace(/\[([^\]]+)\]\s*\(\s*(https?:\/\/[^\s)]+)\s*\)/g, (match, name, url) => {
+                    let cleanUrl = url.replace(/[.,;!)]+$/, ""); 
+                    if (cleanUrl.includes('grounding-api') || cleanUrl.includes('googleusercontent')) return name;
+                    
+                    sources.push({ name: name, url: cleanUrl, type: 'web' });
+                    return `%%CIT_${sources.length - 1}%%`;
+                });
+
+                // STRATEGY C: Raw URLs (Fallback)
                 processedText = processedText.replace(/(?<!\()https?:\/\/[^\s)]+/g, (url) => {
                     let cleanUrl = url.replace(/[.,;!]+$/, "");
-                    
-                    // Create a name from the domain (e.g., "bloomberg.com")
                     let name;
                     try { name = new URL(cleanUrl).hostname.replace('www.', ''); } catch(e) { name = "Source"; }
                     
-                    sources.push({ name, url: cleanUrl });
+                    sources.push({ name: name, url: cleanUrl, type: 'web' });
                     return `%%CIT_${sources.length - 1}%%`;
                 });
 
@@ -1822,8 +1818,19 @@
                     const renderFinalContent = () => {
                         // A. Text
                         let renderedHtml = marked.parse(textWithTokens);
+                        // Swap tokens for icons during typing
                         sources.forEach((source, index) => {
-                            const iconHtml = `<a href="${source.url}" target="_blank" rel="noopener noreferrer" class="citation-link" title="Source: ${source.name}"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg></a>`;
+                            let iconHtml;
+                            
+                            if (source.type === 'file') {
+                                // CASE 1: FILE ICON (No Link / No 404)
+                                // We use a Document SVG icon. It is NOT an <a> tag, so it cannot 404.
+                                iconHtml = `<span class="citation-link" title="Context File: ${source.name}" style="cursor: help;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.51-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg></span>`;
+                            } else {
+                                // CASE 2: WEB LINK (Standard Pin)
+                                iconHtml = `<a href="${source.url}" target="_blank" rel="noopener noreferrer" class="citation-link" title="Source: ${source.name}"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg></a>`;
+                            }
+                            
                             const token = `%%CIT_${index}%%`;
                             renderedHtml = renderedHtml.split(token).join(iconHtml);
                         });
@@ -1901,12 +1908,25 @@
                                 if (i > textWithTokens.length) i = textWithTokens.length;
                                 let currentRaw = textWithTokens.substring(0, i);
                                 let renderedHtml = marked.parse(currentRaw);
+                                
                                 // Swap tokens for icons during typing
                                 sources.forEach((source, index) => {
-                                    const iconHtml = `<a href="${source.url}" target="_blank" rel="noopener noreferrer" class="citation-link" title="Source: ${source.name}"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg></a>`;
+                                    let iconHtml;
+                                    
+                                    // --- PASTE THE SAME LOGIC HERE ---
+                                    if (source.type === 'file') {
+                                        // Case 1: File (Span)
+                                        iconHtml = `<span class="citation-link" title="Context File: ${source.name}" style="cursor: help;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.51-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg></span>`;
+                                    } else {
+                                        // Case 2: Web (Link)
+                                        iconHtml = `<a href="${source.url}" target="_blank" rel="noopener noreferrer" class="citation-link" title="Source: ${source.name}"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg></a>`;
+                                    }
+                                    // ---------------------------------
+
                                     const token = `%%CIT_${index}%%`;
                                     renderedHtml = renderedHtml.split(token).join(iconHtml);
                                 });
+
                                 contentDiv.innerHTML = renderedHtml;
                                 chatArea.scrollTop = chatArea.scrollHeight; 
                                 requestAnimationFrame(typeWriter); 
