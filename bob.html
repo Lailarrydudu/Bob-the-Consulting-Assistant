@@ -32,6 +32,9 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- NEW: PowerPoint Generator -->
+    <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <style>
@@ -624,8 +627,28 @@
                 </div>
             </div>
 
-            <!-- Export -->
-            <button id="exportBtn" class="utility-btn">Export Chat</button>
+            <!-- Export Tools Group -->
+            <div class="space-y-2 mb-2 w-full">
+                <label class="text-[10px] uppercase text-gray-500 font-bold tracking-wider text-center block">Deliverables</label>
+                
+                <!-- 1. PDF Export (Existing) -->
+                <button id="exportBtn" class="utility-btn">
+                    <span class="mr-auto">Export PDF Report</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                </button>
+
+                <!-- 2. PPTX Export (New) -->
+                <button id="exportPptxBtn" class="utility-btn bg-orange-700/80 hover:bg-orange-600">
+                    <span class="mr-auto">Export Slides (PPTX)</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                </button>
+
+                <!-- 3. CSV Export (New) -->
+                <button id="exportCsvBtn" class="utility-btn bg-green-700/80 hover:bg-green-600">
+                    <span class="mr-auto">Export Tables (CSV)</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                </button>
+            </div>
 
             <div class="flex-grow"></div> <!-- Spacer -->
 
@@ -2025,6 +2048,134 @@
 
                 // Use the library (it creates the PDF from the container)
                 html2pdf().set(opt).from(reportContainer).save();
+            };
+
+        // ============================================
+            // 6. ARTIFACT ENGINE (PPTX & CSV)
+            // ============================================
+
+            // --- A. POWERPOINT GENERATOR ---
+            const exportPptxBtn = document.getElementById('exportPptxBtn');
+            
+            exportPptxBtn.onclick = async () => {
+                if (chatHistory.length === 0) return alert("No strategy content to export.");
+                
+                const originalText = exportPptxBtn.textContent;
+                exportPptxBtn.textContent = "Building Slides...";
+                
+                try {
+                    let pptx = new PptxGenJS();
+                    pptx.layout = 'LAYOUT_16x9';
+                    pptx.author = 'Duvallo';
+                    pptx.company = 'Duvallo Strategy Engine';
+                    
+                    // 1. Title Slide
+                    let slide = pptx.addSlide();
+                    slide.background = { color: '111827' }; // Dark Theme
+                    slide.addText(currentProjectNameDisplay.textContent || "Strategy Deck", { x: 1, y: 2, w: '80%', fontSize: 36, color: 'ffffff', bold: true });
+                    slide.addText(`Generated on ${new Date().toLocaleDateString()}`, { x: 1, y: 3, w: '80%', fontSize: 18, color: '10b981' });
+
+                    // 2. Parse Chat History into Slides
+                    chatHistory.forEach(msg => {
+                        if (msg.role === 'model') {
+                            let text = msg.parts[0].text;
+                            
+                            // Remove Chart JSON from text
+                            text = text.replace(/(?:<<<CHART>>>|<chart>|<<>>)([\s\S]*?)(?:<<<END_CHART>>>|<\/chart>|<<>>|$)/gi, '');
+                            
+                            // Split by Markdown Headers (# or ##) to create new slides
+                            let sections = text.split(/^#+\s/gm);
+                            
+                            sections.forEach(section => {
+                                if (section.trim().length > 10) {
+                                    let slide = pptx.addSlide();
+                                    slide.background = { color: 'ffffff' }; // Light slides for readability
+                                    
+                                    // Extract first line as title
+                                    let lines = section.trim().split('\n');
+                                    let title = lines[0].replace(/\*\*/g, '').substring(0, 80);
+                                    let body = lines.slice(1).join('\n').replace(/\*\*/g, ''); // Simple cleanup
+                                    
+                                    // Header
+                                    slide.addText(title, { x: 0.5, y: 0.5, w: '90%', fontSize: 24, color: '111827', bold: true, border: { pt: 0, pb: '1', color: '10b981' } });
+                                    
+                                    // Body content
+                                    slide.addText(body, { x: 0.5, y: 1.5, w: '90%', h: '70%', fontSize: 14, color: '374151', valign: 'top' });
+                                    
+                                    // Logo Footer
+                                    slide.addText('Generated by Duvallo', { x: 11, y: 7, fontSize: 10, color: '9ca3af' });
+                                }
+                            });
+                        }
+                    });
+
+                    pptx.writeFile({ fileName: `${(currentProjectNameDisplay.textContent || "Project").replace(/\s+/g, '_')}_Strategy_Deck.pptx` });
+                    
+                    // Create Success Bubble
+                    createMessageBubble("✅ **Slides Generated:** PowerPoint deck has been downloaded.", "model", false);
+                    
+                } catch (e) {
+                    console.error("PPTX Error:", e);
+                    alert("Error generating slides. See console.");
+                } finally {
+                    exportPptxBtn.textContent = originalText; // Reset button
+                }
+            };
+
+            // --- B. CSV / EXCEL EXTRACTOR ---
+            const exportCsvBtn = document.getElementById('exportCsvBtn');
+            
+            exportCsvBtn.onclick = () => {
+                let csvContent = "";
+                let tablesFound = 0;
+                
+                chatHistory.forEach((msg, index) => {
+                    if (msg.role === 'model') {
+                        // Regex to find Markdown tables
+                        // Looks for lines starting with |
+                        const tableRegex = /(\|.*\|\n\|[-:| ]+\|\n(?:\|.*\|\n?)+)/g;
+                        let match;
+                        
+                        while ((match = tableRegex.exec(msg.parts[0].text)) !== null) {
+                            tablesFound++;
+                            let tableMarkdown = match[0];
+                            let rows = tableMarkdown.trim().split('\n');
+                            
+                            // Add a header for the CSV block
+                            csvContent += `TABLE ${tablesFound} (From Message ${index + 1})\n`;
+                            
+                            rows.forEach((row, i) => {
+                                // Skip the separator line (e.g. |---|---|)
+                                if (row.includes('---')) return;
+                                
+                                // Clean the row: remove outer pipes, split by pipe, trim whitespace
+                                let cells = row.split('|').filter((cell, idx, arr) => idx > 0 && idx < arr.length - 1);
+                                let cleanCells = cells.map(c => `"${c.trim().replace(/"/g, '""')}"`); // Quote and escape
+                                
+                                csvContent += cleanCells.join(",") + "\n";
+                            });
+                            
+                            csvContent += "\n\n"; // Space between tables
+                        }
+                    }
+                });
+                
+                if (tablesFound === 0) {
+                    alert("No data tables found in this conversation to export.");
+                    return;
+                }
+                
+                // Trigger Download
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.setAttribute("href", url);
+                link.setAttribute("download", `${(currentProjectNameDisplay.textContent || "Project").replace(/\s+/g, '_')}_Data.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                createMessageBubble(`✅ **Data Extracted:** Found ${tablesFound} tables and exported to CSV.`, "model", false);
             };
 
         })();
