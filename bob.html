@@ -440,6 +440,83 @@
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
         }
+
+        /* --- NEW: Source Panel & Citation Styles --- */
+        
+        /* The container that holds Chat + Panel side-by-side */
+        .content-wrapper {
+            display: flex;
+            flex: 1;
+            overflow: hidden; /* Contains the scroll bars */
+            position: relative;
+        }
+
+        /* The Main Chat Area - Adapts width */
+        #chatArea {
+            flex: 1; /* Takes full width by default */
+            transition: all 0.3s ease-in-out;
+            min-width: 0; /* Prevents flex blowout */
+        }
+
+        /* The Side Panel - Hidden by default */
+        #rightSourcePanel {
+            width: 0;
+            opacity: 0;
+            background-color: #111827; /* Gray 900 */
+            border-left: 1px solid #374151;
+            transition: all 0.3s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* When Active: Give it width */
+        #rightSourcePanel.panel-open {
+            width: 350px; /* The "Red Area" width */
+            opacity: 1;
+        }
+
+        /* Citation Icon in Text [🔗] */
+        .citation-trigger {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #34d399; /* Emerald 400 */
+            cursor: pointer;
+            margin-left: 4px;
+            vertical-align: middle;
+            position: relative;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 4px;
+            padding: 0 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+        
+        .citation-trigger:hover {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: #34d399;
+        }
+
+        /* Tooltip Logic (The "Black Box") */
+        .citation-trigger:hover::after {
+            content: attr(data-source);
+            position: absolute;
+            bottom: 120%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #000;
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            white-space: nowrap;
+            z-index: 50;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+            pointer-events: none;
+        }
         
     </style>
 </head>
@@ -549,23 +626,43 @@
     </aside>
 
     <!-- CENTER CHAT AREA -->
-    <main class="flex-1 flex flex-col relative bg-gray-900">
+    <main class="flex-1 flex flex-col relative bg-gray-900 min-w-0">
         
-        <!-- Chat History Container (The "Grey Box") -->
-        <div id="chatArea" class="flex-1 overflow-y-auto p-8 space-y-6">
-            <!-- Messages will be injected here -->
+        <!-- NEW WRAPPER: Holds Chat + Side Panel -->
+        <div class="content-wrapper">
+            
+            <!-- 1. Chat Area -->
+            <div id="chatArea" class="flex-1 overflow-y-auto p-8 space-y-6 relative">
+                <!-- Messages injected here -->
+                
+                <!-- HERO TEXT (Moved inside chatArea so it centers correctly relative to the "squeeze") -->
+                <div id="heroText" class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-0">
+                    <h2 class="text-4xl font-bold text-gray-200 tracking-tight drop-shadow-lg">Should we start building?</h2>
+                    <p class="text-gray-500 mt-2">Select a project from the left or type below.</p>
+                </div>
+            </div>
+
+            <!-- 2. The Side Panel (Hidden initially) -->
+            <aside id="rightSourcePanel">
+                <div class="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-800">
+                    <span class="text-xs font-bold uppercase text-gray-400 tracking-wider">Sources</span>
+                    <button onclick="closeSourcePanel()" class="text-gray-400 hover:text-white">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+                <div id="sourcePanelContent" class="p-4 space-y-3 overflow-y-auto flex-1">
+                    <!-- Source items injected here -->
+                </div>
+            </aside>
+            
         </div>
 
-        <!-- HERO TEXT (Initially Visible, Hides on Chat) -->
-        <div id="heroText" class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-0">
-            <h2 class="text-4xl font-bold text-gray-200 tracking-tight drop-shadow-lg">Should we start building?</h2>
-            <p class="text-gray-500 mt-2">Select a project from the left or type below.</p>
-        </div>
-
-        <!-- Input Area (Fixed Bottom) -->
-        <div class="p-6 bg-gray-900 z-10">
+        <!-- Input Area (Fixed Bottom - Stays full width) -->
+        <div class="p-6 bg-gray-900 z-20 border-t border-gray-800">
             <!-- Unified Input Capsule -->
-            <div class="max-w-4xl mx-auto relative flex items-end gap-2 bg-[#2f2f2f] p-2 rounded-[2rem] border border-gray-700 shadow-xl focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500 transition-all">
+             <div class="max-w-4xl mx-auto relative flex items-end gap-2 bg-[#2f2f2f] p-2 rounded-[2rem] border border-gray-700 shadow-xl focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500 transition-all">
                 
                 <!-- Hidden File Input -->
                 <input type="file" id="hiddenFileInput" style="display: none;" accept=".txt,.md,.csv,.json,.js,.html,.css,.xml,.pdf">
@@ -1642,37 +1739,38 @@
             
            // --- CITATION HELPER FUNCTIONS (SAFE TOKEN STRATEGY) ---
             
-            // 1. Process Text: Extract links and replace with SAFE TOKENS
+            // 1. Process Text: Extract links and replace with INTERACTIVE TOKENS
             function processCitations(rawText) {
                 let sources = [];
                 let processedText = rawText;
 
+                // Helper to add source
+                const addSource = (name, url) => {
+                    // Check duplicates
+                    const existing = sources.findIndex(s => s.url === url);
+                    if (existing !== -1) return existing; // Return existing index
+                    
+                    sources.push({ name, url });
+                    return sources.length - 1; // Return new index
+                };
+
                 // STRATEGY A: Standard Markdown [Name](URL)
-                // The regex handles optional spaces: [Name] ( URL )
                 processedText = processedText.replace(/\[([^\]]+)\]\s*\(\s*(https?:\/\/[^\s)]+)\s*\)/g, (match, name, url) => {
-                    // CLEANUP: Remove trailing dots, commas, parens
-                    let cleanUrl = url.replace(/[.,;!)]+$/, ""); 
+                    let clean = url.replace(/[.,;!)]+$/, ""); 
+                    if (clean.includes('grounding-api') || clean.includes('googleusercontent')) return name;
                     
-                    // FILTER: Skip Google internal redirects (The 404 cause)
-                    if (cleanUrl.includes('grounding-api') || cleanUrl.includes('googleusercontent')) {
-                        return name; // Return just text, no link
-                    }
-                    
-                    sources.push({ name, url: cleanUrl });
-                    return `%%CIT_${sources.length - 1}%%`;
+                    const idx = addSource(name, clean);
+                    return `%%CIT_${idx}%%`;
                 });
 
-                // STRATEGY B: Raw URLs (Fallback if AI forgets brackets)
-                // Matches https://... until a space
+                // STRATEGY B: Raw URLs
                 processedText = processedText.replace(/(?<!\()https?:\/\/[^\s)]+/g, (url) => {
-                    let cleanUrl = url.replace(/[.,;!]+$/, "");
-                    
-                    // Create a name from the domain (e.g., "bloomberg.com")
+                    let clean = url.replace(/[.,;!]+$/, "");
                     let name;
-                    try { name = new URL(cleanUrl).hostname.replace('www.', ''); } catch(e) { name = "Source"; }
+                    try { name = new URL(clean).hostname.replace('www.', ''); } catch(e) { name = "Source"; }
                     
-                    sources.push({ name, url: cleanUrl });
-                    return `%%CIT_${sources.length - 1}%%`;
+                    const idx = addSource(name, clean);
+                    return `%%CIT_${idx}%%`;
                 });
 
                 return { textWithTokens: processedText, sources };
@@ -1820,11 +1918,20 @@
 
                     // --- HELPER TO RENDER FINAL CONTENT (Instant Mode) ---
                     const renderFinalContent = () => {
-                        // A. Text
+                        // A. Text Replacement
                         let renderedHtml = marked.parse(textWithTokens);
+                        
+                        // We serialize the sources array so we can pass it to the onClick function
+                        const sourcesJson = encodeURIComponent(JSON.stringify(sources));
+
                         sources.forEach((source, index) => {
-                            const iconHtml = `<a href="${source.url}" target="_blank" rel="noopener noreferrer" class="citation-link" title="Source: ${source.name}"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg></a>`;
+                            // The Chain Icon [🔗] with Hover Tooltip
+                            const iconHtml = `<span class="citation-trigger" onclick="openSourcePanel('${sourcesJson}')" data-source="${source.name}">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3 h-3"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg>
+                            </span>`;
+                            
                             const token = `%%CIT_${index}%%`;
+                            // Replace ALL occurrences of this token
                             renderedHtml = renderedHtml.split(token).join(iconHtml);
                         });
                         contentDiv.innerHTML = renderedHtml;
@@ -1872,23 +1979,18 @@
                             bubble.appendChild(suggContainer);
                         }
 
-                        // D. Footer & Copy
+                        // D. Footer: "Sources" Button (Triggers Side Panel)
                         if (sources.length > 0) {
-                            const footerDiv = document.createElement('div');
-                            footerDiv.innerHTML = createSourcesFooter(sources);
-                            bubble.appendChild(footerDiv);
+                            const sourcesJson = encodeURIComponent(JSON.stringify(sources));
+                            const footerBtn = document.createElement('button');
+                            footerBtn.className = "mt-3 flex items-center gap-2 px-3 py-1.5 bg-gray-700 hover:bg-gray-600 rounded-full text-xs font-medium text-emerald-400 transition";
+                            footerBtn.innerHTML = `
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" /></svg>
+                                View ${sources.length} Source${sources.length > 1 ? 's' : ''}
+                            `;
+                            footerBtn.onclick = () => window.openSourcePanel(sourcesJson);
+                            bubble.appendChild(footerBtn);
                         }
-                        const copyBtn = document.createElement('button');
-                        copyBtn.className = 'text-xs text-gray-400 hover:text-white mt-2 block ml-auto';
-                        copyBtn.textContent = 'Copy';
-                        copyBtn.onclick = () => { navigator.clipboard.writeText(text); copyBtn.textContent = 'Copied!'; setTimeout(() => copyBtn.textContent = 'Copy', 1500); };
-                        bubble.appendChild(copyBtn);
-
-                        // E. REMIX BAR (NEW FEATURE)
-                        bubble.appendChild(createRemixBar(text));
-
-                        chatArea.scrollTop = chatArea.scrollHeight;
-                    };
 
                     // 5. DECIDE: ANIMATE OR INSTANT?
                     if (animate) {
@@ -1901,9 +2003,15 @@
                                 if (i > textWithTokens.length) i = textWithTokens.length;
                                 let currentRaw = textWithTokens.substring(0, i);
                                 let renderedHtml = marked.parse(currentRaw);
-                                // Swap tokens for icons during typing
+                                // We serialize the sources array so we can pass it to the onClick function
+                                const sourcesJson = encodeURIComponent(JSON.stringify(sources));
+                                
                                 sources.forEach((source, index) => {
-                                    const iconHtml = `<a href="${source.url}" target="_blank" rel="noopener noreferrer" class="citation-link" title="Source: ${source.name}"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg></a>`;
+                                    // The Chain Icon [🔗] with Hover Tooltip
+                                    const iconHtml = `<span class="citation-trigger" onclick="openSourcePanel('${sourcesJson}')" data-source="${source.name}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3 h-3"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg>
+                                    </span>`;
+                                    
                                     const token = `%%CIT_${index}%%`;
                                     renderedHtml = renderedHtml.split(token).join(iconHtml);
                                 });
