@@ -1662,31 +1662,32 @@
                         body: JSON.stringify({
                             systemInstruction: { 
                                 parts: [{ text: `You are Duvallo, a professional consulting engine. 
-                                
-                                ${vaultContext}
+                            
+                            ${vaultContext}
 
-                                **CRITICAL: CITATION FORMATTING (STRICT ENFORCEMENT)**
-                                1. You are a text-based engine. You MUST write out citations manually in the response text.
-                                2. **NEVER** output a claim (like a number, date, or fact) without a source link immediately following it.
-                                3. **REQUIRED FORMAT:** [Source Name](URL)
-                                4. **FORBIDDEN:** Do not use footnotes like [1] or (Source 1). Do not list sources at the end.
-                                5. **Example:** "Apple stock is $150 [Yahoo Finance](https://finance.yahoo.com)."
-                                
-                                **VISUAL FORMATTING RULES:**
-                                1. Use Numbered Lists (1., 2., 3.) for main points.
-                                2. Start every numbered item with a **Bold Title**.
-                                3. Put explanations on a NEW LINE under the title.
-                                
-                                **FILE INSTRUCTION:** 
-                                If text is labeled "BEGIN FILE CONTENT", treat it as the file itself.
+                            **CRITICAL RULES FOR SOURCES (HIGHEST PRIORITY):**
+                            1. You have access to Google Search. USE IT for every claim.
+                            2. **EVERY time** you use a search result, you **MUST** add a citation immediately after the sentence.
+                            3. **Citation Format:** [Source Name](URL)
+                            4. **Example:** "Apple revenue grew 5% [Bloomberg](https://bloomberg.com)."
+                            5. **DO NOT** create a "References" list at the end. Use inline citations only.
+                            6. **DO NOT** use footnotes like [1]. Write the full link format.
 
-                                **CURRENT MODE: ${responseDepth ? responseDepth.toUpperCase() : "STANDARD"}**
+                            **VISUAL FORMATTING:**
+                            1. Use Numbered Lists (1., 2., 3.) for main points.
+                            2. Start every numbered item with a **Bold Title**.
+                            3. Put explanations on a NEW LINE under the title.
+                            
+                            **FILE INSTRUCTION:** 
+                            If text is labeled "BEGIN FILE CONTENT", treat it as the file itself.
 
-                                ${responseDepth === 'brief' ? "Constraint: Output max 150 words." : ""}
-                                ${responseDepth === 'deep' ? "Provide a comprehensive Deep Dive with external data search." : ""}
+                            **CURRENT MODE: ${responseDepth ? responseDepth.toUpperCase() : "STANDARD"}**
+                            
+                            ${responseDepth === 'brief' ? "Constraint: Output max 150 words." : ""}
+                            ${responseDepth === 'deep' ? "Provide a comprehensive Deep Dive." : ""}
 
-                                **SUGGESTIONS:**
-                                Append a hidden suggestion block at the end: ---SUGGESTIONS---Action 1|Action 2
+                            **SUGGESTIONS:**
+                            Append a hidden suggestion block at the end: ---SUGGESTIONS---Action 1|Action 2
                                 
                                 **CHARTS:**
                                 If asked to visualize, output JSON in <chart> tags following Chart.js format.` }]
@@ -1739,41 +1740,21 @@
             
            // --- CITATION HELPER FUNCTIONS (SAFE TOKEN STRATEGY) ---
             
-            // 1. Process Text: Extract links and replace with INTERACTIVE TOKENS
+            // 1. Process Text: Extract links (Gen 6 Logic)
             function processCitations(rawText) {
+                // The Regex that worked in Gen 6
+                const regex = /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g;
+                
                 let sources = [];
-                let processedText = rawText;
-
-                // Helper to add source
-                const addSource = (name, url) => {
-                    // Check duplicates
-                    const existing = sources.findIndex(s => s.url === url);
-                    if (existing !== -1) return existing; // Return existing index
-                    
-                    sources.push({ name, url });
-                    return sources.length - 1; // Return new index
-                };
-
-                // STRATEGY A: Standard Markdown [Name](URL)
-                processedText = processedText.replace(/\[([^\]]+)\]\s*\(\s*(https?:\/\/[^\s)]+)\s*\)/g, (match, name, url) => {
-                    let clean = url.replace(/[.,;!)]+$/, ""); 
-                    if (clean.includes('grounding-api') || clean.includes('googleusercontent')) return name;
-                    
-                    const idx = addSource(name, clean);
-                    return `%%CIT_${idx}%%`;
+                
+                // Replace Markdown links with tokens like %%CIT_0%%
+                const textWithTokens = rawText.replace(regex, (match, name, url) => {
+                    let cleanUrl = url.replace(/[.,;!]+$/, ""); 
+                    sources.push({ name, url: cleanUrl });
+                    return `%%CIT_${sources.length - 1}%%`;
                 });
 
-                // STRATEGY B: Raw URLs
-                processedText = processedText.replace(/(?<!\()https?:\/\/[^\s)]+/g, (url) => {
-                    let clean = url.replace(/[.,;!]+$/, "");
-                    let name;
-                    try { name = new URL(clean).hostname.replace('www.', ''); } catch(e) { name = "Source"; }
-                    
-                    const idx = addSource(name, clean);
-                    return `%%CIT_${idx}%%`;
-                });
-
-                return { textWithTokens: processedText, sources };
+                return { textWithTokens, sources };
             }
 
             // 2. Generate the Footer List
@@ -1921,17 +1902,16 @@
                         // A. Text Replacement
                         let renderedHtml = marked.parse(textWithTokens);
                         
-                        // We serialize the sources array so we can pass it to the onClick function
+                        // Serialize sources for the Side Panel
                         const sourcesJson = encodeURIComponent(JSON.stringify(sources));
 
                         sources.forEach((source, index) => {
-                            // The Chain Icon [🔗] with Hover Tooltip
-                            const iconHtml = `<span class="citation-trigger" onclick="openSourcePanel('${sourcesJson}')" data-source="${source.name}">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3 h-3"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg>
+                            // HYBRID ICON: Gen 6 Style (Green Pin) + Side Panel Trigger
+                            const iconHtml = `<span class="citation-link" onclick="openSourcePanel('${sourcesJson}')" title="Source: ${source.name}">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg>
                             </span>`;
                             
                             const token = `%%CIT_${index}%%`;
-                            // Replace ALL occurrences of this token
                             renderedHtml = renderedHtml.split(token).join(iconHtml);
                         });
                         contentDiv.innerHTML = renderedHtml;
