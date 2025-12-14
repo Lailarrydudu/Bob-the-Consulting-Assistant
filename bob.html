@@ -956,8 +956,8 @@
                         // 1. Restore to memory
                         chatHistory.push(msg); 
                         
-                        // 2. Restore to UI (NO ANIMATION)
-                        createMessageBubble(msg.parts[0].text, msg.role, false);
+                        // 2. Restore to UI 
+                        createMessageBubble(msg.parts[0].text, msg.role, false, null);
                     });
                     
                     // Scroll to bottom
@@ -1750,10 +1750,14 @@
                     if (result.error) {
                         createMessageBubble(`⚠️ **System Error:** ${result.error.message}`, "model");
                     } else {
-                        const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                        const candidate = result?.candidates?.[0];
+                        const text = candidate?.content?.parts?.[0]?.text;
+                        const metadata = candidate?.groundingMetadata; // Capture the hidden real links!
+
                         if (text) {
                             chatHistory.push({ role: "model", parts: [{ text: text }] });
-                    createMessageBubble(text, "model", true);
+                            // Pass metadata to the bubble so it can fix the links
+                            createMessageBubble(text, "model", true, metadata);
                         } else {
                             createMessageBubble("⚠️ Duvallo returned an empty response.", "model");
                         }
@@ -1785,22 +1789,41 @@
             
            // --- CITATION HELPER FUNCTIONS (SAFE TOKEN STRATEGY) ---
             
-            // 1. Process Text: Extract links and FIX broken Google redirects
-            function processCitations(rawText) {
-                // The Regex to catch markdown links
+            // 1. Process Text: Extract links and Resolve Grounding URLs via Metadata
+            function processCitations(rawText, metadata = null) {
+                // Build a "Title -> URL" Map from the API Metadata
+                const urlMap = {};
+                if (metadata && metadata.groundingChunks) {
+                    metadata.groundingChunks.forEach(chunk => {
+                        if (chunk.web && chunk.web.title && chunk.web.uri) {
+                            // Map lowercase title to the real URI
+                            urlMap[chunk.web.title.toLowerCase()] = chunk.web.uri;
+                        }
+                    });
+                }
+
                 const regex = /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g;
-                
                 let sources = [];
                 
-                // Replace Markdown links with tokens like %%CIT_0%%
                 const textWithTokens = rawText.replace(regex, (match, name, url) => {
                     let finalUrl = url.replace(/[.,;!]+$/, ""); 
-                    
-                    // --- 404 FIX: Detect broken Google internal links ---
+                    const nameLower = name.toLowerCase();
+
+                    // FIX: If it's a broken Google link, try to find the REAL link in Metadata
                     if (finalUrl.includes('grounding-api') || finalUrl.includes('googleusercontent')) {
-                        // Fallback: Redirect to a Google Search of the source name/title
-                        // This prevents the 404 and gives the user the actual info
-                        finalUrl = `https://www.google.com/search?q=${encodeURIComponent(name)}`;
+                        if (urlMap[nameLower]) {
+                            finalUrl = urlMap[nameLower]; // Success: Found real link!
+                        } else {
+                            // Fallback: Try to extract 'q' param or default to Search
+                            try {
+                                const urlObj = new URL(finalUrl);
+                                const q = urlObj.searchParams.get('q') || urlObj.searchParams.get('url');
+                                if (q && q.startsWith('http')) finalUrl = q;
+                                else finalUrl = `https://www.google.com/search?q=${encodeURIComponent(name)}`;
+                            } catch (e) {
+                                finalUrl = `https://www.google.com/search?q=${encodeURIComponent(name)}`;
+                            }
+                        }
                     }
 
                     sources.push({ name, url: finalUrl });
@@ -1875,7 +1898,7 @@
             }
 
             // 3. Render Message Bubble (Modified with Remix Bar)
-            function createMessageBubble(text, sender, animate = true) {
+            function createMessageBubble(text, sender, animate = true, metadata = null) {
                 const wrapper = document.createElement('div');
                 wrapper.classList.add('flex', 'message-wrapper', 'mb-4', sender === 'user' ? 'justify-end' : 'justify-start');
                 
@@ -1940,8 +1963,8 @@
                         }
                     }
 
-                    // 3. CITATION PROCESSING
-                    const { textWithTokens, sources } = processCitations(text);
+                    // 3. CITATION PROCESSING (Pass metadata)
+                    const { textWithTokens, sources } = processCitations(text, metadata);
                     
                     // 4. PREPARE UI
                     const contentDiv = document.createElement('div');
