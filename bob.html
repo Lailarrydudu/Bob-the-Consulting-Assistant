@@ -299,11 +299,19 @@
     <!-- 1. TOP NAVIGATION (The Phase Bar) -->
     <header class="h-20 bg-gray-900 border-b border-gray-700 flex items-center px-6 justify-between flex-shrink-0 z-30 shadow-lg">
         
-        <!-- Logo -->
+        <!-- Logo (Updated to match Landing Page) -->
         <div class="flex items-center gap-3 w-48">
-            <div class="p-1.5 bg-emerald-900/30 rounded-lg border border-emerald-500/50">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 text-emerald-400">
-                    <path fill-rule="evenodd" d="M9 4.5a.75.75 0 01.721.544l.813 2.846a3.75 3.75 0 002.576 2.576l2.846.813a.75.75 0 010 1.442l-2.846.813a3.75 3.75 0 00-2.576 2.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a3.75 3.75 0 00-2.576-2.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813a3.75 3.75 0 002.576-2.576l.813-2.846A.75.75 0 019 4.5zM6 20.25a.75.75 0 01.75.75v.75h.75a.75.75 0 010 1.5h-.75v.75a.75.75 0 01-1.5 0v-.75h-.75a.75.75 0 010-1.5h.75v-.75a.75.75 0 01.75-.75zM17.5 8a.75.75 0 01.75-.75h.75v-.75a.75.75 0 011.5 0v.75h.75a.75.75 0 010 1.5h-.75v.75a.75.75 0 01-1.5 0v-.75h-.75a.75.75 0 010-1.5z" clip-rule="evenodd" />
+            <div class="p-1.5 bg-white rounded-full border-2 border-green-700">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="28" height="28">
+                    <circle cx="50" cy="50" r="8" fill="none" stroke="#4a5d3e" stroke-width="4"/>
+                    <g stroke="#4a5d3e" stroke-width="3" fill="none">
+                        <line x1="50" y1="50" x2="50" y2="20"/><circle cx="50" cy="20" r="6"/>
+                        <line x1="50" y1="50" x2="75" y2="30"/><circle cx="75" cy="30" r="6"/>
+                        <line x1="50" y1="50" x2="75" y2="70"/><circle cx="75" cy="70" r="6"/>
+                        <line x1="50" y1="50" x2="50" y2="80"/><circle cx="50" cy="80" r="6"/>
+                        <line x1="50" y1="50" x2="25" y2="70"/><circle cx="25" cy="70" r="6"/>
+                        <line x1="50" y1="50" x2="25" y2="30"/><circle cx="25" cy="30" r="6"/>
+                    </g>
                 </svg>
             </div>
             <h1 class="font-bold text-lg tracking-wide text-white font-serif">Duvallo</h1>
@@ -530,20 +538,15 @@
             const attachBtn = document.getElementById('attachBtn');
             const hiddenFileInput = document.getElementById('hiddenFileInput');
 
-            // DROPDOWN ELEMENTS
-            const initialSetupDropdownBtn = document.getElementById('initialSetupDropdownBtn');
-            const initialSetupMenu = document.getElementById('initialSetupMenu');
-            const analysisDropdownBtn = document.getElementById('analysisDropdownBtn');
-            const analysisMenu = document.getElementById('analysisMenu');
-            const solutionDesignDropdownBtn = document.getElementById('solutionDesignDropdownBtn');
-            const solutionDesignMenu = document.getElementById('solutionDesignMenu');
-            const executionDropdownBtn = document.getElementById('executionDropdownBtn');
-            const executionMenu = document.getElementById('executionMenu');
+            // DROPDOWN ELEMENTS (CLEANED FOR NEW UI)
             const myPromptsDropdownBtn = document.getElementById('myPromptsDropdownBtn');
             const myPromptsMenu = document.getElementById('myPromptsMenu');
             const workflowBtn = document.getElementById('workflowBtn');
             const workflowMenu = document.getElementById('workflowMenu');
             const exportBtn = document.getElementById('exportBtn');
+
+            // NOTE: Sidebar Phase menus removed in new UI. 
+            // We keep the prompt map but remove the old event listeners to prevent crashes.
 
             let MIN_HEIGHT = 0; 
             const chatHistory = [];
@@ -988,13 +991,9 @@
                 [initialSetupMenu, analysisMenu, solutionDesignMenu, executionMenu, myPromptsMenu, workflowMenu].forEach(m => m.classList.add('hidden'));
             });
 
-            // Attach listeners to dropdwns
-            initialSetupDropdownBtn.onclick = () => toggleMenu(initialSetupMenu);
-            analysisDropdownBtn.onclick = () => toggleMenu(analysisMenu);
-            solutionDesignDropdownBtn.onclick = () => toggleMenu(solutionDesignMenu);
-            executionDropdownBtn.onclick = () => toggleMenu(executionMenu);
-            myPromptsDropdownBtn.onclick = () => toggleMenu(myPromptsMenu);
-            workflowBtn.onclick = () => toggleMenu(workflowMenu);
+            // Attach listeners to Dropdowns (Only the ones that still exist)
+            if(myPromptsDropdownBtn) myPromptsDropdownBtn.onclick = () => toggleMenu(myPromptsMenu);
+            if(workflowBtn) workflowBtn.onclick = () => toggleMenu(workflowMenu);
 
             // Auto-resize input
             userInput.style.height = 'auto';
