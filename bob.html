@@ -1789,15 +1789,19 @@
             
            // --- CITATION HELPER FUNCTIONS (SAFE TOKEN STRATEGY) ---
             
-            // 1. Process Text: Extract links and Resolve Grounding URLs via Metadata
+            // 1. Process Text: Extract links with Robust Fuzzy Matching
             function processCitations(rawText, metadata = null) {
                 // Build a "Title -> URL" Map from the API Metadata
                 const urlMap = {};
+                // Also store a backup list of all URLs found
+                const allUrls = [];
+                
                 if (metadata && metadata.groundingChunks) {
                     metadata.groundingChunks.forEach(chunk => {
                         if (chunk.web && chunk.web.title && chunk.web.uri) {
-                            // Map lowercase title to the real URI
+                            // Normalize the title for better matching
                             urlMap[chunk.web.title.toLowerCase()] = chunk.web.uri;
+                            allUrls.push(chunk.web.uri);
                         }
                     });
                 }
@@ -1807,22 +1811,40 @@
                 
                 const textWithTokens = rawText.replace(regex, (match, name, url) => {
                     let finalUrl = url.replace(/[.,;!]+$/, ""); 
-                    const nameLower = name.toLowerCase();
+                    const nameLower = name.toLowerCase().trim();
 
-                    // FIX: If it's a broken Google link, try to find the REAL link in Metadata
+                    // FIX: If it's a broken Google link, find the REAL link in Metadata
                     if (finalUrl.includes('grounding-api') || finalUrl.includes('googleusercontent')) {
+                        let found = false;
+
+                        // Strategy 1: Exact Match
                         if (urlMap[nameLower]) {
-                            finalUrl = urlMap[nameLower]; // Success: Found real link!
-                        } else {
-                            // Fallback: Try to extract 'q' param or default to Search
-                            try {
-                                const urlObj = new URL(finalUrl);
-                                const q = urlObj.searchParams.get('q') || urlObj.searchParams.get('url');
-                                if (q && q.startsWith('http')) finalUrl = q;
-                                else finalUrl = `https://www.google.com/search?q=${encodeURIComponent(name)}`;
-                            } catch (e) {
-                                finalUrl = `https://www.google.com/search?q=${encodeURIComponent(name)}`;
+                            finalUrl = urlMap[nameLower];
+                            found = true;
+                        } 
+                        
+                        // Strategy 2: Fuzzy Match (Does Title contain Name? or Name contain Title?)
+                        if (!found) {
+                            for (const [title, uri] of Object.entries(urlMap)) {
+                                if (title.includes(nameLower) || nameLower.includes(title)) {
+                                    finalUrl = uri;
+                                    found = true;
+                                    break;
+                                }
                             }
+                        }
+
+                        // Strategy 3: Aggressive Fallback
+                        // If we still haven't found a match, but we HAVE metadata URLs, use the first one.
+                        // It is better to show *a* valid source from the list than a generic search page.
+                        if (!found && allUrls.length > 0) {
+                            finalUrl = allUrls[0];
+                            found = true;
+                        }
+
+                        // Strategy 4: Ultimate Fail-Safe (The Search Page)
+                        if (!found) {
+                            finalUrl = `https://www.google.com/search?q=${encodeURIComponent(name)}`;
                         }
                     }
 
