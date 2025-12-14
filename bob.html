@@ -779,6 +779,55 @@
 
     </aside>
     <script>
+        // --- GLOBAL HELPER FUNCTIONS (Fix for Interaction) ---
+        window.cleanUrl = function(rawUrl) {
+            if (!rawUrl) return "#";
+            try {
+                if (!rawUrl.includes("google.com/url")) return rawUrl;
+                const urlObj = new URL(rawUrl);
+                return urlObj.searchParams.get("q") || rawUrl;
+            } catch (e) { return rawUrl; }
+        };
+
+        window.openSourcePanel = function(sourcesJson) {
+            const panel = document.getElementById('rightSourcePanel');
+            const content = document.getElementById('sourcePanelContent');
+            // Decode safely
+            let sources = [];
+            try { sources = JSON.parse(decodeURIComponent(sourcesJson)); } catch(e){}
+            
+            content.innerHTML = '';
+            
+            if(!sources || sources.length === 0) {
+                 content.innerHTML = '<div class="text-gray-500 text-sm italic">No sources found.</div>';
+            } else {
+                sources.forEach(src => {
+                    const safeLink = window.cleanUrl(src.url);
+                    let domain = "External Link";
+                    try { domain = new URL(safeLink).hostname.replace('www.',''); } catch(e){}
+
+                    const item = document.createElement('a');
+                    item.href = safeLink;
+                    item.target = "_blank";
+                    item.rel = "noopener noreferrer";
+                    item.className = "block bg-gray-800 hover:bg-gray-700 border border-gray-700 p-3 rounded-lg transition group mb-2";
+                    item.innerHTML = `
+                        <div class="flex items-center gap-2 mb-1">
+                            <img src="https://www.google.com/s2/favicons?domain=${domain}" class="w-4 h-4 rounded-sm" onerror="this.style.display='none'">
+                            <span class="text-sm font-bold text-emerald-400 truncate">${src.name || domain}</span>
+                        </div>
+                        <div class="text-xs text-gray-500 truncate group-hover:text-gray-400">${safeLink}</div>
+                    `;
+                    content.appendChild(item);
+                });
+            }
+            panel.classList.add('panel-open');
+        };
+
+        window.closeSourcePanel = function() {
+            document.getElementById('rightSourcePanel').classList.remove('panel-open');
+        };
+
         (function() {
             // ELEMENT REFERENCES
             const sendButton = document.getElementById('sendButton');
@@ -1662,35 +1711,31 @@
                         body: JSON.stringify({
                             systemInstruction: { 
                                 parts: [{ text: `You are Duvallo, a professional consulting engine. 
-                            
-                            ${vaultContext}
-
-                            **CRITICAL RULES FOR SOURCES (HIGHEST PRIORITY):**
-                            1. You have access to Google Search. USE IT for every claim.
-                            2. **EVERY time** you use a search result, you **MUST** add a citation immediately after the sentence.
-                            3. **Citation Format:** [Source Name](URL)
-                            4. **Example:** "Apple revenue grew 5% [Bloomberg](https://bloomberg.com)."
-                            5. **DO NOT** create a "References" list at the end. Use inline citations only.
-                            6. **DO NOT** use footnotes like [1]. Write the full link format.
-
-                            **VISUAL FORMATTING:**
-                            1. Use Numbered Lists (1., 2., 3.) for main points.
-                            2. Start every numbered item with a **Bold Title**.
-                            3. Put explanations on a NEW LINE under the title.
-                            
-                            **FILE INSTRUCTION:** 
-                            If text is labeled "BEGIN FILE CONTENT", treat it as the file itself.
-
-                            **CURRENT MODE: ${responseDepth ? responseDepth.toUpperCase() : "STANDARD"}**
-                            
-                            ${responseDepth === 'brief' ? "Constraint: Output max 150 words." : ""}
-                            ${responseDepth === 'deep' ? "Provide a comprehensive Deep Dive." : ""}
-
-                            **SUGGESTIONS:**
-                            Append a hidden suggestion block at the end: ---SUGGESTIONS---Action 1|Action 2
                                 
-                                **CHARTS:**
-                                If asked to visualize, output JSON in <chart> tags following Chart.js format.` }]
+                                ${vaultContext}
+
+                                **CRITICAL: YOU MUST MANUALLY WRITE CITATIONS IN THE TEXT**
+                                1. The user CANNOT see your internal search metadata. You must write links out.
+                                2. **Rule:** Every time you state a fact/number, append [Source Name](URL) immediately.
+                                3. **Format:** [Bloomberg](https://bloomberg.com/article)
+                                4. **Prohibited:** Do not use [1], [2] footnotes. Do not put a list at the end. Inline only.
+                                
+                                **VISUAL FORMATTING:**
+                                1. Use Numbered Lists (1., 2., 3.) for structure.
+                                2. Start items with a **Bold Title**.
+                                
+                                **FILE INSTRUCTION:** 
+                                If text is labeled "BEGIN FILE CONTENT", treat it as the file itself.
+
+                                **CHARTS:** 
+                                If asked to visualize, output JSON in <chart> tags following Chart.js format.
+
+                                **CURRENT MODE: ${responseDepth ? responseDepth.toUpperCase() : "STANDARD"}**
+                                ${responseDepth === 'brief' ? "Constraint: Output max 150 words." : ""}
+                                ${responseDepth === 'deep' ? "Provide a comprehensive Deep Dive." : ""}
+
+                                **SUGGESTIONS:**
+                                Append a hidden suggestion block at the end: ---SUGGESTIONS---Action 1|Action 2` }]
                             },
                             messages: chatHistory
                         })
@@ -1902,13 +1947,13 @@
                         // A. Text Replacement
                         let renderedHtml = marked.parse(textWithTokens);
                         
-                        // Serialize sources for the Side Panel
+                        // Serialize sources for the Global Panel Function
                         const sourcesJson = encodeURIComponent(JSON.stringify(sources));
 
                         sources.forEach((source, index) => {
-                            // HYBRID ICON: Gen 6 Style (Green Pin) + Side Panel Trigger
-                            const iconHtml = `<span class="citation-link" onclick="openSourcePanel('${sourcesJson}')" title="Source: ${source.name}">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg>
+                            // THE HYBRID FIX: Green Pin Style + Global Click Handler
+                            const iconHtml = `<span class="citation-link" onclick="window.openSourcePanel('${sourcesJson}')" title="Source: ${source.name}" style="display:inline-flex; margin-left:4px; cursor:pointer;">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:12px; height:12px; color:white;"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg>
                             </span>`;
                             
                             const token = `%%CIT_${index}%%`;
@@ -1959,9 +2004,8 @@
                             bubble.appendChild(suggContainer);
                         }
 
-                        // D. Footer: "Sources" Button (Triggers Side Panel)
+                        // D. Footer: "Sources" Button (Triggers Global Panel)
                         if (sources.length > 0) {
-                            const sourcesJson = encodeURIComponent(JSON.stringify(sources));
                             const footerBtn = document.createElement('button');
                             footerBtn.className = "mt-3 flex items-center gap-2 px-3 py-1.5 bg-gray-700 hover:bg-gray-600 rounded-full text-xs font-medium text-emerald-400 transition";
                             footerBtn.innerHTML = `
@@ -1971,6 +2015,16 @@
                             footerBtn.onclick = () => window.openSourcePanel(sourcesJson);
                             bubble.appendChild(footerBtn);
                         }
+                        
+                        // E. Copy Button
+                        const copyBtn = document.createElement('button');
+                        copyBtn.className = 'text-xs text-gray-400 hover:text-white mt-2 block ml-auto';
+                        copyBtn.textContent = 'Copy';
+                        copyBtn.onclick = () => { navigator.clipboard.writeText(text); copyBtn.textContent = 'Copied!'; setTimeout(() => copyBtn.textContent = 'Copy', 1500); };
+                        bubble.appendChild(copyBtn);
+                        
+                        // F. Remix Bar
+                        bubble.appendChild(createRemixBar(text));
                     };
 
                     // 5. DECIDE: ANIMATE OR INSTANT?
