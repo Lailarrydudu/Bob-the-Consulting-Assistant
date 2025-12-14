@@ -956,8 +956,8 @@
                         // 1. Restore to memory
                         chatHistory.push(msg); 
                         
-                        // 2. Restore to UI 
-                        createMessageBubble(msg.parts[0].text, msg.role, false, null);
+                        // 2. Restore to UI (NO ANIMATION)
+                        createMessageBubble(msg.parts[0].text, msg.role, false);
                     });
                     
                     // Scroll to bottom
@@ -1750,14 +1750,10 @@
                     if (result.error) {
                         createMessageBubble(`⚠️ **System Error:** ${result.error.message}`, "model");
                     } else {
-                        const candidate = result?.candidates?.[0];
-                        const text = candidate?.content?.parts?.[0]?.text;
-                        const metadata = candidate?.groundingMetadata; // Capture the hidden real links!
-
+                        const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
                         if (text) {
                             chatHistory.push({ role: "model", parts: [{ text: text }] });
-                            // Pass metadata to the bubble so it can fix the links
-                            createMessageBubble(text, "model", true, metadata);
+                    createMessageBubble(text, "model", true);
                         } else {
                             createMessageBubble("⚠️ Duvallo returned an empty response.", "model");
                         }
@@ -1789,66 +1785,17 @@
             
            // --- CITATION HELPER FUNCTIONS (SAFE TOKEN STRATEGY) ---
             
-            // 1. Process Text: Extract links with Robust Fuzzy Matching
-            function processCitations(rawText, metadata = null) {
-                // Build a "Title -> URL" Map from the API Metadata
-                const urlMap = {};
-                // Also store a backup list of all URLs found
-                const allUrls = [];
-                
-                if (metadata && metadata.groundingChunks) {
-                    metadata.groundingChunks.forEach(chunk => {
-                        if (chunk.web && chunk.web.title && chunk.web.uri) {
-                            // Normalize the title for better matching
-                            urlMap[chunk.web.title.toLowerCase()] = chunk.web.uri;
-                            allUrls.push(chunk.web.uri);
-                        }
-                    });
-                }
-
+            // 1. Process Text: Extract links (Gen 6 Logic)
+            function processCitations(rawText) {
+                // The Regex that worked in Gen 6
                 const regex = /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g;
+                
                 let sources = [];
                 
+                // Replace Markdown links with tokens like %%CIT_0%%
                 const textWithTokens = rawText.replace(regex, (match, name, url) => {
-                    let finalUrl = url.replace(/[.,;!]+$/, ""); 
-                    const nameLower = name.toLowerCase().trim();
-
-                    // FIX: If it's a broken Google link, find the REAL link in Metadata
-                    if (finalUrl.includes('grounding-api') || finalUrl.includes('googleusercontent')) {
-                        let found = false;
-
-                        // Strategy 1: Exact Match
-                        if (urlMap[nameLower]) {
-                            finalUrl = urlMap[nameLower];
-                            found = true;
-                        } 
-                        
-                        // Strategy 2: Fuzzy Match (Does Title contain Name? or Name contain Title?)
-                        if (!found) {
-                            for (const [title, uri] of Object.entries(urlMap)) {
-                                if (title.includes(nameLower) || nameLower.includes(title)) {
-                                    finalUrl = uri;
-                                    found = true;
-                                    break;
-                                }
-                            }
-                        }
-
-                        // Strategy 3: Aggressive Fallback
-                        // If we still haven't found a match, but we HAVE metadata URLs, use the first one.
-                        // It is better to show *a* valid source from the list than a generic search page.
-                        if (!found && allUrls.length > 0) {
-                            finalUrl = allUrls[0];
-                            found = true;
-                        }
-
-                        // Strategy 4: Ultimate Fail-Safe (The Search Page)
-                        if (!found) {
-                            finalUrl = `https://www.google.com/search?q=${encodeURIComponent(name)}`;
-                        }
-                    }
-
-                    sources.push({ name, url: finalUrl });
+                    let cleanUrl = url.replace(/[.,;!]+$/, ""); 
+                    sources.push({ name, url: cleanUrl });
                     return `%%CIT_${sources.length - 1}%%`;
                 });
 
@@ -1920,7 +1867,7 @@
             }
 
             // 3. Render Message Bubble (Modified with Remix Bar)
-            function createMessageBubble(text, sender, animate = true, metadata = null) {
+            function createMessageBubble(text, sender, animate = true) {
                 const wrapper = document.createElement('div');
                 wrapper.classList.add('flex', 'message-wrapper', 'mb-4', sender === 'user' ? 'justify-end' : 'justify-start');
                 
@@ -1985,8 +1932,8 @@
                         }
                     }
 
-                    // 3. CITATION PROCESSING (Pass metadata)
-                    const { textWithTokens, sources } = processCitations(text, metadata);
+                    // 3. CITATION PROCESSING
+                    const { textWithTokens, sources } = processCitations(text);
                     
                     // 4. PREPARE UI
                     const contentDiv = document.createElement('div');
