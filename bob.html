@@ -247,40 +247,105 @@
             top: -2px;
         }
         .citation-link svg { width: 10px; height: 10px; color: #ffffff; }
+
+        /* --- NEW: Glowing Phase Bar & Dropdown --- */
+        .phase-step {
+            border: 1px solid #374151; /* Gray 700 */
+            background-color: #1f2937; /* Gray 800 */
+            color: #9ca3af; /* Gray 400 */
+            padding: 0.5rem 1.25rem;
+            border-radius: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .phase-separator {
+            height: 2px;
+            width: 30px;
+            background-image: linear-gradient(to right, #374151 33%, rgba(255,255,255,0) 0%);
+            background-position: bottom;
+            background-size: 6px 2px;
+            background-repeat: repeat-x;
+            transition: all 0.3s ease;
+        }
+
+        /* Active/Completed State (Glow) */
+        .phase-step.active, .phase-step.completed {
+            border-color: #10b981; /* Emerald 500 */
+            color: #ecfdf5; /* Emerald 50 */
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); /* The Glow */
+        }
+        
+        .phase-separator.active {
+            background-image: linear-gradient(to right, #10b981 33%, rgba(255,255,255,0) 0%);
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+        }
+
+        /* Dropdown Animation */
+        #projectDropdown {
+            transform-origin: top right;
+            transition: transform 0.1s ease-out, opacity 0.1s ease-out;
+        }
+        #projectDropdown.hidden {
+            display: none;
+        }
+        
     </style>
 </head>
 <body class="flex flex-col h-screen w-full bg-gray-900 text-gray-100 overflow-hidden">
 
     <!-- 1. TOP NAVIGATION (The Phase Bar) -->
-    <header class="h-16 bg-gray-800 border-b border-gray-700 flex items-center px-6 justify-between flex-shrink-0 z-30">
+    <header class="h-20 bg-gray-900 border-b border-gray-700 flex items-center px-6 justify-between flex-shrink-0 z-30 shadow-lg">
+        
         <!-- Logo -->
-        <div class="flex items-center gap-3 w-64">
-            <div class="p-1 bg-white rounded-full border-2 border-emerald-600">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="20" height="20">
-                    <circle cx="50" cy="50" r="8" fill="none" stroke="#047857" stroke-width="5"/>
-                    <g stroke="#047857" stroke-width="4" fill="none">
-                        <line x1="50" y1="50" x2="50" y2="20"/><line x1="50" y1="50" x2="75" y2="30"/>
-                        <line x1="50" y1="50" x2="75" y2="70"/><line x1="50" y1="50" x2="50" y2="80"/>
-                        <line x1="50" y1="50" x2="25" y2="70"/><line x1="50" y1="50" x2="25" y2="30"/>
-                    </g>
+        <div class="flex items-center gap-3 w-48">
+            <div class="p-1.5 bg-emerald-900/30 rounded-lg border border-emerald-500/50">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 text-emerald-400">
+                    <path fill-rule="evenodd" d="M9 4.5a.75.75 0 01.721.544l.813 2.846a3.75 3.75 0 002.576 2.576l2.846.813a.75.75 0 010 1.442l-2.846.813a3.75 3.75 0 00-2.576 2.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a3.75 3.75 0 00-2.576-2.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813a3.75 3.75 0 002.576-2.576l.813-2.846A.75.75 0 019 4.5zM6 20.25a.75.75 0 01.75.75v.75h.75a.75.75 0 010 1.5h-.75v.75a.75.75 0 01-1.5 0v-.75h-.75a.75.75 0 010-1.5h.75v-.75a.75.75 0 01.75-.75zM17.5 8a.75.75 0 01.75-.75h.75v-.75a.75.75 0 011.5 0v.75h.75a.75.75 0 010 1.5h-.75v.75a.75.75 0 01-1.5 0v-.75h-.75a.75.75 0 010-1.5z" clip-rule="evenodd" />
                 </svg>
             </div>
-            <h1 class="font-bold text-lg tracking-wide text-white">Duvallo</h1>
+            <h1 class="font-bold text-lg tracking-wide text-white font-serif">Duvallo</h1>
         </div>
 
-        <!-- Phase Gates -->
-        <div class="flex space-x-1" id="phaseNav">
-            <button class="phase-btn active">1. Diagnosis</button>
-            <button class="phase-btn">2. Research</button>
-            <button class="phase-btn">3. Strategy</button>
-            <button class="phase-btn">4. Execution</button>
-            <button class="phase-btn">5. Maintain</button>
+        <!-- VISUAL WORKFLOW (Boxes + Dotted Lines) -->
+        <div class="flex items-center space-x-2" id="phaseNav">
+            <button class="phase-step active">Diagnosis</button>
+            <div class="phase-separator active"></div>
+            
+            <button class="phase-step">Research</button>
+            <div class="phase-separator"></div>
+            
+            <button class="phase-step">Strategy</button>
+            <div class="phase-separator"></div>
+            
+            <button class="phase-step">Execution</button>
+            <div class="phase-separator"></div>
+            
+            <button class="phase-step">Maintain</button>
         </div>
 
-        <!-- Project Utils -->
-        <div class="w-64 flex justify-end gap-2">
-            <button id="newProjectBtn" class="text-xs bg-emerald-700 hover:bg-emerald-600 px-3 py-1.5 rounded text-white font-bold transition">New Project</button>
-            <button id="loadProjectBtn" class="text-xs border border-gray-600 hover:bg-gray-700 px-3 py-1.5 rounded text-gray-300 transition">Load</button>
+        <!-- Project Menu Dropdown -->
+        <div class="w-48 flex justify-end relative">
+            <button onclick="document.getElementById('projectDropdown').classList.toggle('hidden')" 
+                    class="flex items-center gap-2 text-xs bg-gray-800 hover:bg-gray-700 border border-gray-600 text-gray-200 px-4 py-2 rounded transition">
+                <span>Project Menu</span>
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            
+            <!-- Dropdown Content -->
+            <div id="projectDropdown" class="hidden absolute top-full right-0 mt-2 w-48 bg-gray-800 border border-gray-600 rounded-lg shadow-xl z-50 overflow-hidden">
+                <button id="newProjectBtn" class="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-emerald-600 hover:text-white transition border-b border-gray-700">
+                    + New Project
+                </button>
+                <button id="loadProjectBtn" class="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-gray-700 transition border-b border-gray-700">
+                    📂 Load Project
+                </button>
+                <button id="deleteProjectBtn" class="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-red-900/30 transition">
+                    🗑️ Delete Project
+                </button>
+            </div>
         </div>
     </header>
 
