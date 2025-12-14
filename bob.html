@@ -517,1996 +517,354 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.5);
             pointer-events: none;
         }
+
+        /* --- NEW PHASE-GATE UI STYLES --- */
+        
+        /* Top Nav Tabs */
+        .phase-tab {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: #9ca3af; /* Gray 400 */
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+            height: 100%;
+            display: flex;
+            align-items: center;
+        }
+        .phase-tab:hover { color: #f3f4f6; }
+        .phase-tab.active {
+            color: #34d399; /* Emerald 400 */
+            border-bottom-color: #34d399;
+            background: rgba(17, 24, 39, 0.5);
+        }
+
+        /* Workspace Views */
+        .workspace-view {
+            display: none;
+            height: 100%;
+            animation: fadeIn 0.3s ease-out;
+        }
+        .workspace-view.active { display: block; }
+
+        /* Action Cards */
+        .action-card {
+            background-color: #1f2937; /* Gray 800 */
+            border: 1px solid #374151;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .action-card:hover {
+            border-color: #10b981;
+            background-color: #272f3d;
+            transform: translateY(-2px);
+        }
+        .action-card h4 { font-weight: 700; color: #f3f4f6; }
+        .action-card p { font-size: 0.8rem; color: #9ca3af; }
+
+        /* Chat Drawer Animation */
+        #chatDrawer {
+            transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #chatDrawer.collapsed {
+            height: 40px !important; /* Only header visible */
+        }
+        #chatDrawer.collapsed #chatArea, 
+        #chatDrawer.collapsed .input-container {
+            display: none;
+        }
+        
+        /* Input container specific fix */
+        .input-container {
+            padding: 1rem;
+            background-color: #1f2937;
+            border-top: 1px solid #374151;
+        }
         
     </style>
 </head>
-<body class="flex h-screen w-full bg-gray-900">
+<body class="flex flex-col h-screen bg-gray-900 text-white font-sans overflow-hidden">
 
-    <!-- LEFT SIDEBAR (Phases) -->
-    <aside class="w-64 bg-gray-800 border-r border-gray-700 flex flex-col flex-shrink-0 z-20">
-       <!-- Logo Area -->
-        <div class="p-6 border-b border-gray-700 flex items-center gap-3">
-            <div class="p-1.5 bg-white rounded-full border-2 border-green-700 flex-shrink-0">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="28" height="28">
-                    <circle cx="50" cy="50" r="8" fill="none" stroke="#4a5d3e" stroke-width="4"/>
-                    <g stroke="#4a5d3e" stroke-width="3" fill="none">
-                        <line x1="50" y1="50" x2="50" y2="20"/><circle cx="50" cy="20" r="6"/>
-                        <line x1="50" y1="50" x2="75" y2="30"/><circle cx="75" cy="30" r="6"/>
-                        <line x1="50" y1="50" x2="75" y2="70"/><circle cx="75" cy="70" r="6"/>
-                        <line x1="50" y1="50" x2="50" y2="80"/><circle cx="50" cy="80" r="6"/>
-                        <line x1="50" y1="50" x2="25" y2="70"/><circle cx="25" cy="70" r="6"/>
-                        <line x1="50" y1="50" x2="25" y2="30"/><circle cx="25" cy="30" r="6"/>
+    <!-- 1. TOP NAVIGATION (Full Width) -->
+    <header class="h-14 bg-gray-800 border-b border-gray-700 flex items-center justify-between px-4 shrink-0 z-30">
+        <!-- Logo -->
+        <div class="flex items-center gap-2 mr-8">
+            <div class="p-1 bg-white rounded-full border-2 border-emerald-600">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="16" height="16">
+                    <circle cx="50" cy="50" r="8" fill="none" stroke="#047857" stroke-width="5"/>
+                    <g stroke="#047857" stroke-width="4" fill="none">
+                        <line x1="50" y1="50" x2="50" y2="20"/><line x1="50" y1="50" x2="75" y2="30"/><line x1="50" y1="50" x2="75" y2="70"/><line x1="50" y1="50" x2="50" y2="80"/><line x1="50" y1="50" x2="25" y2="70"/><line x1="50" y1="50" x2="25" y2="30"/>
                     </g>
                 </svg>
             </div>
-            <h1 class="font-bold text-lg text-white tracking-wide">Duvallo</h1>
+            <span class="font-bold tracking-wide text-gray-100">Duvallo</span>
         </div>
 
-        <!-- PROJECT CONTROLS (Always Visible) -->
-        <div class="p-4 border-b border-gray-700 space-y-2">
-            <button id="newProjectBtn" class="w-full py-2 px-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold text-sm transition flex items-center justify-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-                New Project
-            </button>
-            <button id="loadProjectBtn" class="w-full py-2 px-3 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg font-bold text-sm transition flex items-center justify-center gap-2 border border-gray-600">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" /></svg>
-                Load Project
-            </button>
-            <button id="deleteProjectBtn" class="w-full py-2 px-3 bg-red-900/30 hover:bg-red-800 text-red-200 rounded-lg font-bold text-sm transition flex items-center justify-center gap-2 border border-red-800">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
-                Delete Project
-            </button>
+        <!-- Phase Tabs -->
+        <div class="flex flex-1 gap-1 h-full items-end" id="phaseNav">
+            <button class="phase-tab active" onclick="switchPhase('diagnosis')">1. Diagnosis</button>
+            <button class="phase-tab" onclick="switchPhase('analysis')">2. Research</button>
+            <button class="phase-tab" onclick="switchPhase('solution')">3. Solution</button>
+            <button class="phase-tab" onclick="switchPhase('execution')">4. Execution</button>
+            <button class="phase-tab" onclick="switchPhase('maintain')">5. Maintain</button>
         </div>
 
-        <!-- PHASE MENUS (Hidden by default) -->
-        <div id="phaseMenuContainer" class="hidden flex-1 overflow-y-auto p-4 space-y-4 opacity-50 transition-opacity duration-500">
-            
-            <div class="text-xs text-gray-500 font-bold uppercase tracking-widest mb-2">Project Phases</div>
+        <!-- Utilities -->
+        <div class="flex items-center gap-2">
+            <button id="exportBtn" class="text-xs font-medium text-gray-400 hover:text-white px-2 py-1 border border-gray-600 rounded">Export PDF</button>
+            <!-- Hidden elements for JS compatibility -->
+            <button id="exportPptxBtn" style="display:none"></button>
+            <button id="exportCsvBtn" style="display:none"></button>
+            <div class="w-6 h-6 rounded-full bg-emerald-700 flex items-center justify-center text-xs font-bold">U</div>
+        </div>
+    </header>
 
-            <!-- Phase 1 -->
-            <div>
-                <button id="initialSetupDropdownBtn" class="sidebar-btn">
-                    Initial Setup
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                </button>
-                <div id="initialSetupMenu" class="sidebar-menu hidden"></div>
-            </div>
+    <!-- 2. MAIN LAYOUT BODY -->
+    <div class="flex flex-1 overflow-hidden relative">
 
-            <!-- Phase 2 -->
-            <div>
-                <button id="analysisDropdownBtn" class="sidebar-btn">
-                    Analysis
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                </button>
-                <div id="analysisMenu" class="sidebar-menu hidden"></div>
-            </div>
-
-            <!-- Phase 3 -->
-            <div>
-                <button id="solutionDesignDropdownBtn" class="sidebar-btn">
-                    Solution Design
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                </button>
-                <div id="solutionDesignMenu" class="sidebar-menu hidden"></div>
-            </div>
-
-            <!-- Phase 4 -->
-            <div>
-                <button id="executionDropdownBtn" class="sidebar-btn">
-                    Execution
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                </button>
-                <div id="executionMenu" class="sidebar-menu hidden"></div>
-            </div>
-            
-            <!-- KNOWLEDGE VAULT (New) -->
-            <div class="mt-8 pt-4 border-t border-gray-700">
-                <div class="flex justify-between items-center mb-2 px-1">
-                    <span class="text-xs text-gray-500 font-bold uppercase tracking-widest">Context Vault</span>
-                    <!-- Hidden Vault Input -->
-                    <input type="file" id="vaultFileInput" style="display: none;" accept=".txt,.md,.csv,.json,.pdf">
-                    <button id="addVaultFileBtn" class="text-xs bg-emerald-900/50 text-emerald-400 border border-emerald-700 hover:bg-emerald-800 px-2 py-1 rounded transition">
-                        + Add Source
-                    </button>
-                </div>
-                <!-- List of Vault Files -->
-                <div id="vaultList" class="space-y-2 max-h-40 overflow-y-auto pr-1">
-                    <!-- Files will be injected here via JS -->
-                    <div id="emptyVaultMsg" class="text-xs text-gray-600 italic px-1">No context files loaded.</div>
+        <!-- 2A. LEFT SIDEBAR (Context & Assets) -->
+        <aside class="w-64 bg-gray-900 border-r border-gray-700 flex flex-col z-20 shrink-0">
+            <!-- Project Selector -->
+            <div class="p-4 border-b border-gray-700">
+                <div class="text-[10px] uppercase text-gray-500 font-bold tracking-wider mb-1">Active Project</div>
+                <div id="currentProjectNameDisplay" class="font-bold text-emerald-400 truncate text-sm mb-2">Untitled Project</div>
+                <div class="flex gap-1">
+                    <button id="newProjectBtn" class="flex-1 bg-emerald-900/50 hover:bg-emerald-800 text-emerald-400 text-xs py-1 rounded border border-emerald-800">New</button>
+                    <button id="loadProjectBtn" class="flex-1 bg-gray-800 hover:bg-gray-700 text-gray-400 text-xs py-1 rounded border border-gray-700">Load</button>
                 </div>
             </div>
 
-            <!-- Current Project Indicator -->
-            <div id="currentProjectBadge" class="mt-6 p-3 bg-gray-900 rounded border border-gray-700 text-center hidden">
-                <div class="text-xs text-gray-500">Active Project</div>
-                <div id="currentProjectNameDisplay" class="text-sm font-bold text-emerald-400 truncate"></div>
-            </div>
-
-        </div>
-    </aside>
-
-    <!-- CENTER CHAT AREA -->
-    <main class="flex-1 flex flex-col relative bg-gray-900 min-w-0">
-        
-        <!-- NEW WRAPPER: Holds Chat + Side Panel -->
-        <div class="content-wrapper">
-            
-            <!-- 1. Chat Area -->
-            <div id="chatArea" class="flex-1 overflow-y-auto p-8 space-y-6 relative">
-                <!-- Messages injected here -->
+            <!-- Context Data -->
+            <div class="p-4 flex-1 overflow-y-auto space-y-6">
+                <div>
+                    <label class="text-[10px] uppercase text-gray-500 font-bold">Target URL</label>
+                    <input type="text" placeholder="www.example.com" class="w-full bg-gray-800 border border-gray-700 rounded text-xs px-2 py-1 text-gray-300 mt-1 focus:border-emerald-500 focus:outline-none">
+                </div>
                 
-                <!-- HERO TEXT (Moved inside chatArea so it centers correctly relative to the "squeeze") -->
+                <!-- Knowledge Vault -->
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-[10px] uppercase text-gray-500 font-bold">Knowledge Vault</span>
+                        <input type="file" id="vaultFileInput" style="display: none;" accept=".txt,.md,.csv,.json,.pdf">
+                        <button id="addVaultFileBtn" class="text-xs text-emerald-500 hover:text-emerald-400 border border-emerald-900 bg-emerald-900/20 px-2 py-0.5 rounded">+ Add File</button>
+                    </div>
+                    <div id="vaultList" class="space-y-1">
+                        <div id="emptyVaultMsg" class="text-xs text-gray-600 italic">No files loaded.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Controls -->
+            <div class="p-4 border-t border-gray-700 space-y-2">
+                <button id="generateTakeawaysBtn" class="w-full text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 py-1.5 rounded border border-gray-600">Generate Report</button>
+                <button id="deleteProjectBtn" class="w-full text-left text-xs text-red-900 hover:text-red-500 transition text-center mt-2">Delete Project</button>
+            </div>
+            
+            <!-- Hidden menus for JS compatibility -->
+            <div id="phaseMenuContainer" class="hidden">
+                <div id="initialSetupMenu"></div><div id="analysisMenu"></div><div id="solutionDesignMenu"></div><div id="executionMenu"></div>
+                <div id="myPromptsMenu"></div><div id="workflowMenu"></div>
+                <button id="initialSetupDropdownBtn"></button><button id="analysisDropdownBtn"></button><button id="solutionDesignDropdownBtn"></button>
+                <button id="executionDropdownBtn"></button><button id="myPromptsDropdownBtn"></button><button id="workflowBtn"></button>
+                <div id="currentProjectBadge"></div>
+            </div>
+        </aside>
+
+        <!-- 2B. CENTER WORKSPACE + CHAT DRAWER -->
+        <div class="flex flex-1 flex-col min-w-0 relative">
+            
+            <!-- CENTER WORKSPACE (The Stage) -->
+            <div id="workspaceStage" class="flex-1 overflow-y-auto bg-[#0f1115] relative p-8">
+                
+                <!-- HERO TEXT -->
                 <div id="heroText" class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-0">
-                    <h2 class="text-4xl font-bold text-gray-200 tracking-tight drop-shadow-lg">Should we start building?</h2>
-                    <p class="text-gray-500 mt-2">Select a project from the left or type below.</p>
+                    <h2 class="text-3xl font-bold text-gray-700 tracking-tight">Select a Phase to Begin</h2>
                 </div>
+
+                <!-- VIEW 1: DIAGNOSIS -->
+                <div id="view-diagnosis" class="workspace-view active">
+                    <h2 class="text-2xl font-bold mb-6 text-white">1. Diagnostic Phase</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="action-card" onclick="triggerPrompt('Guided Diagnostic (Interviewer Mode)')">
+                            <h4>Guided Diagnostic Interview</h4>
+                            <p>Start a root-cause analysis conversation to identify core issues.</p>
+                        </div>
+                        <div class="action-card" onclick="triggerPrompt('Industry Trends Snapshot')">
+                            <h4>Industry Trends Snapshot</h4>
+                            <p>Scan the market for real-time trends affecting your sector.</p>
+                        </div>
+                        <div class="action-card" onclick="triggerPrompt('Initial Project Charter Draft')">
+                            <h4>Draft Project Charter</h4>
+                            <p>Create a formal document outlining scope, stakeholders, and KPIs.</p>
+                        </div>
+                        <div class="action-card" onclick="triggerPrompt('Problem Statement Draft')">
+                            <h4>Refine Problem Statement</h4>
+                            <p>Convert messy thoughts into a McKinsey-style problem definition.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VIEW 2: RESEARCH -->
+                <div id="view-research" class="workspace-view">
+                    <h2 class="text-2xl font-bold mb-6 text-white">2. Analysis & Research</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="action-card" onclick="triggerPrompt('Market Analysis')">
+                            <h4>Market Analysis (TAM/SAM)</h4>
+                            <p>Calculate market size and growth potential.</p>
+                        </div>
+                        <div class="action-card" onclick="triggerPrompt('Competitor Benchmarking')">
+                            <h4>Competitor Benchmarking</h4>
+                            <p>Compare features, pricing, and sentiment against rivals.</p>
+                        </div>
+                        <div class="action-card" onclick="triggerPrompt('SWOT Analysis')">
+                            <h4>SWOT Analysis</h4>
+                            <p>Evaluate internal strengths/weaknesses and external opportunities/threats.</p>
+                        </div>
+                        <div class="action-card" onclick="triggerPrompt('PESTLE Analysis')">
+                            <h4>PESTLE Scan</h4>
+                            <p>Analyze Macro-economic factors (Political, Economic, Social, etc).</p>
+                        </div>
+                        <div class="action-card" onclick="triggerPrompt('5 Forces Analysis')">
+                            <h4>Porter's 5 Forces</h4>
+                            <p>Analyze industry structure and profitability.</p>
+                        </div>
+                        <div class="action-card" onclick="triggerPrompt('MECE Logic Check')">
+                            <h4>MECE Logic Audit</h4>
+                            <p>Check your current analysis for gaps and overlaps.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VIEW 3: SOLUTION -->
+                <div id="view-solution" class="workspace-view">
+                    <h2 class="text-2xl font-bold mb-6 text-white">3. Strategic Solution</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="action-card" onclick="triggerPrompt('Market Entry Strategy')">
+                            <h4>Market Entry Strategy</h4>
+                            <p>Plan a launch into a new geography or vertical.</p>
+                        </div>
+                        <div class="action-card" onclick="triggerPrompt('Go-to-market Strategy')">
+                            <h4>Go-to-Market (GTM)</h4>
+                            <p>Define ICP, channels, and messaging pillars.</p>
+                        </div>
+                        <div class="action-card" onclick="triggerPrompt('Business Plan Outline')">
+                            <h4>Business Plan Generator</h4>
+                            <p>Draft a full VC-ready business plan structure.</p>
+                        </div>
+                        <div class="action-card" onclick="triggerPrompt('Ansoff Matrix')">
+                            <h4>Ansoff Growth Matrix</h4>
+                            <p>Explore diversification vs penetration strategies.</p>
+                        </div>
+                        <div class="action-card" onclick="triggerPrompt('Risk Analysis')">
+                            <h4>Risk Analysis</h4>
+                            <p>Identify operational, financial, and reputational risks.</p>
+                        </div>
+                        <div class="action-card" onclick="triggerPrompt('Devil\'s Advocate Review')">
+                            <h4>Red Team Review</h4>
+                            <p>Stress-test your strategy against a skeptical AI opponent.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VIEW 4: EXECUTION -->
+                <div id="view-execution" class="workspace-view">
+                    <h2 class="text-2xl font-bold mb-6 text-white">4. Execution Planning</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="action-card" onclick="triggerPrompt('Monday Morning Protocol')">
+                            <h4>Monday Morning Protocol</h4>
+                            <p>Generate an immediate 7-day action plan.</p>
+                        </div>
+                        <div class="action-card" onclick="triggerPrompt('KPI Dashboard Mockup')">
+                            <h4>KPI Dashboard Design</h4>
+                            <p>Define leading and lagging indicators for success.</p>
+                        </div>
+                        <div class="action-card" onclick="triggerPrompt('Implementation Plan Outline')">
+                            <h4>Implementation Roadmap</h4>
+                            <p>Create a phased timeline for rollout.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VIEW 5: MAINTAIN -->
+                <div id="view-maintain" class="workspace-view">
+                    <h2 class="text-2xl font-bold mb-6 text-white">5. Maintenance & Monitoring</h2>
+                    <div class="p-6 border border-gray-700 border-dashed rounded-xl text-center text-gray-500">
+                        <p class="mb-2 font-bold">Monitoring Dashboard (Coming Soon)</p>
+                        <p class="text-xs">Use the Chat Drawer below to ask for periodic reviews or strategy adjustments.</p>
+                    </div>
+                </div>
+
             </div>
 
-            <!-- 2. The Side Panel (Hidden initially) -->
-            <aside id="rightSourcePanel">
-                <div class="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-800">
-                    <span class="text-xs font-bold uppercase text-gray-400 tracking-wider">Sources</span>
-                    <button onclick="closeSourcePanel()" class="text-gray-400 hover:text-white">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                        </svg>
+            <!-- BOTTOM CHAT DRAWER (Collapsible) -->
+            <div id="chatDrawer" class="bg-gray-800 border-t border-gray-700 flex flex-col h-96 z-40 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] shrink-0">
+                
+                <!-- Drawer Header -->
+                <div class="h-10 border-b border-gray-700 flex items-center justify-between px-4 bg-gray-800 cursor-pointer hover:bg-gray-750 transition" onclick="toggleChatDrawer()">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-gray-300">Consulting Co-Pilot</span>
+                    </div>
+                    <button id="drawerToggleIcon" class="text-gray-400 hover:text-white transform transition-transform duration-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                     </button>
                 </div>
-                <div id="sourcePanelContent" class="p-4 space-y-3 overflow-y-auto flex-1">
-                    <!-- Source items injected here -->
-                </div>
-            </aside>
-            
-        </div>
 
-        <!-- Input Area (Fixed Bottom - Stays full width) -->
-        <div class="p-6 bg-gray-900 z-20 border-t border-gray-800">
-            <!-- Unified Input Capsule -->
-             <div class="max-w-4xl mx-auto relative flex items-end gap-2 bg-[#2f2f2f] p-2 rounded-[2rem] border border-gray-700 shadow-xl focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500 transition-all">
-                
-                <!-- Hidden File Input -->
-                <input type="file" id="hiddenFileInput" style="display: none;" accept=".txt,.md,.csv,.json,.js,.html,.css,.xml,.pdf">
-                
-                <!-- Attachment Button (Left) -->
-                <button id="attachBtn" class="p-3 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-gray-700 flex-shrink-0 mb-0.5" title="Attach file">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" />
-                    </svg>
-                </button>
-
-                <!-- "Brief" Mode Button -->
-                <button id="modeBriefBtn" class="mb-2 px-3 py-1.5 text-xs font-bold rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-700 transition-all border border-transparent">
-                    Brief
-                </button>
-
-                <!-- Middle Column: File Preview + Text Input -->
-                <div class="flex-1 flex flex-col justify-end min-w-0">
-                    <!-- File Preview Card (Hidden by default) -->
-                    <div id="filePreviewArea" class="hidden mb-2 px-1"></div>
-
-                    <!-- Text Input -->
-                    <textarea id="userInput" 
-                        placeholder="Ask a question..." 
-                        rows="1" 
-                        class="w-full bg-transparent text-gray-100 placeholder-gray-500 border-none focus:ring-0 resize-none overflow-y-hidden py-3 text-base leading-relaxed max-h-32 text-left"
-                        style="min-height: 48px;"></textarea>
+                <!-- Chat History -->
+                <div id="chatArea" class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-900/90">
+                    <div class="text-center text-xs text-gray-600 mt-4">Chat history initialized. Select a phase card above or type below.</div>
                 </div>
 
-                <!-- "Deep" Mode Button -->
-                <button id="modeDeepBtn" class="mb-2 px-3 py-1.5 text-xs font-bold rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-700 transition-all border border-transparent">
-                    Deep
-                </button>
+                <!-- Input Area -->
+                <div class="input-container">
+                    <div class="max-w-4xl mx-auto relative flex items-end gap-2 bg-[#2f2f2f] p-2 rounded-[2rem] border border-gray-700 shadow-xl focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500 transition-all">
+                        
+                        <input type="file" id="hiddenFileInput" style="display: none;" accept=".txt,.md,.csv,.json,.js,.html,.css,.xml,.pdf">
+                        
+                        <button id="attachBtn" class="p-3 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-gray-700 flex-shrink-0 mb-0.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" /></svg>
+                        </button>
 
-                <!-- Send Button (Right) -->
-                <button id="sendButton" class="p-3 bg-emerald-600 text-white rounded-full hover:bg-emerald-500 transition-transform transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg flex-shrink-0 mb-0.5">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
-                    </svg>
-                </button>
-            </div>
-            <p class="text-center text-xs text-gray-500 mt-2">Duvallo can make mistakes. Verify important information.</p>
-        </div>
-    </main>
+                        <button id="modeBriefBtn" class="mb-2 px-3 py-1.5 text-xs font-bold rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-700 border border-transparent transition">Brief</button>
 
-    <!-- RIGHT SIDEBAR (Utilities) -->
-    <aside class="w-64 bg-gray-800 border-l border-gray-700 flex flex-col flex-shrink-0 z-20 p-4">
-        
-        <!-- WRAPPER FOR TOGGLING VISIBILITY -->
-        <div id="toolsMenuContainer" class="hidden w-full h-full flex flex-col">
-            
-            <h3 class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-4 text-center">Tools</h3>
-            
-            <!-- My Prompts -->
-            <div class="relative mb-0"> 
-                <button id="myPromptsDropdownBtn" class="utility-btn">
-                    My Prompts
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                </button>
-                <div id="myPromptsMenu" class="absolute hidden top-full left-0 w-full bg-gray-700 rounded-lg shadow-xl z-30 border border-gray-600 p-2 mt-1"></div>
-            </div>
+                        <div class="flex-1 flex flex-col justify-end min-w-0">
+                            <div id="filePreviewArea" class="hidden mb-2 px-1"></div>
+                            <textarea id="userInput" placeholder="Ask your co-pilot..." rows="1" class="w-full bg-transparent text-gray-100 placeholder-gray-500 border-none focus:ring-0 resize-none overflow-y-hidden py-3 text-base leading-relaxed max-h-32 text-left" style="min-height: 48px;"></textarea>
+                        </div>
 
-            <!-- Takeaways -->
-            <button id="generateTakeawaysBtn" class="utility-btn">Generate Takeaways</button>
+                        <button id="modeDeepBtn" class="mb-2 px-3 py-1.5 text-xs font-bold rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-700 border border-transparent transition">Deep</button>
 
-            <!-- Workflow -->
-            <div class="relative mb-0">
-                <button id="workflowBtn" class="utility-btn">
-                    Run Workflow
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                </button>
-                <div id="workflowMenu" class="absolute hidden top-full right-0 w-64 bg-gray-700 rounded-lg shadow-xl z-30 border border-gray-600 p-2 mt-1">
-                    <button class="workflow-option w-full text-left px-3 py-2 text-sm text-gray-200 hover:bg-gray-600 rounded" data-workflow="market-entry-strategy">Market Entry Strategy</button>
-                    <button class="workflow-option w-full text-left px-3 py-2 text-sm text-gray-200 hover:bg-gray-600 rounded" data-workflow="business-health-check">Business Health Check</button>
-                    <button class="workflow-option w-full text-left px-3 py-2 text-sm text-gray-200 hover:bg-gray-600 rounded" data-workflow="competitive-analysis">Competitive Analysis</button>
+                        <button id="sendButton" class="p-3 bg-emerald-600 text-white rounded-full hover:bg-emerald-500 transition-transform transform active:scale-95 shadow-lg flex-shrink-0 mb-0.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" /></svg>
+                        </button>
+                    </div>
+                    <div class="flex justify-between items-center mt-2 px-2">
+                        <button id="clearChatBtn" class="text-[10px] text-red-500 hover:text-red-400">Clear History</button>
+                        <p class="text-[10px] text-gray-500">Duvallo can make mistakes. Verify important information.</p>
+                    </div>
                 </div>
             </div>
 
-            <!-- Export Tools Group -->
-            <div class="space-y-2 mb-2 w-full">
-                <label class="text-[10px] uppercase text-gray-500 font-bold tracking-wider text-center block">Deliverables</label>
-                
-                <!-- 1. PDF Export (Existing) -->
-                <button id="exportBtn" class="utility-btn">
-                    <span class="mr-auto">Export PDF Report</span>
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                </button>
+        </div>
 
-                <!-- 2. PPTX Export (New) -->
-                <button id="exportPptxBtn" class="utility-btn bg-orange-700/80 hover:bg-orange-600">
-                    <span class="mr-auto">Export Slides (PPTX)</span>
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                </button>
-
-                <!-- 3. CSV Export (New) -->
-                <button id="exportCsvBtn" class="utility-btn bg-green-700/80 hover:bg-green-600">
-                    <span class="mr-auto">Export Tables (CSV)</span>
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+        <!-- RIGHT SOURCE PANEL (Overlay) -->
+        <aside id="rightSourcePanel" class="w-0 bg-gray-900 border-l border-gray-700 transition-all duration-300 flex flex-col overflow-hidden absolute top-0 bottom-0 right-0 z-50 h-full shadow-2xl">
+            <div class="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-800">
+                <span class="text-xs font-bold uppercase text-gray-400 tracking-wider">Sources</span>
+                <button onclick="closeSourcePanel()" class="text-gray-400 hover:text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
                 </button>
             </div>
+            <div id="sourcePanelContent" class="p-4 space-y-3 overflow-y-auto flex-1"></div>
+        </aside>
 
-            <div class="flex-grow"></div> <!-- Spacer -->
-
-            <!-- Clear Chat -->
-            <button id="clearChatBtn" class="w-full px-4 py-2 border border-red-500 text-red-400 rounded-lg hover:bg-red-900/20 transition text-sm font-bold flex justify-center items-center">
-                Clear Chat
-            </button>
-        </div>
-        
-        <!-- Placeholder when no project selected -->
-        <div id="noProjectToolState" class="flex-1 flex items-center justify-center text-center text-gray-600 text-sm p-4">
-            Select a project to access tools
-        </div>
-
-    </aside>
+    </div>
+    
     <script>
-        // --- GLOBAL HELPER FUNCTIONS (Fix for Interaction) ---
-        window.cleanUrl = function(rawUrl) {
-            if (!rawUrl) return "#";
-            try {
-                if (!rawUrl.includes("google.com/url")) return rawUrl;
-                const urlObj = new URL(rawUrl);
-                return urlObj.searchParams.get("q") || rawUrl;
-            } catch (e) { return rawUrl; }
-        };
-
-        window.openSourcePanel = function(sourcesJson) {
-            const panel = document.getElementById('rightSourcePanel');
-            const content = document.getElementById('sourcePanelContent');
-            // Decode safely
-            let sources = [];
-            try { sources = JSON.parse(decodeURIComponent(sourcesJson)); } catch(e){}
-            
-            content.innerHTML = '';
-            
-            if(!sources || sources.length === 0) {
-                 content.innerHTML = '<div class="text-gray-500 text-sm italic">No sources found.</div>';
-            } else {
-                sources.forEach(src => {
-                    const safeLink = window.cleanUrl(src.url);
-                    let domain = "External Link";
-                    try { domain = new URL(safeLink).hostname.replace('www.',''); } catch(e){}
-
-                    const item = document.createElement('a');
-                    item.href = safeLink;
-                    item.target = "_blank";
-                    item.rel = "noopener noreferrer";
-                    item.className = "block bg-gray-800 hover:bg-gray-700 border border-gray-700 p-3 rounded-lg transition group mb-2";
-                    item.innerHTML = `
-                        <div class="flex items-center gap-2 mb-1">
-                            <img src="https://www.google.com/s2/favicons?domain=${domain}" class="w-4 h-4 rounded-sm" onerror="this.style.display='none'">
-                            <span class="text-sm font-bold text-emerald-400 truncate">${src.name || domain}</span>
-                        </div>
-                        <div class="text-xs text-gray-500 truncate group-hover:text-gray-400">${safeLink}</div>
-                    `;
-                    content.appendChild(item);
-                });
-            }
-            panel.classList.add('panel-open');
-        };
-
-        window.closeSourcePanel = function() {
-            document.getElementById('rightSourcePanel').classList.remove('panel-open');
-        };
-
-        (function() {
-            // ELEMENT REFERENCES
-            const sendButton = document.getElementById('sendButton');
-            const userInput = document.getElementById('userInput');
-            const chatArea = document.getElementById('chatArea');
-            const heroText = document.getElementById('heroText'); // The "Should we start..." text
-            const clearChatBtn = document.getElementById('clearChatBtn');
-            const generateTakeawaysBtn = document.getElementById('generateTakeawaysBtn');
-            const attachBtn = document.getElementById('attachBtn');
-            const hiddenFileInput = document.getElementById('hiddenFileInput');
-
-            // DROPDOWN ELEMENTS
-            const initialSetupDropdownBtn = document.getElementById('initialSetupDropdownBtn');
-            const initialSetupMenu = document.getElementById('initialSetupMenu');
-            const analysisDropdownBtn = document.getElementById('analysisDropdownBtn');
-            const analysisMenu = document.getElementById('analysisMenu');
-            const solutionDesignDropdownBtn = document.getElementById('solutionDesignDropdownBtn');
-            const solutionDesignMenu = document.getElementById('solutionDesignMenu');
-            const executionDropdownBtn = document.getElementById('executionDropdownBtn');
-            const executionMenu = document.getElementById('executionMenu');
-            const myPromptsDropdownBtn = document.getElementById('myPromptsDropdownBtn');
-            const myPromptsMenu = document.getElementById('myPromptsMenu');
-            const workflowBtn = document.getElementById('workflowBtn');
-            const workflowMenu = document.getElementById('workflowMenu');
-            const exportBtn = document.getElementById('exportBtn');
-
-            let MIN_HEIGHT = 0; 
-            const chatHistory = [];
-            let awaitingPlanResponse = false;
-            let attachedFileContent = null;
-            let attachedFileName = null;
-
-            // VAULT STATE
-            let projectFiles = []; // Array to store {name: "filename", content: "text content"}
-            const vaultFileInput = document.getElementById('vaultFileInput');
-            const addVaultFileBtn = document.getElementById('addVaultFileBtn');
-            const vaultList = document.getElementById('vaultList');
-            const emptyVaultMsg = document.getElementById('emptyVaultMsg');
-
-            // SEMANTIC RESIZE STATE
-            let responseDepth = null; // Default is null (Standard Mode)
-            const modeBriefBtn = document.getElementById('modeBriefBtn');
-            const modeDeepBtn = document.getElementById('modeDeepBtn');
-            
-            // --- SEMANTIC RESIZE LOGIC ---
-            function updateModeUI() {
-                // Define the styles
-                const inactiveClass = "mb-2 px-3 py-1.5 text-xs font-bold rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-700 transition-all border border-transparent";
-                const activeClass = "mb-2 px-3 py-1.5 text-xs font-bold rounded-lg text-emerald-400 bg-emerald-900/30 border border-emerald-500/50 transition-all shadow-[0_0_10px_rgba(16,185,129,0.2)]";
-                
-                // 1. Reset both to Inactive (Gray)
-                modeBriefBtn.className = inactiveClass;
-                modeDeepBtn.className = inactiveClass;
-
-                // 2. Only light up the specific one if active
-                if (responseDepth === 'brief') {
-                    modeBriefBtn.className = activeClass;
-                } else if (responseDepth === 'deep') {
-                    modeDeepBtn.className = activeClass;
-                }
-            }
-
-            // Toggle Logic
-            modeBriefBtn.onclick = () => { 
-                responseDepth = (responseDepth === 'brief') ? null : 'brief'; 
-                updateModeUI(); 
-            };
-            
-            modeDeepBtn.onclick = () => { 
-                responseDepth = (responseDepth === 'deep') ? null : 'deep'; 
-                updateModeUI(); 
-            };
-
-            // Run once on load to ensure state matches
-            updateModeUI();
-            
-            // ============================================
-            // 0. PROJECT MANAGEMENT SYSTEM
-            // ============================================
-            let currentProjectId = null;
-            const phaseMenuContainer = document.getElementById('phaseMenuContainer');
-            const toolsMenuContainer = document.getElementById('toolsMenuContainer');
-            const noProjectToolState = document.getElementById('noProjectToolState');
-            const currentProjectBadge = document.getElementById('currentProjectBadge');
-            const currentProjectNameDisplay = document.getElementById('currentProjectNameDisplay');
-
-            // Load Project List from LocalStorage
-            function getProjects() {
-                return JSON.parse(localStorage.getItem('duvallo_projects_index') || '[]');
-            }
-
-            // Save Chat to Current Project
-            function saveCurrentProjectChat() {
-                if (!currentProjectId) return;
-                localStorage.setItem(`duvallo_project_${currentProjectId}_chat`, JSON.stringify(chatHistory));
-            }
-
-            // Switch to a specific project
-            function activateProject(id, name) {
-                currentProjectId = id;
-                
-                // 1. Update UI Visibility
-                phaseMenuContainer.classList.remove('hidden', 'opacity-50');
-                phaseMenuContainer.classList.add('opacity-100');
-                toolsMenuContainer.classList.remove('hidden');
-                noProjectToolState.classList.add('hidden');
-                
-                // 2. Update Hero Text
-                heroText.style.display = 'none';
-                
-                // 3. Update Badge
-                currentProjectBadge.classList.remove('hidden');
-                // Reset Vault for new session (MVP: Clears on load. Future: Load from DB)
-                projectFiles = []; 
-                renderVaultFiles();
-                currentProjectNameDisplay.textContent = name;
-
-                // 4. Load Chat History
-                chatArea.innerHTML = ''; // Clear screen
-                chatHistory.length = 0; // Clear memory array
-                
-                const savedChat = JSON.parse(localStorage.getItem(`duvallo_project_${id}_chat`) || '[]');
-                
-                if (savedChat.length > 0) {
-                    savedChat.forEach(msg => {
-                        // 1. Restore to memory
-                        chatHistory.push(msg); 
-                        
-                        // 2. Restore to UI (NO ANIMATION)
-                        createMessageBubble(msg.parts[0].text, msg.role, false);
-                    });
-                    
-                    // Scroll to bottom
-                    setTimeout(() => chatArea.scrollTop = chatArea.scrollHeight, 100);
-                } else {
-                    // New Project: Show Hero Text
-                     heroText.style.display = 'flex';
-                }
-            }
-
-            // EVENT: New Project
-            document.getElementById('newProjectBtn').onclick = () => {
-                const name = prompt("Enter Project Name (e.g., 'Q3 Sales Strategy'):");
-                if (!name) return;
-
-                const id = Date.now().toString();
-                const projects = getProjects();
-                projects.push({ id, name, date: new Date().toISOString() });
-                localStorage.setItem('duvallo_projects_index', JSON.stringify(projects));
-                
-                activateProject(id, name);
-            };
-
-            // EVENT: Load Project
-            document.getElementById('loadProjectBtn').onclick = () => {
-                const projects = getProjects();
-                if (projects.length === 0) return alert("No saved projects found.");
-
-                // Simple prompt selection (can be upgraded to modal later)
-                let list = "Select a project by number:\n";
-                projects.forEach((p, i) => list += `${i + 1}. ${p.name}\n`);
-                
-                const choice = prompt(list);
-                if (choice && projects[choice - 1]) {
-                    activateProject(projects[choice - 1].id, projects[choice - 1].name);
-                }
-            };
-
-            // EVENT: Delete Project
-            document.getElementById('deleteProjectBtn').onclick = () => {
-                const projects = getProjects();
-                if (projects.length === 0) return alert("No saved projects to delete.");
-
-                // List projects
-                let list = "Type the number of the project to DELETE:\n";
-                projects.forEach((p, i) => list += `${i + 1}. ${p.name}\n`);
-                
-                const choice = prompt(list);
-                const projectToDelete = projects[choice - 1];
-
-                if (choice && projectToDelete) {
-                    // CONFIRMATION POPUP
-                    const confirmDelete = confirm(`⚠️ ARE YOU SURE?\n\nYou are about to delete "${projectToDelete.name}".\nThis action cannot be undone.`);
-                    
-                    if (confirmDelete) {
-                        // 1. Remove the chat history data
-                        localStorage.removeItem(`duvallo_project_${projectToDelete.id}_chat`);
-                        
-                        // 2. Remove from the index array
-                        const updatedProjects = projects.filter(p => p.id !== projectToDelete.id);
-                        localStorage.setItem('duvallo_projects_index', JSON.stringify(updatedProjects));
-                        
-                        // 3. Feedback and Reset
-                        alert(`Project "${projectToDelete.name}" has been deleted.`);
-                        
-                        // Reload page to reset UI and prevent using deleted data
-                        location.reload();
-                    }
-                } else if (choice) {
-                    alert("Invalid selection.");
-                }
-            };
-
-            // ============================================
-            // 1. PROMPT MAP (OPTIMIZED & CONTEXT-AWARE)
-            // ============================================
-            const PROMPT_MAP = {
-                
-                // ========================
-                // PHASE 1: INITIAL SETUP
-                // ========================
-                
-                'Guided Diagnostic (Interviewer Mode)': `Act as a Senior Partner Consultant. I need you to diagnose a business problem I am facing.
-                
-                **CONTEXT:** [DESCRIBE YOUR SITUATION HERE]
-                *(If I have not provided context above, ask me clarifying questions first.)*
-
-                **YOUR TASK:**
-                Do NOT provide a solution yet. Instead, conduct a "Root Cause Interview."
-                
-                **OUTPUT FORMAT:**
-                # Diagnostic Protocol
-                1. **Hypothesis:** Based on what I said, what is the likely core issue?
-                2. **The "5 Whys" Probe:** Ask 3-5 sharp, probing questions to uncover the root cause.
-                3. **Data Request:** What specific data points (revenue, churn, traffic) do you need to confirm this?`,
-              
-                'Initial Project Charter Draft': `Act as a Project Manager. Draft a "Project Charter" to align stakeholders.
-                
-                **PROJECT GOAL:** [DESCRIBE PROJECT - e.g., Launching a new App]
-                
-                **OUTPUT FORMAT:**
-                1. **Problem Statement:** Why are we doing this? (The Pain)
-                2. **Project Objective:** What does "Done" look like? (The Gain)
-                3. **In-Scope vs. Out-of-Scope:** Define the boundaries clearly.
-                4. **Key Stakeholders:** Who needs to approve this?
-                5. **Success Metrics (KPIs):** List 3 quantifiable metrics.`,
-              
-                'Problem Statement Draft': `Act as a Strategy Consultant. Refine my messy thoughts into a precise "McKinsey-Style" Problem Statement.
-                
-                **MY ISSUE:** [DESCRIBE THE MESSY PROBLEM HERE]
-                
-                **OUTPUT FORMAT:**
-                1. **The Context:** (The situation before the problem)
-                2. **The Complication:** (What changed/broke?)
-                3. **The Key Question:** (The single question the strategy must answer)
-                4. **Impact of Inaction:** (Financial/Strategic cost of doing nothing)`,
-              
-                // ========================
-                // PHASE 2: ANALYSIS
-                // ========================
-
-                'MECE Logic Check': `Act as a Logic Auditor. Review my analysis below for "MECE" (Mutually Exclusive, Collectively Exhaustive) failures.
-                
-                **INPUT TO AUDIT:** [PASTE YOUR ANALYSIS OR STRATEGY HERE]
-                
-                **YOUR TASK:**
-                1. Identify **Overlaps**: Are two points saying the same thing?
-                2. Identify **Gaps**: What angle did I completely miss?
-                3. **Restructure:** Rewrite my points into a perfectly MECE structure.`,
-
-                'Market Analysis': `Act as a Market Analyst. Conduct a rigorous "TAM/SAM/SOM" analysis.
-                
-                **MARKET:** [SPECIFY MARKET/GEOGRAPHY]
-                
-                **INSTRUCTIONS:**
-                Use Google Search to find concrete numbers. Cite sources.
-                
-                **OUTPUT FORMAT:**
-                1. **Total Addressable Market (TAM):** Global market size ($).
-                2. **Serviceable Available Market (SAM):** The segment we can actually reach.
-                3. **Serviceable Obtainable Market (SOM):** Realistic year-1 share.
-                4. **Growth Rate (CAGR):** Historic and projected growth.`,
-              
-                'SWOT Analysis': `Act as a Strategic Planner. Perform a SWOT Analysis.
-                
-                **SUBJECT:** [COMPANY/PRODUCT NAME]
-                
-                **INSTRUCTIONS:**
-                - **Strengths/Weaknesses:** Internal factors (Brand, Tech, Team).
-                - **Opportunities/Threats:** External factors (Macro-economy, Competitors).
-                - Use Google Search to validate External factors.
-                
-                **OUTPUT:**
-                Provide a structured list for each of the 4 quadrants. For "Threats" and "Opportunities," cite your external sources.`,
-              
-                'Competitor Benchmarking': `Act as a Competitive Intelligence Analyst. Compare my company against 2 competitors.
-                
-                **MY COMPANY:** [NAME]
-                **COMPETITOR A:** [NAME]
-                **COMPETITOR B:** [NAME]
-                
-                **COMPARISON CRITERIA:**
-                1. Pricing Strategy
-                2. Unique Value Proposition (UVP)
-                3. Customer Sentiment (Reviews)
-                
-                **OUTPUT:**
-                Produce a detailed comparison. Use Google Search to find their current pricing and recent news.`,
-              
-                '5 Forces Analysis': `Act as an Industry Analyst. Assess industry profitability using Porter's 5 Forces.
-                
-                **INDUSTRY:** [SPECIFY INDUSTRY]
-                
-                **OUTPUT FORMAT:**
-                1. **Supplier Power:** (High/Med/Low) - Why?
-                2. **Buyer Power:** (High/Med/Low) - Why?
-                3. **Competitive Rivalry:** (High/Med/Low) - Why?
-                4. **Threat of Substitutes:** (High/Med/Low) - Why?
-                5. **Threat of New Entrants:** (High/Med/Low) - Why?
-                
-                *Conclusion: Is this industry attractive for investment?*`,
-              
-                'PESTLE Analysis': `Act as a Macro-Economic Analyst. Scan the horizon using the PESTLE framework.
-                
-                **TOPIC:** [COMPANY OR INDUSTRY]
-                
-                **INSTRUCTIONS:**
-                Search for **recent** news (last 6 months) impacting these 6 areas:
-                1. **Political:** (Elections, Trade Wars)
-                2. **Economic:** (Inflation, Rates)
-                3. **Social:** (Gen-Z trends, Remote work)
-                4. **Technological:** (AI, Automation)
-                5. **Legal:** (Antitrust, GDPR)
-                6. **Environmental:** (Carbon tax, Sustainability)
-                
-                Cite sources for every claim.`,
-
-                'Hofstede Analysis': `Act as a Cross-Cultural Consultant. Analyze cultural friction points using Hofstede's Cultural Dimensions.
-                
-                **TARGET COUNTRY/CULTURE:** [INSERT COUNTRY]
-                
-                **OUTPUT:**
-                1. **Power Distance:** How do they view authority?
-                2. **Individualism vs. Collectivism:** Team or Solo?
-                3. **Uncertainty Avoidance:** Risk-taking or Safety-first?
-                4. **Strategic Advice:** How should I negotiate or market differently in this country based on these scores?`,
-                
-                // ========================
-                // PHASE 3: SOLUTION DESIGN
-                // ========================
-
-                "Devil's Advocate Review": `Act as a "Red Team" Attacker. I want you to brutally criticize my strategy to find weak spots.
-                
-                **MY STRATEGY:** [PASTE STRATEGY HERE]
-                
-                **YOUR TASK:**
-                1. **The Pre-Mortem:** Imagine it is 1 year later and we failed. Tell me exactly *why* we failed.
-                2. **Blind Spots:** What biases (Confirmation Bias, Sunk Cost) am I showing?
-                3. **The "Competitor's Move":** If I do this, how will my biggest competitor destroy me?`,
-
-                'Business Plan Outline': `Act as a Venture Capitalist. Help me structure a Business Plan that gets funded.
-                
-                **BUSINESS IDEA:** [DESCRIBE IDEA]
-                
-                **OUTPUT FORMAT:**
-                1. **The Hook:** 1-sentence value prop.
-                2. **The Problem:** validated user pain.
-                3. **The Solution:** Product description.
-                4. **Go-to-Market:** How we get customers.
-                5. **Business Model:** How we make money.
-                6. **The Ask:** What resources/money do we need?`,
-              
-                'Market Entry Strategy': `Act as a Global Expansion Consultant. I want to enter a new market.
-                
-                **PRODUCT:** [PRODUCT NAME]
-                **NEW MARKET:** [COUNTRY/REGION]
-                
-                **OUTPUT:**
-                1. **Mode of Entry:** (Export, Licensing, Joint Venture, or Wholly Owned?) - Recommend one.
-                2. **Localization:** What needs to change about the product?
-                3. **Regulatory Hurdles:** What laws must we watch out for?
-                4. **First 90 Days:** The immediate launch roadmap.`,
-
-                'Go-to-market Strategy': `Act as a Chief Marketing Officer (CMO). Build a GTM Launch Plan.
-                
-                **PRODUCT:** [PRODUCT NAME]
-                **TARGET AUDIENCE:** [WHO IS IT FOR?]
-                
-                **OUTPUT:**
-                1. **Ideal Customer Profile (ICP):** Who specifically are we hunting?
-                2. **Messaging Pillar:** What is the 1 main thing we say?
-                3. **Channel Strategy:** Where do they live? (LinkedIn, TikTok, Email?)
-                4. **Launch Sequence:** Pre-launch -> Launch Day -> Post-launch retention.`,
-
-                'Ansoff Matrix': `Act as a Growth Strategist. Use the Ansoff Matrix to brainstorm growth options.
-                
-                **COMPANY:** [NAME]
-                **CURRENT PRODUCT:** [PRODUCT]
-                
-                **OUTPUT:**
-                1. **Market Penetration:** (Sell more to existing customers)
-                2. **Market Development:** (Sell existing product to new markets)
-                3. **Product Development:** (Sell new product to existing customers)
-                4. **Diversification:** (New product, New market - High Risk)
-                
-                *Recommendation: Which quadrant offers the highest ROI right now?*`,
-              
-                'Risk Analysis': `Act as a Risk Manager. Perform a Risk Assessment.
-                
-                **PROJECT/DECISION:** [DESCRIBE PROJECT]
-                
-                **OUTPUT FORMAT:**
-                1. **Operational Risks:** (Process failures)
-                2. **Financial Risks:** (Budget overrun, ROI failure)
-                3. **Reputational Risks:** (PR backlash)
-                4. **Mitigation Plan:** For each high risk, provide a specific prevention tactic.`,
-              
-                // ========================
-                // PHASE 4: EXECUTION
-                // ========================
-
-                'Monday Morning Protocol': `Act as an Implementation Manager. Turn our strategy into a "Monday Morning" action list.
-                
-                **STRATEGY:** [PASTE STRATEGY/CONTEXT]
-                
-                **OUTPUT:**
-                Create a table with:
-                1. **Who** (Role/Owner)
-                2. **What** (Specific Task - Start with a Verb)
-                3. **When** (Deadline: This Week / Next Week)
-                4. **Definition of Done** (How do we know it's finished?)`,
-
-                'KPI Dashboard Mockup': `Act as a Data Scientist. Design a KPI Dashboard to track success.
-                
-                **GOAL:** [DESCRIBE BUSINESS GOAL]
-                
-                **OUTPUT:**
-                1. **North Star Metric:** The one number that matters most.
-                2. **Leading Indicators:** (Predictive metrics - e.g., Site Traffic)
-                3. **Lagging Indicators:** (Outcome metrics - e.g., Revenue)
-                4. **Frequency:** How often should we check each?`,
-              
-                'Implementation Plan Outline': `Act as a Program Manager. Create a High-Level Implementation Roadmap.
-                
-                **PROJECT:** [NAME]
-                
-                **OUTPUT:**
-                Break the project into 3 Phases (Setup, Build, Launch).
-                For each phase, list:
-                * Key Milestones
-                * Required Resources (People/Tools)
-                * Potential Bottlenecks`
-            };
-
-            // ============================================
-            // 4. UI HELPERS (Menus, Resizing, Hero)
-            // ============================================
-
-            function toggleMenu(menuElement) {
-                // Close all other menus first
-                [initialSetupMenu, analysisMenu, solutionDesignMenu, executionMenu, myPromptsMenu, workflowMenu].forEach(m => {
-                    if (m !== menuElement) m.classList.add('hidden');
-                });
-                menuElement.classList.toggle('hidden');
-            }
-
-            // Close menus on click outside
-            document.addEventListener('click', (e) => {
-                const isBtn = e.target.closest('button');
-                const isMenu = e.target.closest('.sidebar-menu') || e.target.closest('#myPromptsMenu') || e.target.closest('#workflowMenu');
-                
-                // Allow clicking inside menus or on their buttons
-                if (isBtn && (isBtn.id.includes('Dropdown') || isBtn.id === 'workflowBtn')) return;
-                if (isMenu) return;
-
-                // Close all
-                [initialSetupMenu, analysisMenu, solutionDesignMenu, executionMenu, myPromptsMenu, workflowMenu].forEach(m => m.classList.add('hidden'));
-            });
-
-            // Attach listeners to dropdwns
-            initialSetupDropdownBtn.onclick = () => toggleMenu(initialSetupMenu);
-            analysisDropdownBtn.onclick = () => toggleMenu(analysisMenu);
-            solutionDesignDropdownBtn.onclick = () => toggleMenu(solutionDesignMenu);
-            executionDropdownBtn.onclick = () => toggleMenu(executionMenu);
-            myPromptsDropdownBtn.onclick = () => toggleMenu(myPromptsMenu);
-            workflowBtn.onclick = () => toggleMenu(workflowMenu);
-
-            // Auto-resize input
-            userInput.style.height = 'auto';
-            MIN_HEIGHT = userInput.scrollHeight;
-            function autoResizeTextarea(textarea) {
-                textarea.style.height = 'auto';
-                let newHeight = textarea.scrollHeight;
-                if (newHeight < MIN_HEIGHT) newHeight = MIN_HEIGHT;
-                if (newHeight > 150) {
-                    newHeight = 150;
-                    textarea.style.overflowY = 'auto';
-                } else {
-                    textarea.style.overflowY = 'hidden';
-                }
-                textarea.style.height = `${newHeight}px`;
-            }
-            userInput.addEventListener('input', () => autoResizeTextarea(userInput));
-
-            // Populate Menus from Prompt Map
-            const populateMenu = (menuId, items) => {
-                const menu = document.getElementById(menuId);
-                menu.innerHTML = '';
-                items.forEach(item => {
-                    const btn = document.createElement('button');
-                    btn.className = 'sub-menu-btn';
-                    btn.textContent = item;
-                    btn.onclick = () => {
-                        // Use the FULL prompt from the map
-                        userInput.value = PROMPT_MAP[item] || item;
-                        autoResizeTextarea(userInput);
-                        userInput.focus();
-                        toggleMenu(menu); // Close menu after click
-                    };
-                    menu.appendChild(btn);
-                });
-            };
-
-            // 1. Initial Setup + The "Interviewer"
-            populateMenu('initialSetupMenu', [
-                'Guided Diagnostic (Interviewer Mode)',
-                'Initial Project Charter Draft', 
-                'Problem Statement Draft'
-            ]);
-
-            // 2. Analysis + The "MECE Validator"
-            populateMenu('analysisMenu', [
-                'MECE Logic Check', // NEW
-                'Market Analysis', 
-                'SWOT Analysis', 
-                'Competitor Benchmarking', 
-                '5 Forces Analysis', 
-                'PESTLE Analysis', 
-                'Hofstede Analysis'
-            ]);
-
-            // 3. Solution + "Devil's Advocate"
-            populateMenu('solutionDesignMenu', [
-                "Devil's Advocate Review", // NEW
-                'Business Plan Outline', 
-                'Market Entry Strategy', 
-                'Go-to-market Strategy', 
-                'Ansoff Matrix', 
-                'Risk Analysis'
-            ]);
-
-            // 4. Execution + "Monday Morning Protocol"
-            populateMenu('executionMenu', [
-                'Monday Morning Protocol', // NEW
-                'KPI Dashboard Mockup', 
-                'Implementation Plan Outline'
-            ]);
-
-            // ============================================
-            // 2. CORE LOGIC (Send, File, API)
-            // ============================================
-
-            // FILE UPLOAD & VISUAL PREVIEW
-            const filePreviewArea = document.getElementById('filePreviewArea');
-
-            // Function to clear file
-            function clearAttachment() {
-                attachedFileContent = null;
-                attachedFileName = null;
-                hiddenFileInput.value = ""; 
-                filePreviewArea.innerHTML = '';
-                filePreviewArea.classList.add('hidden');
-            }
-
-            attachBtn.addEventListener('click', () => hiddenFileInput.click());
-            
-            hiddenFileInput.addEventListener('change', async (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-
-                // Create Loading Card
-                const isPdf = file.type === 'application/pdf';
-                const iconColor = isPdf ? 'text-red-500' : 'text-blue-500';
-                
-                const fileIcon = isPdf 
-                    ? `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 ${iconColor}"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>`
-                    : `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 ${iconColor}"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>`;
-
-                const onFileLoaded = (content, name) => {
-                    attachedFileContent = content;
-                    attachedFileName = name;
-
-                    // Inject the Card HTML
-                    filePreviewArea.innerHTML = `
-                        <div class="inline-flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 pr-2 animate-pulse-once">
-                            <div class="bg-gray-700 p-1 rounded-md">
-                                ${fileIcon}
-                            </div>
-                            <span class="text-xs font-medium text-gray-200 truncate max-w-[150px]">${name}</span>
-                            <button id="removeFileBtn" class="p-1 hover:bg-gray-700 rounded-full text-gray-400 hover:text-red-400 transition ml-1">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
-                                    <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
-                                </svg>
-                            </button>
-                        </div>
-                    `;
-                    filePreviewArea.classList.remove('hidden');
-                    
-                    document.getElementById('removeFileBtn').addEventListener('click', clearAttachment);
-                    userInput.focus();
-                };
-
-                if (isPdf) {
-                    try {
-                        const arrayBuffer = await file.arrayBuffer();
-                        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-                        let fullText = "";
-                        for (let i = 1; i <= pdf.numPages; i++) {
-                            const page = await pdf.getPage(i);
-                            const textContent = await page.getTextContent();
-                            const pageText = textContent.items.map(item => item.str).join(' ');
-                            fullText += `\n--- PDF Page ${i} ---\n${pageText}`;
-                        }
-                        onFileLoaded(fullText, file.name);
-                    } catch (error) {
-                        console.error(error);
-                        alert("Error reading PDF.");
-                        hiddenFileInput.value = "";
-                    }
-                } else {
-                    const reader = new FileReader();
-                    reader.onload = (e) => onFileLoaded(e.target.result, file.name);
-                    reader.readAsText(file);
-                }
-            });
-
-            // --- WAITING LOBBY LOGIC ---
-            let thinkingInterval;
-
-            function startThinkingAnimation(container, steps) {
-                const stepContainer = document.createElement('div');
-                stepContainer.className = 'thinking-container';
-                container.appendChild(stepContainer);
-
-                let currentStep = 0;
-
-                // Function to render a step
-                const showStep = (index) => {
-                    if (index >= steps.length) return; // Stop if out of steps
-
-                    // Mark previous step as done
-                    if (index > 0) {
-                        const prev = stepContainer.children[index - 1];
-                        if (prev) {
-                            prev.classList.remove('active');
-                            prev.classList.add('done');
-                            // Change icon to checkmark
-                            prev.querySelector('.thought-icon').innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />`;
-                        }
-                    }
-
-                    // Create new step
-                    const stepDiv = document.createElement('div');
-                    stepDiv.className = 'thought-step visible active';
-                    
-                    // Icon (Spinner by default)
-                    const iconDiv = document.createElement('svg');
-                    iconDiv.className = 'thought-icon animate-spin';
-                    iconDiv.setAttribute('fill', 'none');
-                    iconDiv.setAttribute('viewBox', '0 0 24 24');
-                    iconDiv.setAttribute('stroke-width', '2');
-                    iconDiv.setAttribute('stroke', 'currentColor');
-                    iconDiv.innerHTML = steps[index].icon; // Custom icon path
-
-                    const textSpan = document.createElement('span');
-                    textSpan.className = 'thought-text';
-                    textSpan.textContent = steps[index].text;
-
-                    stepDiv.appendChild(iconDiv);
-                    stepDiv.appendChild(textSpan);
-                    stepContainer.appendChild(stepDiv);
-                    
-                    // Auto-scroll to bottom of thinking area
-                    chatArea.scrollTop = chatArea.scrollHeight;
-                };
-
-                // Show first step immediately
-                showStep(0);
-
-                // Cycle through remaining steps
-                thinkingInterval = setInterval(() => {
-                    currentStep++;
-                    if (currentStep < steps.length) {
-                        showStep(currentStep);
-                    } else {
-                        clearInterval(thinkingInterval); // Stop when list ends
-                    }
-                }, 1800); // Show a new step every 1.8 seconds
-            }
-
-            // ============================================
-            // 1.5. KNOWLEDGE VAULT LOGIC
-            // ============================================
-
-            function renderVaultFiles() {
-                vaultList.innerHTML = '';
-                if (projectFiles.length === 0) {
-                    vaultList.appendChild(emptyVaultMsg);
-                    return;
-                }
-
-                projectFiles.forEach((file, index) => {
-                    const item = document.createElement('div');
-                    item.className = "flex justify-between items-center bg-gray-800 p-2 rounded border border-gray-700 text-xs group";
-                    item.innerHTML = `
-                        <div class="flex items-center gap-2 overflow-hidden">
-                            <svg class="w-3 h-3 text-emerald-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                            <span class="text-gray-300 truncate">${file.name}</span>
-                        </div>
-                        <button onclick="removeVaultFile(${index})" class="text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition">
-                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                        </button>
-                    `;
-                    vaultList.appendChild(item);
-                });
-            }
-
-            // Make remove function global
-            window.removeVaultFile = (index) => {
-                projectFiles.splice(index, 1);
-                renderVaultFiles();
-            };
-
-            // Handle Vault Button Click
-            if(addVaultFileBtn) addVaultFileBtn.addEventListener('click', () => vaultFileInput.click());
-
-            // Handle Vault File Selection
-            if(vaultFileInput) vaultFileInput.addEventListener('change', async (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-
-                // Helper to add file to memory
-                const onVaultLoad = (content, name) => {
-                    projectFiles.push({ name: name, content: content });
-                    renderVaultFiles();
-                    createMessageBubble(`💾 **Added to Vault:** ${name} is now available for context.`, 'model', false);
-                };
-
-                // PDF Logic
-                if (file.type === 'application/pdf') {
-                    try {
-                        const arrayBuffer = await file.arrayBuffer();
-                        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-                        let fullText = "";
-                        for (let i = 1; i <= pdf.numPages; i++) {
-                            const page = await pdf.getPage(i);
-                            const textContent = await page.getTextContent();
-                            fullText += textContent.items.map(item => item.str).join(' ');
-                        }
-                        onVaultLoad(fullText, file.name);
-                    } catch (error) { alert("Error reading PDF"); }
-                } else {
-                    // Text Logic
-                    const reader = new FileReader();
-                    reader.onload = (e) => onFileLoaded(e.target.result, file.name); // Using standard text loader
-                    // Note: Reusing the same text loader logic as main chat
-                    reader.readAsText(file);
-                }
-                vaultFileInput.value = ""; // Reset
-            });
-            
-            // SEND MESSAGE
-            async function sendMessage() {
-                let prompt = userInput.value.trim();
-                let hasFile = attachedFileContent !== null;
-                
-                if (!prompt && !hasFile) return;
-
-                // 0. AGENT TRIGGER CHECK (If user wants deep research)
-                const lower = prompt.toLowerCase();
-                if (!hasFile && (lower.includes('deep dive') || lower.includes('research') || lower.includes('investigate'))) {
-                    userInput.value = '';
-                    autoResizeTextarea(userInput);
-                    createMessageBubble(prompt, 'user');
-                    const topic = prompt.replace(/deep dive|research|investigate|on|about/gi, '').trim();
-                    await startAutonomousResearch(topic || prompt);
-                    return;
-                }
-
-                // 1. UI: Hide Hero Text
-                heroText.style.display = 'none';
-
-                // 2. Construct Payload (FIXED FOR FILE READING)
-                let fullPayloadPrompt = prompt;
-                
-                if (hasFile) {
-                    // Safety Check: Ensure file isn't empty (e.g. Scanned PDF issues)
-                    if (!attachedFileContent || attachedFileContent.trim().length < 10) {
-                        alert("⚠️ Error: The attached file appears to be empty. Please ensure it is a text-based PDF/Document.");
-                        return;
-                    }
-
-                    // CRITICAL FIX: Wrap file content in System Tags so AI treats it as data, not instructions
-                    const filePrompt = `\n\n[SYSTEM INSTRUCTION: The user has attached a file named "${attachedFileName}". The content is provided below between the "BEGIN" and "END" tags. You MUST read this content to answer the user's question. Do not refuse to read it. Treat the text as the file itself.]\n\n=== BEGIN FILE CONTENT ===\n${attachedFileContent}\n=== END FILE CONTENT ===\n`;
-                    
-                    if (prompt === "") {
-                        prompt = `Analyze the attached file: ${attachedFileName}`;
-                        fullPayloadPrompt = prompt + filePrompt;
-                    } else {
-                        fullPayloadPrompt = prompt + filePrompt;
-                    }
-                }
-
-               // 3. Update UI Bubbles
-                if (hasFile) {
-                    createMessageBubble(`📂 **Uploaded:** ${attachedFileName}`, 'user', true);
-                    clearAttachment(); 
-                }
-
-                const userVisibleText = userInput.value.trim();
-                if (userVisibleText) {
-                    createMessageBubble(userVisibleText, 'user', true);
-                }
-                
-                chatHistory.push({ role: "user", parts: [{ text: fullPayloadPrompt }] });
-
-                // 4. Reset Input
-                userInput.value = '';
-                autoResizeTextarea(userInput);
-                userInput.disabled = true;
-                sendButton.disabled = true;
-
-                // 5. Loading Indicator (Waiting Lobby)
-                const loadingBubble = document.createElement('div');
-                loadingBubble.classList.add('flex', 'justify-start');
-                const innerBubble = document.createElement('div');
-                innerBubble.className = "bg-gray-800 text-gray-300 rounded-xl rounded-bl-none p-4 max-w-sm shadow-md border border-gray-700";
-                loadingBubble.appendChild(innerBubble);
-                chatArea.appendChild(loadingBubble);
-                
-                // Define Steps based on context
-                let thinkingSteps = [];
-
-                if (hasFile) {
-                    thinkingSteps = [
-                        { text: "Scanning document structure...", icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.51-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>' },
-                        { text: "Extracting key data...", icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 2.625v-8.513a2.25 2.25 0 00-1.125-1.967l-2.25-1.125a2.25 2.25 0 00-2.25 1.125L7.875 6.875a2.25 2.25 0 00-1.125 1.967v8.513" /></svg>' }
-                    ];
-                } else if (responseDepth === 'deep') {
-                    thinkingSteps = [
-                         { text: "Analyzing query intent...", icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" /></svg>' },
-                         { text: "Searching live sources...", icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>' },
-                         { text: "Vetting citations...", icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75" /></svg>' }
-                    ];
-                } else {
-                    thinkingSteps = [
-                        { text: "Processing context...", icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /></svg>' },
-                        { text: "Generating response...", icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" /></svg>' }
-                    ];
-                }
-                
-                startThinkingAnimation(innerBubble, thinkingSteps);
-
-                // 6. API Call
-                try {
-                    // --- PHASE 5 SECURITY: Get Token ---
-                    if (!window.Clerk || !window.Clerk.session) {
-                        alert("Security Error: You are not logged in.");
-                        window.location.href = "login.html";
-                        return;
-                    }
-                    const token = await window.Clerk.session.getToken();
-
-                    // --- PHASE 2: BUILD CONTEXT VAULT ---
-                    let vaultContext = "";
-                    if (projectFiles.length > 0) {
-                        vaultContext = "\n\n=== 🗄️ PROJECT KNOWLEDGE VAULT (ACTIVE FILES) ===\n";
-                        projectFiles.forEach((file, idx) => {
-                            // Limit file size slightly to prevent token overflow
-                            vaultContext += `\n--- FILE ${idx+1}: ${file.name} ---\n${file.content.substring(0, 60000)}\n---------------------------\n`;
-                        });
-                        vaultContext += "\n=== END VAULT ===\n\nINSTRUCTION: Use the data in the Vault above to answer questions. Cite specific files if used (e.g. [File: Annual_Report.pdf]).";
-                    }
-
-                    const response = await fetch('/api/chat', {
-                        method: 'POST',
-                        headers: { 
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify({
-                            systemInstruction: { 
-                                parts: [{ text: `You are Duvallo, a professional consulting engine. 
-                                
-                                ${vaultContext}
-
-                                **CRITICAL: YOU MUST MANUALLY WRITE CITATIONS IN THE TEXT**
-                                1. The user CANNOT see your internal search metadata. You must write links out.
-                                2. **Rule:** Every time you state a fact/number, append [Source Name](URL) immediately.
-                                3. **Format:** [Bloomberg](https://bloomberg.com/article)
-                                4. **Prohibited:** Do not use [1], [2] footnotes. Do not put a list at the end. Inline only.
-                                
-                                **VISUAL FORMATTING:**
-                                1. Use Numbered Lists (1., 2., 3.) for structure.
-                                2. Start items with a **Bold Title**.
-                                
-                                **FILE INSTRUCTION:** 
-                                If text is labeled "BEGIN FILE CONTENT", treat it as the file itself.
-
-                                **CHARTS:** 
-                                If asked to visualize, output JSON in <chart> tags following Chart.js format.
-
-                                **CURRENT MODE: ${responseDepth ? responseDepth.toUpperCase() : "STANDARD"}**
-                                ${responseDepth === 'brief' ? "Constraint: Output max 150 words." : ""}
-                                ${responseDepth === 'deep' ? "Provide a comprehensive Deep Dive." : ""}
-
-                                **SUGGESTIONS:**
-                                Append a hidden suggestion block at the end: ---SUGGESTIONS---Action 1|Action 2` }]
-                            },
-                            messages: chatHistory
-                        })
-                    });
-
-                    const result = await response.json();
-                    
-                    // Cleanup Animation
-                    clearInterval(thinkingInterval);
-                    if(chatArea.contains(loadingBubble)) chatArea.removeChild(loadingBubble);
-
-                    if (result.error) {
-                        createMessageBubble(`⚠️ **System Error:** ${result.error.message}`, "model");
-                    } else {
-                        const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
-                        if (text) {
-                            chatHistory.push({ role: "model", parts: [{ text: text }] });
-                    createMessageBubble(text, "model", true);
-                        } else {
-                            createMessageBubble("⚠️ Duvallo returned an empty response.", "model");
-                        }
-                    }
-                } catch (error) {
-                    if(chatArea.contains(loadingBubble)) chatArea.removeChild(loadingBubble);
-                    createMessageBubble(`❌ **Connection Error:** ${error.message}`, "model");
-                }
-
-                // 7. Cleanup
-                userInput.disabled = false;
-                sendButton.disabled = false;
-                userInput.focus();
-                saveCurrentProjectChat();
-            }
-
-            // Keyboard and Button Listeners for Send
-            sendButton.addEventListener('click', sendMessage);
-            userInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    sendMessage();
-                }
-            });
-
-            // ============================================
-            // 3. UTILITIES (Bubbles, Prompts, Clear, Etc)
-            // ============================================
-            
-           // --- CITATION HELPER FUNCTIONS (SAFE TOKEN STRATEGY) ---
-            
-            // 1. Process Text: Extract links (Gen 6 Logic)
-            function processCitations(rawText) {
-                // The Regex that worked in Gen 6
-                const regex = /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g;
-                
-                let sources = [];
-                
-                // Replace Markdown links with tokens like %%CIT_0%%
-                const textWithTokens = rawText.replace(regex, (match, name, url) => {
-                    let cleanUrl = url.replace(/[.,;!]+$/, ""); 
-                    sources.push({ name, url: cleanUrl });
-                    return `%%CIT_${sources.length - 1}%%`;
-                });
-
-                return { textWithTokens, sources };
-            }
-
-            // 2. Generate the Footer List
-            function createSourcesFooter(sources) {
-                if (!sources || sources.length === 0) return '';
-                
-                // Remove duplicates based on URL
-                const uniqueSources = Array.from(new Map(sources.map(s => [s.url, s])).values());
-
-                const listItems = uniqueSources.map((s, i) => {
-                    let faviconUrl = '';
-                    try {
-                        const urlObj = new URL(s.url);
-                        faviconUrl = `https://www.google.com/s2/favicons?domain=${urlObj.hostname}`;
-                    } catch (e) {
-                        faviconUrl = 'https://www.google.com/s2/favicons?domain=google.com'; 
-                    }
-
-                    return `
-                    <a href="${s.url}" target="_blank" rel="noopener noreferrer" class="source-item">
-                        <span class="text-gray-500 font-mono text-xs">[${i+1}]</span>
-                        <img src="${faviconUrl}" class="source-favicon" onerror="this.style.display='none'">
-                        ${s.name}
-                    </a>
-                    `;
-                }).join('');
-
-                const listId = `sources-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-                return `
-                    <div class="sources-section">
-                        <button class="sources-toggle-btn" onclick="document.getElementById('${listId}').classList.toggle('hidden')">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg>
-                            Sources
-                        </button>
-                        <div id="${listId}" class="sources-list hidden">${listItems}</div>
-                    </div>
-                `;
-            }
-
-            // Helper: Create the "Remix" Action Bar
-            function createRemixBar(originalText) {
-                const bar = document.createElement('div');
-                bar.className = 'mt-3 pt-3 border-t border-gray-700 flex gap-2 overflow-x-auto';
-                
-                const actions = [
-                    { label: '📊 Slide Deck', prompt: 'Convert the above response into a Slide Deck structure (Slide 1, Slide 2...). Use Markdown.' },
-                    { label: '📝 Memo', prompt: 'Rewrite the above response as a formal Executive Memo (To/From/Date/Subject).' },
-                    { label: '🧠 Quiz', prompt: 'Create a 3-question multiple choice quiz to test my understanding of this analysis.' }
-                ];
-
-                actions.forEach(action => {
-                    const btn = document.createElement('button');
-                    btn.className = 'px-3 py-1.5 bg-gray-700 hover:bg-emerald-600 text-xs font-medium text-gray-300 hover:text-white rounded-lg transition whitespace-nowrap';
-                    btn.textContent = action.label;
-                    btn.onclick = () => {
-                        userInput.value = action.prompt;
-                        autoResizeTextarea(userInput);
-                        userInput.focus();
-                    };
-                    bar.appendChild(btn);
-                });
-                
-                return bar;
-            }
-
-            // 3. Render Message Bubble (Modified with Remix Bar)
-            function createMessageBubble(text, sender, animate = true) {
-                const wrapper = document.createElement('div');
-                wrapper.classList.add('flex', 'message-wrapper', 'mb-4', sender === 'user' ? 'justify-end' : 'justify-start');
-                
-                const bubble = document.createElement('div');
-                bubble.classList.add(
-                    'rounded-xl', 'p-4', 'max-w-2xl', 'shadow-md',
-                    sender === 'user' ? 'bg-emerald-600' : 'bg-gray-800',
-                    'text-gray-100'
-                );
-                bubble.style.overflow = 'hidden'; 
-
-                // --- LOGIC FOR AI MESSAGES (Model) ---
-                if (sender === 'model') {
-                    let chartConfig = null;
-                    let suggestionsList = [];
-                    
-                    // 1. EXTRACT SUGGESTIONS
-                    const suggestionRegex = /---SUGGESTIONS---([\s\S]*)$/;
-                    const suggestionMatch = text.match(suggestionRegex);
-                    if (suggestionMatch) {
-                        const rawSuggestions = suggestionMatch[1];
-                        suggestionsList = rawSuggestions.split('|').map(s => s.trim()).filter(s => s);
-                        text = text.replace(suggestionRegex, '').trim(); 
-                    }
-
-                    // 2. EXTRACT CHART (Self-Healing)
-                    // Matches <chart>... and grabs everything until </chart> OR end of string
-                    const tagRegex = /(?:<<<CHART>>>|<chart>|<<>>)\s*([\s\S]*?)(?:<<<END_CHART>>>|<\/chart>|<<>>|$)/i;
-                    const codeRegex = /```json\s*({[\s\S]*?"type"[\s\S]*?"data"[\s\S]*?})\s*```/i;
-                    // Fallback for raw JSON without tags
-                    const rawRegex = /({[\s\n]*"type"[\s\n]*:[\s\n]*"(?:bar|line|pie|doughnut|radar|polarArea)"[\s\S]*?"data"[\s\S]*?})/i;
-
-                    let match = text.match(tagRegex) || text.match(codeRegex) || text.match(rawRegex);
-                    
-                    if (match) {
-                        try {
-                            let fullBlock = match[0]; 
-                            let jsonContent = match[1] || match[0];
-                            
-                            // CLEANUP: Remove Markdown artifacts
-                            jsonContent = jsonContent.replace(/```json/gi, '').replace(/```/g, '').trim();
-                            
-                            // REPAIR 1: Remove trailing commas (The #1 AI Error)
-                            jsonContent = jsonContent.replace(/,(\s*[}\]])/g, '$1');
-
-                            // REPAIR 2: Find actual JSON boundaries (ignore text outside brackets)
-                            const firstBrace = jsonContent.indexOf('{');
-                            const lastBrace = jsonContent.lastIndexOf('}');
-                            
-                            if (firstBrace !== -1 && lastBrace !== -1) {
-                                jsonContent = jsonContent.substring(firstBrace, lastBrace + 1);
-                                
-                                // Attempt Parse
-                                chartConfig = JSON.parse(jsonContent);
-                                
-                                // SUCCESS: Remove the raw code from the text bubble
-                                text = text.replace(fullBlock, '').trim(); 
-                            }
-                        } catch (e) { 
-                            console.error("Chart parsing failed:", e);
-                            // Note: If parsing STILL fails, we leave the text so the user sees the data.
-                        }
-                    }
-
-                    // 3. CITATION PROCESSING
-                    const { textWithTokens, sources } = processCitations(text);
-                    
-                    // 4. PREPARE UI
-                    const contentDiv = document.createElement('div');
-                    contentDiv.classList.add('ai-response-content', 'mb-2');
-                    bubble.appendChild(contentDiv);
-                    wrapper.appendChild(bubble);
-                    chatArea.appendChild(wrapper);
-
-                    // --- HELPER TO RENDER FINAL CONTENT (Instant Mode) ---
-                    const renderFinalContent = () => {
-                        // A. Text Replacement
-                        let renderedHtml = marked.parse(textWithTokens);
-                        
-                        // Serialize sources for the Global Panel Function
-                        const sourcesJson = encodeURIComponent(JSON.stringify(sources));
-
-                        sources.forEach((source, index) => {
-                            // THE HYBRID FIX: Green Pin Style + Global Click Handler
-                            const iconHtml = `<span class="citation-link" onclick="window.openSourcePanel('${sourcesJson}')" title="Source: ${source.name}" style="display:inline-flex; margin-left:4px; cursor:pointer;">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:12px; height:12px; color:white;"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg>
-                            </span>`;
-                            
-                            const token = `%%CIT_${index}%%`;
-                            renderedHtml = renderedHtml.split(token).join(iconHtml);
-                        });
-                        contentDiv.innerHTML = renderedHtml;
-
-                        // B. Chart
-                        if (chartConfig) {
-                            const chartContainer = document.createElement('div');
-                            chartContainer.style.marginTop = '1rem';
-                            chartContainer.style.backgroundColor = '#1f2937';
-                            chartContainer.style.padding = '10px';
-                            chartContainer.style.borderRadius = '8px';
-                            if(animate) chartContainer.classList.add('animate-fade-in');
-                            const canvas = document.createElement('canvas');
-                            chartContainer.appendChild(canvas);
-                            bubble.appendChild(chartContainer);
-                            new Chart(canvas, {
-                                type: chartConfig.type,
-                                data: chartConfig.data,
-                                options: {
-                                    responsive: true,
-                                    plugins: { legend: { labels: { color: 'white' } } },
-                                    scales: {
-                                        x: { display: chartConfig.type!=='pie'&&chartConfig.type!=='doughnut', ticks: {color:'white'}, grid: {color:'#374151'} },
-                                        y: { display: chartConfig.type!=='pie'&&chartConfig.type!=='doughnut', ticks: {color:'white'}, grid: {color:'#374151'} }
-                                    }
-                                }
-                            });
-                        }
-
-                        // C. Suggestions
-                        if (suggestionsList.length > 0) {
-                            const suggContainer = document.createElement('div');
-                            suggContainer.className = 'suggestion-container';
-                            const label = document.createElement('span');
-                            label.className = 'suggestion-label';
-                            label.textContent = "Recommended Next Steps";
-                            suggContainer.appendChild(label);
-                            suggestionsList.forEach(sugg => {
-                                const btn = document.createElement('button');
-                                btn.className = 'suggestion-chip';
-                                btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3 h-3"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /></svg> ${sugg}`;
-                                btn.onclick = () => { userInput.value = sugg; autoResizeTextarea(userInput); userInput.focus(); };
-                                suggContainer.appendChild(btn);
-                            });
-                            bubble.appendChild(suggContainer);
-                        }
-
-                        // D. Footer: "Sources" Button (Triggers Global Panel)
-                        if (sources.length > 0) {
-                            const footerBtn = document.createElement('button');
-                            footerBtn.className = "mt-3 flex items-center gap-2 px-3 py-1.5 bg-gray-700 hover:bg-gray-600 rounded-full text-xs font-medium text-emerald-400 transition";
-                            footerBtn.innerHTML = `
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" /></svg>
-                                View ${sources.length} Source${sources.length > 1 ? 's' : ''}
-                            `;
-                            footerBtn.onclick = () => window.openSourcePanel(sourcesJson);
-                            bubble.appendChild(footerBtn);
-                        }
-                        
-                        // E. Copy Button
-                        const copyBtn = document.createElement('button');
-                        copyBtn.className = 'text-xs text-gray-400 hover:text-white mt-2 block ml-auto';
-                        copyBtn.textContent = 'Copy';
-                        copyBtn.onclick = () => { navigator.clipboard.writeText(text); copyBtn.textContent = 'Copied!'; setTimeout(() => copyBtn.textContent = 'Copy', 1500); };
-                        bubble.appendChild(copyBtn);
-                        
-                        // F. Remix Bar
-                        bubble.appendChild(createRemixBar(text));
-                    };
-
-                    // 5. DECIDE: ANIMATE OR INSTANT?
-                    if (animate) {
-                        let i = 0;
-                        const chunkSize = 3; 
-                        
-                        function typeWriter() {
-                            if (i < textWithTokens.length) {
-                                i += chunkSize;
-                                if (i > textWithTokens.length) i = textWithTokens.length;
-                                let currentRaw = textWithTokens.substring(0, i);
-                                let renderedHtml = marked.parse(currentRaw);
-                                // We serialize the sources array so we can pass it to the onClick function
-                                const sourcesJson = encodeURIComponent(JSON.stringify(sources));
-                                
-                                sources.forEach((source, index) => {
-                                    // The Chain Icon [🔗] with Hover Tooltip
-                                    const iconHtml = `<span class="citation-trigger" onclick="openSourcePanel('${sourcesJson}')" data-source="${source.name}">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3 h-3"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg>
-                                    </span>`;
-                                    
-                                    const token = `%%CIT_${index}%%`;
-                                    renderedHtml = renderedHtml.split(token).join(iconHtml);
-                                });
-                                contentDiv.innerHTML = renderedHtml;
-                                chatArea.scrollTop = chatArea.scrollHeight; 
-                                requestAnimationFrame(typeWriter); 
-                            } else {
-                                // FINISH ANIMATION -> CALL RENDERER
-                                renderFinalContent(); 
-                            }
-                        }
-                        typeWriter();
-                    } else {
-                        // NO ANIMATION: Render everything instantly
-                        renderFinalContent();
-                    }
-
-                } else {
-                    // USER MESSAGE
-                    bubble.textContent = text;
-                    const actionsDiv = document.createElement('div');
-                    actionsDiv.className = 'user-action-container';
-                    const editBtn = document.createElement('button');
-                    editBtn.className = 'action-icon-btn';
-                    editBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>`;
-                    editBtn.onclick = () => { userInput.value = text; autoResizeTextarea(userInput); userInput.focus(); };
-
-                    const copyBtnUser = document.createElement('button');
-                    copyBtnUser.className = 'action-icon-btn';
-                    copyBtnUser.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v2.25A2.25 2.25 0 0113.5 22.5h-8.25a2.25 2.25 0 01-2.25-2.25v-8.25a2.25 2.25 0 012.25-2.25H5.25a2.25 2.25 0 012.25-2.25h1.5a.75.75 0 010 1.5H6a.75.75 0 00-.75.75v8.25c0 .414.336.75.75.75H13.5a.75.75 0 00.75-.75V11.25H18a.75.75 0 01.75.75v4.5a.75.75 0 00.75.75h1.5A2.25 2.25 0 0122.5 17.25v2.25a.75.75 0 001.5 0V17.25A2.25 2.25 0 00-2.25-2.25H15z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 7.125h-10.5a2.25 2.25 0 00-2.25 2.25v10.5" /></svg>`;
-                    copyBtnUser.onclick = () => { navigator.clipboard.writeText(text); };
-
-                    actionsDiv.appendChild(editBtn);
-                    actionsDiv.appendChild(copyBtnUser);
-                    wrapper.appendChild(actionsDiv);
-                    wrapper.appendChild(bubble);
-                    chatArea.appendChild(wrapper);
-                    chatArea.scrollTop = chatArea.scrollHeight;
-                }
-            }
-
-            // Clear Chat
-            clearChatBtn.onclick = () => {
-                chatArea.innerHTML = '';
-                chatHistory.length = 0;
-                heroText.style.display = 'flex'; // Bring back the hero text
-            };
-
-            // My Prompts Logic
-            function loadCustomPrompts() {
-                myPromptsMenu.innerHTML = '';
-                const saveBtn = document.createElement('button');
-                saveBtn.className = 'sub-menu-btn text-emerald-400 font-bold';
-                saveBtn.textContent = '+ Save Current Input';
-                saveBtn.onclick = () => {
-                    const txt = userInput.value.trim();
-                    if(!txt) return alert("Type something to save.");
-                    const name = prompt("Prompt Name:");
-                    if(name) {
-                        localStorage.setItem('customPrompt:'+name, txt);
-                        loadCustomPrompts();
-                    }
-                };
-                myPromptsMenu.appendChild(saveBtn);
-
-                Object.keys(localStorage).forEach(key => {
-                    if(key.startsWith('customPrompt:')) {
-                        const name = key.replace('customPrompt:', '');
-                        const btn = document.createElement('button');
-                        btn.className = 'sub-menu-btn';
-                        btn.textContent = name;
-                        btn.onclick = () => {
-                            userInput.value = localStorage.getItem(key);
-                            autoResizeTextarea(userInput);
-                            toggleMenu(myPromptsMenu);
-                        };
-                        myPromptsMenu.appendChild(btn);
-                    }
-                });
-            }
-            loadCustomPrompts();
-
-            // ============================================
-            // 5. GENERATE TAKEAWAYS (PDF Report)
-            // ============================================
-            generateTakeawaysBtn.addEventListener('click', async function() {
-                if (chatHistory.length <= 1) {
-                    return alert('No conversation to analyze yet. Please start a project first.');
-                }
-
-                // 1. UI Feedback
-                const originalText = generateTakeawaysBtn.textContent;
-                generateTakeawaysBtn.textContent = 'Generating Report...';
-                generateTakeawaysBtn.disabled = true;
-                
-                // 2. Construct the Analysis Prompt
-                const analysisPrompt = `Based on our conversation so far, write a formal **Executive Takeaways Report**.
-                
-                The output must use clean Markdown headers and bullet points. Follow this structure:
-                # Executive Summary
-                [High-level overview of the project status]
-                
-                # Key Insights
-                [Bullet points of critical findings]
-                
-                # Strategic Recommendations
-                [Actionable advice based on the analysis]
-                
-                # Immediate Next Steps
-                [What needs to happen next week]
-                
-                Do not include conversational filler like "Here is your report." Just give the document content.`;
-
-                const tempHistory = [...chatHistory, { role: "user", parts: [{ text: analysisPrompt }] }];
-
-                try {
-                    // 3. Call API
-                    const response = await fetch('/api/chat', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            systemInstruction: { parts: [{ text: "You are a Senior Partner Consultant writing a formal deliverable." }] },
-                            messages: tempHistory
-                        })
-                    });
-
-                    const result = await response.json();
-                    const reportContent = result?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-                    if (!reportContent) throw new Error("No analysis returned from Duvallo.");
-
-                    // 4. Create Hidden Container for PDF
-                    const reportContainer = document.createElement('div');
-                    reportContainer.style.width = '800px';
-                    reportContainer.style.padding = '40px';
-                    reportContainer.style.fontFamily = 'Georgia, serif';
-                    reportContainer.style.color = '#111827';
-                    
-                    const projName = currentProjectNameDisplay.textContent || "Consulting Session";
-                    const date = new Date().toLocaleDateString();
-
-                    // 5. Build HTML
-                    let cleanContent = marked.parse(reportContent);
-                    // Remove charts from the PDF text to keep it clean
-                    cleanContent = cleanContent.replace(/(?:<<<CHART>>>|<chart>|<<>>)([\s\S]*?)(?:<<<END_CHART>>>|<\/chart>|<<>>)/gi, '');
-
-                    reportContainer.innerHTML = `
-                        <div style="text-align: center; margin-bottom: 50px; padding-bottom: 20px; border-bottom: 2px solid #059669;">
-                            <h1 style="font-size: 32px; margin-bottom: 10px; color: #065f46;">Executive Takeaways Report</h1>
-                            <h2 style="font-size: 18px; color: #4b5563; margin-top: 0;">Project: ${projName}</h2>
-                            <p style="color: #9ca3af; font-size: 14px; margin-top: 5px;">Generated on ${date}</p>
-                        </div>
-                        <div style="font-size: 14px; line-height: 1.6;">
-                            ${cleanContent}
-                        </div>
-                        <div style="margin-top: 50px; border-top: 1px solid #e5e7eb; padding-top: 20px; text-align: center; font-size: 10px; color: #9ca3af;">
-                            Generated by Duvallo the Consulting Assistant
-                        </div>
-                    `;
-
-                    // 6. Generate & Download
-                    const opt = {
-                        margin:       [0.5, 0.5],
-                        filename:     `${projName.replace(/\s+/g, '_')}_Takeaways.pdf`,
-                        image:        { type: 'jpeg', quality: 0.98 },
-                        html2canvas:  { scale: 2 },
-                        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
-                    };
-
-                    html2pdf().set(opt).from(reportContainer).save().then(() => {
-                        generateTakeawaysBtn.textContent = originalText;
-                        generateTakeawaysBtn.disabled = false;
-                        createMessageBubble("✅ **Report Generated:** The Executive Takeaways PDF has been downloaded.", "model");
-                    });
-
-                } catch (error) {
-                    console.error("Report Error:", error);
-                    alert("Failed to generate report.");
-                    generateTakeawaysBtn.textContent = originalText;
-                    generateTakeawaysBtn.disabled = false;
-                }
-            });
-
-            // Export Chat as Professional PDF
-            exportBtn.onclick = () => {
-                if (chatHistory.length === 0) return alert("No conversation to export.");
-
-                // 1. Create a temporary container for the report
-                const reportContainer = document.createElement('div');
-                reportContainer.style.width = '800px'; // Standard A4 width scale
-                reportContainer.style.padding = '40px';
-                reportContainer.style.fontFamily = 'Georgia, serif';
-                reportContainer.style.color = '#111827';
-                
-                // 2. Get Project Name
-                const projName = currentProjectNameDisplay.textContent || "Strategy Session";
-                const date = new Date().toLocaleDateString();
-
-                // 3. Build Cover Page
-                let htmlContent = `
-                    <div style="text-align: center; margin-bottom: 60px; padding-bottom: 20px; border-bottom: 2px solid #10b981;">
-                        <h1 style="font-size: 32px; margin-bottom: 10px; color: #065f46;">Strategic Analysis Report</h1>
-                        <h2 style="font-size: 24px; color: #374151; margin-top: 0;">${projName}</h2>
-                        <p style="color: #6b7280; margin-top: 10px;">Generated on ${date}</p>
-                    </div>
-                `;
-
-                // 4. Format Content
-                chatHistory.forEach(msg => {
-                    const role = msg.role === 'user' ? 'Client Input' : 'Strategic Analysis';
-                    const color = msg.role === 'user' ? '#059669' : '#1f2937'; // Green title for user, Dark for AI
-                    
-                    // Parse markdown for the PDF
-                    // We strip citations/charts for the print version to keep it clean text, 
-                    // or keep simple markdown.
-                    let content = marked.parse(msg.parts[0].text);
-                    
-                    // Remove complex chart JSON from PDF output to avoid clutter
-                    content = content.replace(/(?:<<<CHART>>>|<chart>|<<>>)([\s\S]*?)(?:<<<END_CHART>>>|<\/chart>|<<>>)/gi, '<em>[Chart Data Visualized in Dashboard]</em>');
-
-                    htmlContent += `
-                        <div style="margin-bottom: 30px;">
-                            <h4 style="color: ${color}; font-family: 'Roboto Slab', serif; border-bottom: 1px solid #e5e7eb; padding-bottom: 5px; margin-bottom: 10px; text-transform: uppercase; font-size: 12px; letter-spacing: 1px;">${role}</h4>
-                            <div style="font-size: 14px; line-height: 1.6;">${content}</div>
-                        </div>
-                    `;
-                });
-
-                // 5. Footer
-                htmlContent += `
-                    <div style="margin-top: 50px; border-top: 1px solid #e5e7eb; padding-top: 20px; text-align: center; font-size: 10px; color: #9ca3af;">
-                        Generated by Duvallo
-                    </div>
-                `;
-
-                reportContainer.innerHTML = htmlContent;
-
-                // 6. Generate PDF
-                const opt = {
-                    margin:       [0.5, 0.5],
-                    filename:     `${projName.replace(/\s+/g, '_')}_Report.pdf`,
-                    image:        { type: 'jpeg', quality: 0.98 },
-                    html2canvas:  { scale: 2 },
-                    jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
-                };
-
-                // Use the library (it creates the PDF from the container)
-                html2pdf().set(opt).from(reportContainer).save();
-            };
-
-        // ============================================
-            // 6. ARTIFACT ENGINE (PPTX & CSV)
-            // ============================================
-
-            // --- A. POWERPOINT GENERATOR (FIXED LAYOUT) ---
-            const exportPptxBtn = document.getElementById('exportPptxBtn');
-            
-            exportPptxBtn.onclick = async () => {
-                if (chatHistory.length === 0) return alert("No strategy content to export.");
-                
-                const originalText = exportPptxBtn.textContent;
-                exportPptxBtn.textContent = "Building Slides...";
-                
-                try {
-                    let pptx = new PptxGenJS();
-                    pptx.layout = 'LAYOUT_16x9'; // 10 inches x 5.625 inches
-                    pptx.author = 'Duvallo';
-                    pptx.company = 'Duvallo Strategy Engine';
-                    
-                    // 1. MASTER TITLE SLIDE
-                    let titleSlide = pptx.addSlide();
-                    titleSlide.background = { color: '111827' }; // Duvallo Dark
-                    titleSlide.addText(currentProjectNameDisplay.textContent || "Strategy Deck", { 
-                        x: 0.5, y: 2.0, w: '90%', fontSize: 44, color: 'ffffff', bold: true, fontFace: 'Arial', align: 'center' 
-                    });
-                    titleSlide.addText(`Generated on ${new Date().toLocaleDateString()}`, { 
-                        x: 0.5, y: 3.0, w: '90%', fontSize: 18, color: '10b981', fontFace: 'Arial', align: 'center' 
-                    });
-
-                    // 2. CONTENT PARSING LOOP
-                    chatHistory.forEach(msg => {
-                        if (msg.role === 'model') {
-                            let text = msg.parts[0].text;
-                            
-                            // CLEANUP: Remove Artifacts
-                            text = text.replace(/(?:<<<CHART>>>|<chart>|<<>>)([\s\S]*?)(?:<<<END_CHART>>>|<\/chart>|<<>>|$)/gi, ''); 
-                            text = text.replace(/---SUGGESTIONS---([\s\S]*)$/gi, ''); 
-                            
-                            // Split by Headers to create distinct slides
-                            let sections = text.split(/^#+\s/gm);
-                            
-                            sections.forEach(section => {
-                                if (section.trim().length < 5) return; 
-
-                                let slide = pptx.addSlide();
-                                slide.background = { color: 'ffffff' };
-                                
-                                // Parse Title vs Body
-                                let lines = section.trim().split('\n');
-                                let rawTitle = lines[0].replace(/\*\*/g, '').trim();
-                                
-                                // --- TITLE CLEANER ---
-                                // Removes "Here is", "Below is", "Table of" to make it punchy
-                                let cleanTitle = rawTitle.replace(/^(Here is|Below is|The following is|A comparison of|Table of)\s+(a|an|the)?\s*/i, '');
-                                cleanTitle = cleanTitle.charAt(0).toUpperCase() + cleanTitle.slice(1); // Capitalize first letter
-                                // Truncate if too long to prevent overflow
-                                if (cleanTitle.length > 70) cleanTitle = cleanTitle.substring(0, 67) + "...";
-
-                                let bodyText = lines.slice(1).join('\n').trim();
-
-                                // HEADER RENDERING (Adjusted Y positions)
-                                slide.addText(cleanTitle, { 
-                                    x: 0.5, y: 0.4, w: '90%', h: 0.6,
-                                    fontSize: 24, color: '064e3b', bold: true, fontFace: 'Arial',
-                                    valign: 'middle'
-                                });
-                                // Green Separator Line (Moved down to y:1.1)
-                                slide.addShape(pptx.ShapeType.line, { x:0.5, y:1.1, w:'90%', h:0, line:'10b981', lineSize:2 });
-
-                                // --- SMART TABLE DETECTION & RESIZING ---
-                                if (bodyText.includes('|') && bodyText.includes('---')) {
-                                    let tableRows = [];
-                                    let bodyLines = bodyText.split('\n');
-                                    let preTableText = "";
-                                    
-                                    bodyLines.forEach(line => {
-                                        line = line.trim();
-                                        if (line.indexOf('|') > -1) {
-                                            if (line.includes('---')) return; // Skip separator
-                                            
-                                            let cells = line.split('|').filter((cell, i, arr) => {
-                                                if (i === 0 && cell === "") return false;
-                                                if (i === arr.length - 1 && cell === "") return false;
-                                                return true;
-                                            }).map(c => c.trim().replace(/\*\*/g, '')); 
-                                            
-                                            if (cells.length > 0) tableRows.push(cells);
-                                        } else {
-                                            if (tableRows.length === 0 && line.length > 0) preTableText += line + "\n";
-                                        }
-                                    });
-
-                                    // Render Text before table (if any)
-                                    if (preTableText.length > 5) {
-                                        slide.addText(preTableText, { x: 0.5, y: 1.3, w: '90%', h: 0.5, fontSize: 12, color: '374151' });
-                                    }
-
-                                    // --- DYNAMIC COLUMN WIDTH CALCULATION ---
-                                    if (tableRows.length > 0) {
-                                        const numCols = tableRows[0].length;
-                                        const slideWidth = 10.0; 
-                                        const margin = 1.0; // 0.5 left + 0.5 right
-                                        const usableWidth = slideWidth - margin;
-                                        
-                                        // Calculate width per column (equal distribution)
-                                        const colWidth = usableWidth / numCols;
-                                        const colWidthsArray = Array(numCols).fill(colWidth);
-
-                                        slide.addTable(tableRows, {
-                                            x: 0.5, 
-                                            y: (preTableText.length > 5 ? 2.0 : 1.3), // Push down if text exists
-                                            w: usableWidth,
-                                            colW: colWidthsArray, // Apply dynamic widths
-                                            fill: { color: 'f3f4f6' },
-                                            border: { pt: 1, color: 'd1d5db' },
-                                            fontFace: 'Arial',
-                                            fontSize: 10, // Smaller font to fit data
-                                            color: '1f2937',
-                                            autoPage: true, // Handle overflow to next slide
-                                            newSlideStartY: 1.5,
-                                            verbose: false
-                                        });
-                                    }
-
-                                } else {
-                                    // --- STANDARD TEXT SLIDE ---
-                                    let cleanBody = bodyText.replace(/\*\*/g, ''); 
-                                    
-                                    slide.addText(cleanBody, { 
-                                        x: 0.5, y: 1.3, w: '90%', h: '75%', 
-                                        fontSize: 14, color: '374151', fontFace: 'Arial', 
-                                        valign: 'top', lineSpacing: 20, bullet: { type: 'bullet', code: '2022' } 
-                                    });
-                                }
-                                
-                                // Footer
-                                slide.addText('Duvallo Strategy Engine', { x: 0.5, y: 5.25, w:'90%', fontSize: 9, color: '9ca3af', align: 'right' });
-                            });
-                        }
-                    });
-
-                    pptx.writeFile({ fileName: `${(currentProjectNameDisplay.textContent || "Project").replace(/\s+/g, '_')}_Deck.pptx` });
-                    
-                    createMessageBubble("✅ **Slides Generated:** Professional deck downloaded.", "model", false);
-                    
-                } catch (e) {
-                    console.error("PPTX Error:", e);
-                    alert("Error generating slides. See console.");
-                } finally {
-                    exportPptxBtn.textContent = originalText;
-                }
-            };
-
-            // --- B. CSV / EXCEL EXTRACTOR ---
-            const exportCsvBtn = document.getElementById('exportCsvBtn');
-            
-            exportCsvBtn.onclick = () => {
-                let csvContent = "";
-                let tablesFound = 0;
-                
-                chatHistory.forEach((msg, index) => {
-                    if (msg.role === 'model') {
-                        // Regex to find Markdown tables
-                        // Looks for lines starting with |
-                        const tableRegex = /(\|.*\|\n\|[-:| ]+\|\n(?:\|.*\|\n?)+)/g;
-                        let match;
-                        
-                        while ((match = tableRegex.exec(msg.parts[0].text)) !== null) {
-                            tablesFound++;
-                            let tableMarkdown = match[0];
-                            let rows = tableMarkdown.trim().split('\n');
-                            
-                            // Add a header for the CSV block
-                            csvContent += `TABLE ${tablesFound} (From Message ${index + 1})\n`;
-                            
-                            rows.forEach((row, i) => {
-                                // Skip the separator line (e.g. |---|---|)
-                                if (row.includes('---')) return;
-                                
-                                // Clean the row: remove outer pipes, split by pipe, trim whitespace
-                                let cells = row.split('|').filter((cell, idx, arr) => idx > 0 && idx < arr.length - 1);
-                                let cleanCells = cells.map(c => `"${c.trim().replace(/"/g, '""')}"`); // Quote and escape
-                                
-                                csvContent += cleanCells.join(",") + "\n";
-                            });
-                            
-                            csvContent += "\n\n"; // Space between tables
-                        }
-                    }
-                });
-                
-                if (tablesFound === 0) {
-                    alert("No data tables found in this conversation to export.");
-                    return;
-                }
-                
-                // Trigger Download
-                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement("a");
-                link.setAttribute("href", url);
-                link.setAttribute("download", `${(currentProjectNameDisplay.textContent || "Project").replace(/\s+/g, '_')}_Data.csv`);
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                
-                createMessageBubble(`✅ **Data Extracted:** Found ${tablesFound} tables and exported to CSV.`, "model", false);
-            };
-
-        })();
-    </script>
-</body>
 </html>
