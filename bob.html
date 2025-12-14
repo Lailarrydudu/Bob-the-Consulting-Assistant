@@ -867,4 +867,330 @@
     </div>
     
     <script>
+        // --- 1. GLOBAL HELPER FUNCTIONS ---
+        
+        // Fix for 404 Links
+        window.cleanUrl = function(rawUrl) {
+            if (!rawUrl) return "#";
+            try {
+                if (!rawUrl.includes("google.com/url")) return rawUrl;
+                const urlObj = new URL(rawUrl);
+                return urlObj.searchParams.get("q") || rawUrl;
+            } catch (e) { return rawUrl; }
+        };
+
+        // Open Side Panel
+        window.openSourcePanel = function(sourcesJson) {
+            const panel = document.getElementById('rightSourcePanel');
+            const content = document.getElementById('sourcePanelContent');
+            let sources = [];
+            try { sources = JSON.parse(decodeURIComponent(sourcesJson)); } catch(e){}
+            
+            content.innerHTML = '';
+            
+            if(!sources || sources.length === 0) {
+                 content.innerHTML = '<div class="text-gray-500 text-sm italic">No sources found.</div>';
+            } else {
+                sources.forEach(src => {
+                    const safeLink = window.cleanUrl(src.url);
+                    let domain = "External Link";
+                    try { domain = new URL(safeLink).hostname.replace('www.',''); } catch(e){}
+
+                    const item = document.createElement('a');
+                    item.href = safeLink;
+                    item.target = "_blank";
+                    item.rel = "noopener noreferrer";
+                    item.className = "block bg-gray-800 hover:bg-gray-700 border border-gray-700 p-3 rounded-lg transition group mb-2";
+                    item.innerHTML = `
+                        <div class="flex items-center gap-2 mb-1">
+                            <img src="https://www.google.com/s2/favicons?domain=${domain}" class="w-4 h-4 rounded-sm" onerror="this.style.display='none'">
+                            <span class="text-sm font-bold text-emerald-400 truncate">${src.name || domain}</span>
+                        </div>
+                        <div class="text-xs text-gray-500 truncate group-hover:text-gray-400">${safeLink}</div>
+                    `;
+                    content.appendChild(item);
+                });
+            }
+            // Add open class (Width transition)
+            panel.style.width = "350px"; 
+        };
+
+        // Close Side Panel
+        window.closeSourcePanel = function() {
+            document.getElementById('rightSourcePanel').style.width = "0";
+        };
+
+        // --- 2. NEW LAYOUT LOGIC (Phase-Gate) ---
+
+        window.switchPhase = (phaseId) => {
+            // Switch Workspace View
+            document.querySelectorAll('.workspace-view').forEach(el => el.classList.remove('active'));
+            const view = document.getElementById(`view-${phaseId}`);
+            if(view) view.classList.add('active');
+            
+            // Switch Tab Highlight
+            const map = { 'diagnosis': 0, 'analysis': 1, 'solution': 2, 'execution': 3, 'maintain': 4 };
+            const idx = map[phaseId];
+            
+            const tabs = document.querySelectorAll('.phase-tab');
+            tabs.forEach(t => t.classList.remove('active'));
+            if(tabs[idx]) tabs[idx].classList.add('active');
+            
+            // Hide Hero
+            const hero = document.getElementById('heroText');
+            if(hero) hero.style.display = 'none';
+        };
+
+        window.toggleChatDrawer = () => {
+            const drawer = document.getElementById('chatDrawer');
+            const icon = document.getElementById('drawerToggleIcon');
+            
+            if (drawer.classList.contains('collapsed')) {
+                drawer.classList.remove('collapsed');
+                icon.style.transform = 'rotate(0deg)'; // Arrow down
+            } else {
+                drawer.classList.add('collapsed');
+                icon.style.transform = 'rotate(180deg)'; // Arrow up
+            }
+        };
+
+        window.triggerPrompt = (promptText) => {
+            const input = document.getElementById('userInput');
+            
+            // Use global PROMPT_MAP
+            let finalPrompt = promptText;
+            if (window.PROMPT_MAP && window.PROMPT_MAP[promptText]) {
+                finalPrompt = window.PROMPT_MAP[promptText];
+            }
+
+            input.value = finalPrompt;
+            
+            // Open Drawer if closed
+            const drawer = document.getElementById('chatDrawer');
+            if (drawer.classList.contains('collapsed')) {
+                window.toggleChatDrawer();
+            }
+            
+            input.focus();
+            input.scrollTop = input.scrollHeight;
+        };
+
+        // --- 3. MAIN APPLICATION LOGIC ---
+        (function() {
+            // Elements
+            const sendButton = document.getElementById('sendButton');
+            const userInput = document.getElementById('userInput');
+            const chatArea = document.getElementById('chatArea');
+            const clearChatBtn = document.getElementById('clearChatBtn');
+            const attachBtn = document.getElementById('attachBtn');
+            const hiddenFileInput = document.getElementById('hiddenFileInput');
+            
+            // State
+            let attachedFileContent = null;
+            let attachedFileName = null;
+            let responseDepth = null;
+            let projectFiles = []; 
+            const chatHistory = [];
+
+            // PROMPT MAP (Exposed Globally for the Cards)
+            window.PROMPT_MAP = {
+                'Guided Diagnostic (Interviewer Mode)': `Act as a Senior Partner Consultant. Conduct a diagnostic interview. \n\n**CONTEXT:** [DESCRIBE SITUATION]\n\n**TASK:** Ask 3-5 probing questions to find the root cause. Do NOT solve it yet.`,
+                'Industry Trends Snapshot': `Act as a Market Researcher. Find real-time trends for [INDUSTRY]. \n\n**OUTPUT:** \n1. Trend Name\n2. Data Point (Cited)\n3. Impact.`,
+                'Initial Project Charter Draft': `Act as a Project Manager. Draft a Project Charter for [PROJECT]. \n\nInclude: Scope, Objectives, KPIs, Stakeholders.`,
+                'Problem Statement Draft': `Act as a Consultant. Refine this problem: [PROBLEM]. \n\nFormat: Context, Complication, Key Question.`,
+                'Market Analysis': `Act as a Market Analyst. Analyze [MARKET]. \n\n**REQUIREMENT:** Use Google Search for TAM/CAGR data. Cite sources.`,
+                'Competitor Benchmarking': `Act as a Competitive Intelligence Analyst. Compare [MY COMPANY] vs [COMPETITORS]. \n\nCriteria: Pricing, Features, Sentiment.`,
+                'SWOT Analysis': `Act as a Strategist. Perform a SWOT Analysis for [TOPIC]. \n\n**REQUIREMENT:** Cite external Threats/Opportunities.`,
+                'PESTLE Analysis': `Act as a Macro-Economist. Run a PESTLE analysis for [TOPIC]. \n\nCite regulations and economic data.`,
+                '5 Forces Analysis': `Act as an Industry Analyst. Run Porter's 5 Forces on [INDUSTRY].`,
+                'MECE Logic Check': `Act as a Logic Auditor. Check this text for MECE violations: [PASTE TEXT].`,
+                'Market Entry Strategy': `Act as a Global Expansion Consultant. Plan entry into [MARKET] for [PRODUCT]. \n\nInclude: Mode of Entry, Localization, Regulation.`,
+                'Go-to-market Strategy': `Act as a CMO. Build a GTM plan for [PRODUCT]. \n\nInclude: ICP, Channels, Pricing.`,
+                'Business Plan Outline': `Act as a VC. Draft a Business Plan Outline for [IDEA].`,
+                'Ansoff Matrix': `Act as a Growth Strategist. Use the Ansoff Matrix for [COMPANY].`,
+                'Risk Analysis': `Act as a Risk Manager. Identify risks for [PROJECT]. \n\nFormat: Risk, Probability, Impact, Mitigation.`,
+                'Devil\'s Advocate Review': `Act as a Red Team. Brutally critique this strategy: [STRATEGY].`,
+                'Monday Morning Protocol': `Act as an Implementation Manager. Create a 7-day action plan for [STRATEGY]. \n\nFormat: Role, Task, Deadline.`,
+                'KPI Dashboard Mockup': `Act as a Data Scientist. Design a KPI Dashboard for [GOAL]. \n\nInclude: Leading vs Lagging indicators.`,
+                'Implementation Plan Outline': `Act as a Program Manager. Create a phased rollout plan for [PROJECT].`
+            };
+
+            // Mode Toggle Logic
+            const modeBriefBtn = document.getElementById('modeBriefBtn');
+            const modeDeepBtn = document.getElementById('modeDeepBtn');
+            
+            function updateModeUI() {
+                const inactiveClass = "mb-2 px-3 py-1.5 text-xs font-bold rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-700 transition-all border border-transparent";
+                const activeClass = "mb-2 px-3 py-1.5 text-xs font-bold rounded-lg text-emerald-400 bg-emerald-900/30 border border-emerald-500/50 transition-all shadow-glow";
+                
+                modeBriefBtn.className = (responseDepth === 'brief') ? activeClass : inactiveClass;
+                modeDeepBtn.className = (responseDepth === 'deep') ? activeClass : inactiveClass;
+            }
+            modeBriefBtn.onclick = () => { responseDepth = (responseDepth === 'brief') ? null : 'brief'; updateModeUI(); };
+            modeDeepBtn.onclick = () => { responseDepth = (responseDepth === 'deep') ? null : 'deep'; updateModeUI(); };
+            updateModeUI();
+
+            // File Attachment Logic
+            attachBtn.addEventListener('click', () => hiddenFileInput.click());
+            hiddenFileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    attachedFileContent = ev.target.result;
+                    attachedFileName = file.name;
+                    const preview = document.getElementById('filePreviewArea');
+                    preview.classList.remove('hidden');
+                    preview.innerHTML = `<div class="bg-gray-700 px-2 py-1 rounded text-xs text-white flex items-center gap-2">📎 ${file.name} <button onclick="this.parentElement.remove()" class="text-gray-400 hover:text-red-400">×</button></div>`;
+                };
+                reader.readAsText(file);
+            });
+
+            // Auto-Resize Textarea
+            userInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+                if(this.value === '') this.style.height = '48px';
+            });
+
+            // --- CORE CHAT LOGIC ---
+
+            function processCitations(rawText) {
+                // Gen 6 Regex (The one that works)
+                const regex = /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g;
+                let sources = [];
+                const textWithTokens = rawText.replace(regex, (match, name, url) => {
+                    let cleanUrl = url.replace(/[.,;!]+$/, ""); 
+                    sources.push({ name, url: cleanUrl });
+                    return `%%CIT_${sources.length - 1}%%`;
+                });
+                return { textWithTokens, sources };
+            }
+
+            function createMessageBubble(text, sender, animate = true) {
+                const wrapper = document.createElement('div');
+                wrapper.classList.add('flex', 'mb-4', sender === 'user' ? 'justify-end' : 'justify-start');
+                
+                const bubble = document.createElement('div');
+                bubble.classList.add('rounded-xl', 'p-4', 'max-w-2xl', 'shadow-md', 
+                    sender === 'user' ? 'bg-emerald-600' : 'bg-gray-800', 'text-gray-100', 'text-sm');
+                
+                if(sender === 'model') {
+                    // Suggestions removal
+                    const suggestionRegex = /---SUGGESTIONS---([\s\S]*)$/;
+                    const suggestionMatch = text.match(suggestionRegex);
+                    if (suggestionMatch) text = text.replace(suggestionRegex, '').trim();
+
+                    const { textWithTokens, sources } = processCitations(text);
+                    const contentDiv = document.createElement('div');
+                    contentDiv.className = 'ai-response-content';
+                    
+                    let renderedHtml = marked.parse(textWithTokens);
+                    const sourcesJson = encodeURIComponent(JSON.stringify(sources));
+
+                    sources.forEach((source, index) => {
+                        // Green Pin Logic
+                        const iconHtml = `<span class="citation-link inline-flex items-center justify-center ml-1 cursor-pointer text-emerald-400 bg-emerald-400/10 rounded px-1 hover:bg-emerald-400/20" onclick="window.openSourcePanel('${sourcesJson}')" title="${source.name}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg>
+                        </span>`;
+                        const token = `%%CIT_${index}%%`;
+                        renderedHtml = renderedHtml.split(token).join(iconHtml);
+                    });
+                    
+                    contentDiv.innerHTML = renderedHtml;
+                    bubble.appendChild(contentDiv);
+
+                    // View Sources Button
+                    if (sources.length > 0) {
+                        const btn = document.createElement('button');
+                        btn.className = "mt-2 text-xs bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-emerald-400 flex items-center gap-1";
+                        btn.innerHTML = `<span>View ${sources.length} Sources</span>`;
+                        btn.onclick = () => window.openSourcePanel(sourcesJson);
+                        bubble.appendChild(btn);
+                    }
+
+                } else {
+                    bubble.textContent = text;
+                }
+
+                wrapper.appendChild(bubble);
+                chatArea.appendChild(wrapper);
+                chatArea.scrollTop = chatArea.scrollHeight;
+            }
+
+            async function sendMessage() {
+                const prompt = userInput.value.trim();
+                if (!prompt) return;
+
+                // Create User Bubble
+                let displayPrompt = prompt;
+                if(attachedFileContent) displayPrompt += `\n[Attached: ${attachedFileName}]`;
+                createMessageBubble(displayPrompt, 'user');
+                
+                // Add to History
+                let fullPrompt = prompt;
+                if(attachedFileContent) fullPrompt += `\n\n[FILE: ${attachedFileName}]\n${attachedFileContent}`;
+                chatHistory.push({ role: 'user', parts: [{ text: fullPrompt }] });
+
+                // Reset UI
+                userInput.value = '';
+                attachedFileContent = null;
+                document.getElementById('filePreviewArea').classList.add('hidden');
+
+                // Loading
+                const loadingDiv = document.createElement('div');
+                loadingDiv.className = "text-gray-500 text-xs ml-4 mb-4";
+                loadingDiv.innerText = "Thinking...";
+                chatArea.appendChild(loadingDiv);
+
+                try {
+                    // Get Token (assuming Clerk is active)
+                    let token = "";
+                    if(window.Clerk && window.Clerk.session) token = await window.Clerk.session.getToken();
+
+                    // API Call
+                    const response = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            systemInstruction: { 
+                                parts: [{ text: `You are Duvallo. 
+                                **CRITICAL:** 
+                                1. You MUST write citations inline like this: [Source Name](URL). 
+                                2. Do NOT use footnotes. 
+                                3. Use Google Search for facts.` }]
+                            },
+                            messages: chatHistory
+                        })
+                    });
+
+                    const result = await response.json();
+                    chatArea.removeChild(loadingDiv);
+
+                    if(result.error) {
+                        createMessageBubble("Error: " + result.error.message, "model");
+                    } else {
+                        const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                        if(text) {
+                            chatHistory.push({ role: 'model', parts: [{ text: text }] });
+                            createMessageBubble(text, "model");
+                        }
+                    }
+                } catch(e) {
+                    chatArea.removeChild(loadingDiv);
+                    createMessageBubble("Connection Error", "model");
+                }
+            }
+
+            sendButton.addEventListener('click', sendMessage);
+            userInput.addEventListener('keydown', (e) => {
+                if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+            });
+            clearChatBtn.onclick = () => { chatArea.innerHTML = ''; chatHistory.length = 0; };
+
+        })();
+    </script>
 </html>
