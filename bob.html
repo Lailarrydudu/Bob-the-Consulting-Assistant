@@ -1,531 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Clerk Auth Protection -->
-    <script
-      async
-      crossorigin="anonymous"
-      data-clerk-publishable-key="pk_test_c2VsZWN0LWd1cHB5LTQwLmNsZXJrLmFjY291bnRzLmRldiQ"
-      src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"
-      type="text/javascript"
-    ></script>
+    <!-- Clerk Auth -->
+    <script async crossorigin="anonymous" data-clerk-publishable-key="pk_test_c2VsZWN0LWd1cHB5LTQwLmNsZXJrLmFjY291bnRzLmRldiQ" src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
     <script>
         window.addEventListener("load", async function () {
             await Clerk.load();
-            if (!Clerk.user) {
-                // Not logged in? Kick them out.
-                window.location.href = "login.html";
-            } else {
-                // Logged in? Update UI with user info (Optional)
-                console.log("User:", Clerk.user.firstName);
-            }
+            if (!Clerk.user) window.location.href = "login.html";
         });
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Duvallo | AI Strategy Engine</title>
+    <title>Duvallo | Strategy Workbench</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- PDF.js Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    </script>
+    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- NEW: PowerPoint Generator -->
     <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Georgia:wght@400;700&family=Roboto+Slab:wght=700&display=swap');
         
-        body {
-            font-family: 'Georgia', sans-serif;
-            background-color: #111827; /* Gray 900 */
-            color: #f3f4f6;
-            height: 100vh;
-            overflow: hidden; /* Prevent body scroll, handle inside containers */
-        }
-
-        /* Scrollbar Styling */
+        body { font-family: 'Georgia', sans-serif; background-color: #111827; color: #f3f4f6; overflow: hidden; }
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #1f2937; }
         ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
 
-        /* Typography for AI Responses */
-        .ai-response-content {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
-            font-size: 1rem;
-            line-height: 1.75;
-            color: #ececf1; /* Off-White */
-        }
+        /* AI Content Typography */
+        .ai-response-content { font-family: -apple-system, system-ui, sans-serif; font-size: 0.95rem; line-height: 1.6; color: #e5e7eb; }
+        .ai-response-content h1 { font-size: 1.4rem; font-weight: 700; color: #fff; margin: 1rem 0 0.5rem; border-bottom: 1px solid #374151; padding-bottom: 0.25rem; }
+        .ai-response-content h2 { font-size: 1.2rem; font-weight: 600; color: #fff; margin: 1rem 0 0.5rem; }
+        .ai-response-content strong { color: #fff; font-weight: 700; }
+        .ai-response-content ul { list-style: disc; padding-left: 1.2rem; margin-bottom: 0.5rem; }
+        .ai-response-content ol { list-style: decimal; padding-left: 1.2rem; margin-bottom: 0.5rem; }
+        .ai-response-content table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; border: 1px solid #374151; }
+        .ai-response-content th, .ai-response-content td { border: 1px solid #374151; padding: 0.5rem; }
+        .ai-response-content th { background: #1f2937; color: #fff; }
 
-        /* Headings: Clean, Bold, White, Left-Aligned */
-        .ai-response-content h1 {
-            font-size: 1.5rem; /* ~24px */
-            font-weight: 700;
-            margin-top: 1.5rem;
-            margin-bottom: 1rem;
-            color: #ffffff;
-            text-align: left; /* Removed center align */
-            border-bottom: 1px solid #374151; /* Subtle divider for main titles */
-            padding-bottom: 0.5rem;
-        }
-
-        .ai-response-content h2 {
-            font-size: 1.25rem; /* ~20px */
-            font-weight: 600;
-            margin-top: 2rem; /* More breathing room before sections */
-            margin-bottom: 0.75rem;
-            color: #ffffff;
-        }
-
-        .ai-response-content h3 {
-            font-size: 1.1rem; /* ~16px */
-            font-weight: 600;
-            margin-top: 1.5rem;
-            margin-bottom: 0.5rem;
-            color: #ffffff;
-        }
-
-        /* Paragraphs & Text */
-        .ai-response-content p {
-            margin-bottom: 1rem;
-        }
-
-        .ai-response-content strong {
-            font-weight: 700;
-            color: #ffffff; /* Bright white for emphasis, no yellow */
-        }
-
-        /* Lists: Indentation & Bullets */
-        .ai-response-content ul {
-            list-style-type: disc;
-            padding-left: 1.2rem;
-            margin-bottom: 1rem;
-        }
-
-        /* Ordered Lists (1, 2, 3) - Styling for Main Points */
-        .ai-response-content ol {
-            list-style-type: none; /* We will use custom counters for better control */
-            counter-reset: item;
-            padding-left: 0;
-            margin-bottom: 1.5rem;
-        }
-
-        .ai-response-content ol > li {
-            counter-increment: item;
-            margin-bottom: 1.5rem; /* Space between big points */
-            position: relative;
-            padding-left: 2rem; /* Make room for the number */
-        }
-
-        /* The Number (1., 2.) */
-        .ai-response-content ol > li::before {
-            content: counter(item) ".";
-            position: absolute;
-            left: 0;
-            top: 0;
-            font-weight: 700;
-            color: #d1d5db; /* Light gray number */
-        }
-
-        /* Force Bold Titles in ANY List (Ordered or Unordered) to be their own line */
-        .ai-response-content li strong {
-            display: block; /* This moves the bold title to its own line */
-            width: 100%;    /* Takes full width */
-            font-size: 1.1rem;
-            color: #ffffff; /* Bright white title */
-            margin-bottom: 0.5rem; /* Space between Title and Explanation */
-            margin-top: 0.5rem; /* Breathing room from previous text */
-        }
-
-        .ai-response-content li {
-            margin-bottom: 0.5rem;
-        }
-
-        /* Tables: Neutral Grays (No more Green borders) */
-        .ai-response-content table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
-            margin-bottom: 1rem;
-            font-size: 0.9rem;
-            border-radius: 6px;
-            overflow: hidden;
-            border: 1px solid #4b5563;
-        }
-
-        .ai-response-content th, .ai-response-content td {
-            border: 1px solid #4b5563;
-            padding: 0.75rem;
-            text-align: left;
-        }
-
-        .ai-response-content th {
-            background-color: #374151; /* Dark Gray Header */
-            color: #ffffff;
-            font-weight: 600;
-        }
-
-        .ai-response-content td {
-            background-color: transparent; /* Seamless background */
-        }
-
-        /* Sidebar Buttons */
-        .sidebar-btn {
-            font-family: 'Roboto Slab', serif;
-            width: 100%;
-            text-align: left;
-            padding: 0.75rem 1rem;
-            background-color: #1f2937; /* Gray 800 */
-            border: 1px solid #374151;
-            border-radius: 0.5rem;
-            color: #e5e7eb;
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: all 0.2s;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .sidebar-btn:hover { background-color: #374151; border-color: #10b981; }
-        
-        /* Submenu styling in sidebar */
-        .sidebar-menu {
-            background-color: #111827;
-            border: 1px solid #374151;
-            border-radius: 0.5rem;
-            margin-top: 0.25rem;
-            overflow: hidden;
-        }
-        .sub-menu-btn {
-            display: block;
-            width: 100%;
-            text-align: left;
-            padding: 0.5rem 1rem;
-            font-size: 0.85rem;
-            color: #9ca3af;
-            transition: color 0.2s, background-color 0.2s;
-        }
-        .sub-menu-btn:hover { color: #10b981; background-color: #1f2937; }
-
-        /* Utility Buttons (Right Side) - Updated */
-        .utility-btn {
-            width: 100%;
-            height: 42px; /* Fixed height for uniformity */
-            padding: 0 1rem;
-            background-color: #4b5563;
-            color: white;
-            border-radius: 0.5rem;
-            font-weight: bold;
-            font-size: 0.85rem;
-            margin-bottom: 0.75rem;
-            transition: all 0.2s;
-            /* Centering Logic */
-            display: flex; 
-            justify-content: center; 
-            align-items: center;
-            position: relative; 
-        }
-        .utility-btn:hover { background-color: #6b7280; }
-        
-        /* Force the arrow icon to the far right so text stays centered */
-        .utility-btn svg {
-            position: absolute;
-            right: 12px;
-        }
-
-        /* User Message Actions (Copy/Edit) */
-        .message-wrapper:hover .user-action-container {
-            opacity: 1;
-        }
-        
-        .user-action-container {
-            opacity: 0;
-            transition: opacity 0.2s ease-in-out;
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
-            margin-right: 0.75rem;
-        }
-        
-        .action-icon-btn {
-            padding: 6px;
-            border-radius: 50%;
-            color: #9ca3af; /* Gray-400 */
-            background-color: #1f2937; /* Dark background */
-            border: 1px solid #374151;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .action-icon-btn:hover {
-            color: #f3f4f6;
-            background-color: #374151;
-            border-color: #10b981; /* Emerald border */
-        }
-        
-        /* Input Area Styling */
-        #userInput {
-            line-height: 1.5;
-            resize: none; 
-            max-height: 150px;
-        }
-    /* === CITATION STYLES (Fixed Visibility) === */
-        /* === CITATION STYLES (High Visibility) === */
-        .citation-link {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            vertical-align: middle;
-            margin-left: 5px;
-            background-color: #065f46; /* Dark Green */
-            border: 1px solid #34d399; /* Bright Green Border */
-            border-radius: 50%;
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-            transition: all 0.2s;
-            position: relative;
-            top: -2px; /* Slight superscript alignment */
-        }
-        .citation-link:hover { 
-            background-color: #10b981; /* Brighter Green */
-            transform: scale(1.1);
-        }
-        .citation-link svg { 
-            width: 10px; 
-            height: 10px; 
-            color: #ffffff; /* White Icon */
-        }
-        .citation-link:hover svg {
-            color: white;
-        }
-
-        .sources-section {
-            margin-top: 1rem;
-            border-top: 1px solid #374151;
-            padding-top: 0.75rem;
-        }
-
-        .sources-toggle-btn {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            background-color: transparent;
-            border: 1px solid #6b7280;
-            color: #d1d5db;
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-        .sources-toggle-btn:hover { background-color: #374151; border-color: #9ca3af; }
-
-        .sources-list {
-            margin-top: 0.75rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-        .source-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.8rem;
-            color: #93c5fd;
-            text-decoration: none;
-            padding: 0.25rem;
-            border-radius: 0.25rem;
-        }
-        .source-item:hover { background-color: #1f2937; text-decoration: underline; }
-        .source-favicon { width: 16px; height: 16px; background-color: #fff; border-radius: 2px; }
-
-        /* Suggestion/Action Chips (The Iceberg) */
-        .suggestion-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-top: 1rem;
-            padding-top: 0.75rem;
-            border-top: 1px solid #374151; /* Gray-700 */
-            animation: fade-in 0.5s ease-in-out;
-        }
-        
-        .suggestion-chip {
-            background-color: #111827; /* Gray-900 */
-            border: 1px solid #059669; /* Emerald-600 */
-            color: #d1fae5; /* Emerald-100 */
-            padding: 0.4rem 0.8rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-        
-        .suggestion-chip:hover {
-            background-color: #059669;
-            color: white;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 6px -1px rgba(5, 150, 105, 0.3);
-        }
-
-        .suggestion-label {
-            color: #9ca3af;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 0.25rem;
-            display: block;
-            width: 100%;
-        }
-        
-        @keyframes fade-in {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Waiting Lobby (Glass Box) Styles */
-        .thinking-container {
-            font-family: 'Roboto Mono', monospace; /* Tech feel */
-            font-size: 0.75rem;
-            color: #9ca3af;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            padding: 0.5rem 0;
-        }
-
-        .thought-step {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            opacity: 0;
-            transform: translateY(5px);
-            transition: all 0.3s ease-out;
-        }
-
-        .thought-step.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .thought-step.done {
-            color: #059669; /* Emerald for completion */
-        }
-        
-        .thought-icon {
-            width: 14px;
-            height: 14px;
-        }
-        
-        /* Pulse animation for the active step */
-        .thought-step.active .thought-text {
-            color: #d1fae5;
-            animation: pulse-text 1.5s infinite;
-        }
-
-        @keyframes pulse-text {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        /* --- NEW: Source Panel & Citation Styles --- */
-        
-        /* The container that holds Chat + Panel side-by-side */
-        .content-wrapper {
-            display: flex;
-            flex: 1;
-            overflow: hidden; /* Contains the scroll bars */
-            position: relative;
-        }
-
-        /* The Main Chat Area - Adapts width */
-        #chatArea {
-            flex: 1; /* Takes full width by default */
-            transition: all 0.3s ease-in-out;
-            min-width: 0; /* Prevents flex blowout */
-        }
-
-        /* The Side Panel - Hidden by default */
-        #rightSourcePanel {
-            width: 0;
-            opacity: 0;
-            background-color: #111827; /* Gray 900 */
-            border-left: 1px solid #374151;
-            transition: all 0.3s ease-in-out;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        /* When Active: Give it width */
-        #rightSourcePanel.panel-open {
-            width: 350px; /* The "Red Area" width */
-            opacity: 1;
-        }
-
-        /* Citation Icon in Text [🔗] */
-        .citation-trigger {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            color: #34d399; /* Emerald 400 */
-            cursor: pointer;
-            margin-left: 4px;
-            vertical-align: middle;
-            position: relative;
-            background: rgba(16, 185, 129, 0.1);
-            border-radius: 4px;
-            padding: 0 4px;
-            font-size: 0.8em;
-            font-weight: bold;
-            transition: all 0.2s;
-            border: 1px solid transparent;
-        }
-        
-        .citation-trigger:hover {
-            background: rgba(16, 185, 129, 0.2);
-            border-color: #34d399;
-        }
-
-        /* Tooltip Logic (The "Black Box") */
-        .citation-trigger:hover::after {
-            content: attr(data-source);
-            position: absolute;
-            bottom: 120%;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #000;
-            color: #fff;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 10px;
-            white-space: nowrap;
-            z-index: 50;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-            pointer-events: none;
-        }
-
-        /* --- NEW PHASE-GATE UI STYLES --- */
+        /* --- PHASE-GATE UI STYLES --- */
         
         /* Top Nav Tabs */
         .phase-tab {
-            padding: 0.5rem 1rem;
+            padding: 0 1rem;
             font-size: 0.875rem;
-            font-weight: 700;
-            color: #9ca3af; /* Gray 400 */
+            font-weight: 600;
+            color: #9ca3af;
             border-bottom: 2px solid transparent;
             cursor: pointer;
             transition: all 0.2s;
@@ -552,7 +73,7 @@
         .action-card {
             background-color: #1f2937; /* Gray 800 */
             border: 1px solid #374151;
-            padding: 1.5rem;
+            padding: 1.25rem;
             border-radius: 0.75rem;
             cursor: pointer;
             transition: all 0.2s;
@@ -565,8 +86,8 @@
             background-color: #272f3d;
             transform: translateY(-2px);
         }
-        .action-card h4 { font-weight: 700; color: #f3f4f6; }
-        .action-card p { font-size: 0.8rem; color: #9ca3af; }
+        .action-card h4 { font-weight: 700; color: #f3f4f6; font-family: 'Roboto Slab', serif; }
+        .action-card p { font-size: 0.8rem; color: #9ca3af; line-height: 1.4; }
 
         /* Chat Drawer Animation */
         #chatDrawer {
@@ -580,13 +101,40 @@
             display: none;
         }
         
-        /* Input container specific fix */
         .input-container {
             padding: 1rem;
             background-color: #1f2937;
             border-top: 1px solid #374151;
         }
-        
+
+        /* CITATION STYLES (Green Pin) */
+        .citation-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            vertical-align: middle;
+            margin-left: 4px;
+            background-color: #065f46;
+            border: 1px solid #34d399;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            top: -1px;
+        }
+        .citation-link:hover { transform: scale(1.1); background-color: #10b981; }
+        .citation-link svg { width: 8px; height: 8px; color: white; }
+
+        /* Side Panel */
+        #rightSourcePanel {
+            width: 0;
+            transition: width 0.3s ease-in-out;
+        }
+        #rightSourcePanel.panel-open { width: 350px; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="flex flex-col h-screen bg-gray-900 text-white font-sans overflow-hidden">
@@ -617,10 +165,7 @@
 
         <!-- Utilities -->
         <div class="flex items-center gap-2">
-            <button id="exportBtn" class="text-xs font-medium text-gray-400 hover:text-white px-2 py-1 border border-gray-600 rounded">Export PDF</button>
-            <!-- Hidden elements for JS compatibility -->
-            <button id="exportPptxBtn" style="display:none"></button>
-            <button id="exportCsvBtn" style="display:none"></button>
+            <button id="exportBtn" class="text-xs font-medium text-gray-400 hover:text-white px-2 py-1 border border-gray-600 rounded">Export Report</button>
             <div class="w-6 h-6 rounded-full bg-emerald-700 flex items-center justify-center text-xs font-bold">U</div>
         </div>
     </header>
@@ -630,7 +175,6 @@
 
         <!-- 2A. LEFT SIDEBAR (Context & Assets) -->
         <aside class="w-64 bg-gray-900 border-r border-gray-700 flex flex-col z-20 shrink-0">
-            <!-- Project Selector -->
             <div class="p-4 border-b border-gray-700">
                 <div class="text-[10px] uppercase text-gray-500 font-bold tracking-wider mb-1">Active Project</div>
                 <div id="currentProjectNameDisplay" class="font-bold text-emerald-400 truncate text-sm mb-2">Untitled Project</div>
@@ -640,14 +184,11 @@
                 </div>
             </div>
 
-            <!-- Context Data -->
             <div class="p-4 flex-1 overflow-y-auto space-y-6">
                 <div>
                     <label class="text-[10px] uppercase text-gray-500 font-bold">Target URL</label>
                     <input type="text" placeholder="www.example.com" class="w-full bg-gray-800 border border-gray-700 rounded text-xs px-2 py-1 text-gray-300 mt-1 focus:border-emerald-500 focus:outline-none">
                 </div>
-                
-                <!-- Knowledge Vault -->
                 <div>
                     <div class="flex justify-between items-center mb-2">
                         <span class="text-[10px] uppercase text-gray-500 font-bold">Knowledge Vault</span>
@@ -660,19 +201,9 @@
                 </div>
             </div>
 
-            <!-- Bottom Controls -->
             <div class="p-4 border-t border-gray-700 space-y-2">
                 <button id="generateTakeawaysBtn" class="w-full text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 py-1.5 rounded border border-gray-600">Generate Report</button>
                 <button id="deleteProjectBtn" class="w-full text-left text-xs text-red-900 hover:text-red-500 transition text-center mt-2">Delete Project</button>
-            </div>
-            
-            <!-- Hidden menus for JS compatibility -->
-            <div id="phaseMenuContainer" class="hidden">
-                <div id="initialSetupMenu"></div><div id="analysisMenu"></div><div id="solutionDesignMenu"></div><div id="executionMenu"></div>
-                <div id="myPromptsMenu"></div><div id="workflowMenu"></div>
-                <button id="initialSetupDropdownBtn"></button><button id="analysisDropdownBtn"></button><button id="solutionDesignDropdownBtn"></button>
-                <button id="executionDropdownBtn"></button><button id="myPromptsDropdownBtn"></button><button id="workflowBtn"></button>
-                <div id="currentProjectBadge"></div>
             </div>
         </aside>
 
@@ -681,8 +212,6 @@
             
             <!-- CENTER WORKSPACE (The Stage) -->
             <div id="workspaceStage" class="flex-1 overflow-y-auto bg-[#0f1115] relative p-8">
-                
-                <!-- HERO TEXT -->
                 <div id="heroText" class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-0">
                     <h2 class="text-3xl font-bold text-gray-700 tracking-tight">Select a Phase to Begin</h2>
                 </div>
@@ -691,53 +220,23 @@
                 <div id="view-diagnosis" class="workspace-view active">
                     <h2 class="text-2xl font-bold mb-6 text-white">1. Diagnostic Phase</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div class="action-card" onclick="triggerPrompt('Guided Diagnostic (Interviewer Mode)')">
-                            <h4>Guided Diagnostic Interview</h4>
-                            <p>Start a root-cause analysis conversation to identify core issues.</p>
-                        </div>
-                        <div class="action-card" onclick="triggerPrompt('Industry Trends Snapshot')">
-                            <h4>Industry Trends Snapshot</h4>
-                            <p>Scan the market for real-time trends affecting your sector.</p>
-                        </div>
-                        <div class="action-card" onclick="triggerPrompt('Initial Project Charter Draft')">
-                            <h4>Draft Project Charter</h4>
-                            <p>Create a formal document outlining scope, stakeholders, and KPIs.</p>
-                        </div>
-                        <div class="action-card" onclick="triggerPrompt('Problem Statement Draft')">
-                            <h4>Refine Problem Statement</h4>
-                            <p>Convert messy thoughts into a McKinsey-style problem definition.</p>
-                        </div>
+                        <div class="action-card" onclick="triggerPrompt('Guided Diagnostic (Interviewer Mode)')"><h4>Guided Diagnostic Interview</h4><p>Start a root-cause analysis conversation.</p></div>
+                        <div class="action-card" onclick="triggerPrompt('Industry Trends Snapshot')"><h4>Industry Trends Snapshot</h4><p>Scan the market for real-time trends.</p></div>
+                        <div class="action-card" onclick="triggerPrompt('Initial Project Charter Draft')"><h4>Draft Project Charter</h4><p>Outline scope, stakeholders, and KPIs.</p></div>
+                        <div class="action-card" onclick="triggerPrompt('Problem Statement Draft')"><h4>Refine Problem Statement</h4><p>Convert messy thoughts into clear definitions.</p></div>
                     </div>
                 </div>
 
                 <!-- VIEW 2: RESEARCH -->
-                <div id="view-research" class="workspace-view">
+                <div id="view-analysis" class="workspace-view">
                     <h2 class="text-2xl font-bold mb-6 text-white">2. Analysis & Research</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div class="action-card" onclick="triggerPrompt('Market Analysis')">
-                            <h4>Market Analysis (TAM/SAM)</h4>
-                            <p>Calculate market size and growth potential.</p>
-                        </div>
-                        <div class="action-card" onclick="triggerPrompt('Competitor Benchmarking')">
-                            <h4>Competitor Benchmarking</h4>
-                            <p>Compare features, pricing, and sentiment against rivals.</p>
-                        </div>
-                        <div class="action-card" onclick="triggerPrompt('SWOT Analysis')">
-                            <h4>SWOT Analysis</h4>
-                            <p>Evaluate internal strengths/weaknesses and external opportunities/threats.</p>
-                        </div>
-                        <div class="action-card" onclick="triggerPrompt('PESTLE Analysis')">
-                            <h4>PESTLE Scan</h4>
-                            <p>Analyze Macro-economic factors (Political, Economic, Social, etc).</p>
-                        </div>
-                        <div class="action-card" onclick="triggerPrompt('5 Forces Analysis')">
-                            <h4>Porter's 5 Forces</h4>
-                            <p>Analyze industry structure and profitability.</p>
-                        </div>
-                        <div class="action-card" onclick="triggerPrompt('MECE Logic Check')">
-                            <h4>MECE Logic Audit</h4>
-                            <p>Check your current analysis for gaps and overlaps.</p>
-                        </div>
+                        <div class="action-card" onclick="triggerPrompt('Market Analysis')"><h4>Market Analysis (TAM/SAM)</h4><p>Calculate market size and growth.</p></div>
+                        <div class="action-card" onclick="triggerPrompt('Competitor Benchmarking')"><h4>Competitor Benchmarking</h4><p>Compare features, pricing, and sentiment.</p></div>
+                        <div class="action-card" onclick="triggerPrompt('SWOT Analysis')"><h4>SWOT Analysis</h4><p>Evaluate internal and external factors.</p></div>
+                        <div class="action-card" onclick="triggerPrompt('PESTLE Analysis')"><h4>PESTLE Scan</h4><p>Analyze Macro-economic factors.</p></div>
+                        <div class="action-card" onclick="triggerPrompt('5 Forces Analysis')"><h4>Porter's 5 Forces</h4><p>Analyze industry profitability.</p></div>
+                        <div class="action-card" onclick="triggerPrompt('MECE Logic Check')"><h4>MECE Logic Audit</h4><p>Check analysis for gaps and overlaps.</p></div>
                     </div>
                 </div>
 
@@ -745,30 +244,12 @@
                 <div id="view-solution" class="workspace-view">
                     <h2 class="text-2xl font-bold mb-6 text-white">3. Strategic Solution</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div class="action-card" onclick="triggerPrompt('Market Entry Strategy')">
-                            <h4>Market Entry Strategy</h4>
-                            <p>Plan a launch into a new geography or vertical.</p>
-                        </div>
-                        <div class="action-card" onclick="triggerPrompt('Go-to-market Strategy')">
-                            <h4>Go-to-Market (GTM)</h4>
-                            <p>Define ICP, channels, and messaging pillars.</p>
-                        </div>
-                        <div class="action-card" onclick="triggerPrompt('Business Plan Outline')">
-                            <h4>Business Plan Generator</h4>
-                            <p>Draft a full VC-ready business plan structure.</p>
-                        </div>
-                        <div class="action-card" onclick="triggerPrompt('Ansoff Matrix')">
-                            <h4>Ansoff Growth Matrix</h4>
-                            <p>Explore diversification vs penetration strategies.</p>
-                        </div>
-                        <div class="action-card" onclick="triggerPrompt('Risk Analysis')">
-                            <h4>Risk Analysis</h4>
-                            <p>Identify operational, financial, and reputational risks.</p>
-                        </div>
-                        <div class="action-card" onclick="triggerPrompt('Devil\'s Advocate Review')">
-                            <h4>Red Team Review</h4>
-                            <p>Stress-test your strategy against a skeptical AI opponent.</p>
-                        </div>
+                        <div class="action-card" onclick="triggerPrompt('Market Entry Strategy')"><h4>Market Entry Strategy</h4><p>Plan a launch into a new vertical.</p></div>
+                        <div class="action-card" onclick="triggerPrompt('Go-to-market Strategy')"><h4>Go-to-Market (GTM)</h4><p>Define ICP, channels, and messaging.</p></div>
+                        <div class="action-card" onclick="triggerPrompt('Business Plan Outline')"><h4>Business Plan Generator</h4><p>Draft a full VC-ready plan structure.</p></div>
+                        <div class="action-card" onclick="triggerPrompt('Ansoff Matrix')"><h4>Ansoff Growth Matrix</h4><p>Explore diversification vs penetration.</p></div>
+                        <div class="action-card" onclick="triggerPrompt('Risk Analysis')"><h4>Risk Analysis</h4><p>Identify operational and financial risks.</p></div>
+                        <div class="action-card" onclick="triggerPrompt('Devil\'s Advocate Review')"><h4>Red Team Review</h4><p>Stress-test your strategy.</p></div>
                     </div>
                 </div>
 
@@ -776,18 +257,9 @@
                 <div id="view-execution" class="workspace-view">
                     <h2 class="text-2xl font-bold mb-6 text-white">4. Execution Planning</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div class="action-card" onclick="triggerPrompt('Monday Morning Protocol')">
-                            <h4>Monday Morning Protocol</h4>
-                            <p>Generate an immediate 7-day action plan.</p>
-                        </div>
-                        <div class="action-card" onclick="triggerPrompt('KPI Dashboard Mockup')">
-                            <h4>KPI Dashboard Design</h4>
-                            <p>Define leading and lagging indicators for success.</p>
-                        </div>
-                        <div class="action-card" onclick="triggerPrompt('Implementation Plan Outline')">
-                            <h4>Implementation Roadmap</h4>
-                            <p>Create a phased timeline for rollout.</p>
-                        </div>
+                        <div class="action-card" onclick="triggerPrompt('Monday Morning Protocol')"><h4>Monday Morning Protocol</h4><p>Generate an immediate 7-day plan.</p></div>
+                        <div class="action-card" onclick="triggerPrompt('KPI Dashboard Mockup')"><h4>KPI Dashboard Design</h4><p>Define leading and lagging indicators.</p></div>
+                        <div class="action-card" onclick="triggerPrompt('Implementation Plan Outline')"><h4>Implementation Roadmap</h4><p>Create a phased timeline for rollout.</p></div>
                     </div>
                 </div>
 
@@ -796,16 +268,13 @@
                     <h2 class="text-2xl font-bold mb-6 text-white">5. Maintenance & Monitoring</h2>
                     <div class="p-6 border border-gray-700 border-dashed rounded-xl text-center text-gray-500">
                         <p class="mb-2 font-bold">Monitoring Dashboard (Coming Soon)</p>
-                        <p class="text-xs">Use the Chat Drawer below to ask for periodic reviews or strategy adjustments.</p>
+                        <p class="text-xs">Use the Chat Drawer below for reviews.</p>
                     </div>
                 </div>
-
             </div>
 
-            <!-- BOTTOM CHAT DRAWER (Collapsible) -->
+            <!-- BOTTOM CHAT DRAWER -->
             <div id="chatDrawer" class="bg-gray-800 border-t border-gray-700 flex flex-col h-96 z-40 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] shrink-0">
-                
-                <!-- Drawer Header -->
                 <div class="h-10 border-b border-gray-700 flex items-center justify-between px-4 bg-gray-800 cursor-pointer hover:bg-gray-750 transition" onclick="toggleChatDrawer()">
                     <div class="flex items-center gap-2">
                         <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
@@ -815,34 +284,20 @@
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                     </button>
                 </div>
-
-                <!-- Chat History -->
                 <div id="chatArea" class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-900/90">
-                    <div class="text-center text-xs text-gray-600 mt-4">Chat history initialized. Select a phase card above or type below.</div>
+                    <div class="text-center text-xs text-gray-600 mt-4">Chat history initialized. Select a phase card above.</div>
                 </div>
-
-                <!-- Input Area -->
                 <div class="input-container">
-                    <div class="max-w-4xl mx-auto relative flex items-end gap-2 bg-[#2f2f2f] p-2 rounded-[2rem] border border-gray-700 shadow-xl focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500 transition-all">
-                        
-                        <input type="file" id="hiddenFileInput" style="display: none;" accept=".txt,.md,.csv,.json,.js,.html,.css,.xml,.pdf">
-                        
-                        <button id="attachBtn" class="p-3 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-gray-700 flex-shrink-0 mb-0.5">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" /></svg>
-                        </button>
-
-                        <button id="modeBriefBtn" class="mb-2 px-3 py-1.5 text-xs font-bold rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-700 border border-transparent transition">Brief</button>
-
+                    <div class="max-w-4xl mx-auto relative flex items-end gap-2 bg-[#2f2f2f] p-2 rounded-[2rem] border border-gray-700 shadow-xl focus-within:border-emerald-500 transition-all">
+                        <input type="file" id="hiddenFileInput" style="display: none;" accept=".txt,.md,.csv,.json,.pdf">
+                        <button id="attachBtn" class="p-3 text-gray-400 hover:text-white transition-colors"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" /></svg></button>
+                        <button id="modeBriefBtn" class="mb-2 px-3 py-1.5 text-xs font-bold rounded-lg text-gray-500 hover:text-gray-300">Brief</button>
                         <div class="flex-1 flex flex-col justify-end min-w-0">
                             <div id="filePreviewArea" class="hidden mb-2 px-1"></div>
                             <textarea id="userInput" placeholder="Ask your co-pilot..." rows="1" class="w-full bg-transparent text-gray-100 placeholder-gray-500 border-none focus:ring-0 resize-none overflow-y-hidden py-3 text-base leading-relaxed max-h-32 text-left" style="min-height: 48px;"></textarea>
                         </div>
-
-                        <button id="modeDeepBtn" class="mb-2 px-3 py-1.5 text-xs font-bold rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-700 border border-transparent transition">Deep</button>
-
-                        <button id="sendButton" class="p-3 bg-emerald-600 text-white rounded-full hover:bg-emerald-500 transition-transform transform active:scale-95 shadow-lg flex-shrink-0 mb-0.5">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" /></svg>
-                        </button>
+                        <button id="modeDeepBtn" class="mb-2 px-3 py-1.5 text-xs font-bold rounded-lg text-gray-500 hover:text-gray-300">Deep</button>
+                        <button id="sendButton" class="p-3 bg-emerald-600 text-white rounded-full hover:bg-emerald-500 transition-transform transform active:scale-95 shadow-lg flex-shrink-0 mb-0.5"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" /></svg></button>
                     </div>
                     <div class="flex justify-between items-center mt-2 px-2">
                         <button id="clearChatBtn" class="text-[10px] text-red-500 hover:text-red-400">Clear History</button>
@@ -850,26 +305,22 @@
                     </div>
                 </div>
             </div>
-
         </div>
 
-        <!-- RIGHT SOURCE PANEL (Overlay) -->
+        <!-- SOURCE PANEL -->
         <aside id="rightSourcePanel" class="w-0 bg-gray-900 border-l border-gray-700 transition-all duration-300 flex flex-col overflow-hidden absolute top-0 bottom-0 right-0 z-50 h-full shadow-2xl">
             <div class="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-800">
                 <span class="text-xs font-bold uppercase text-gray-400 tracking-wider">Sources</span>
-                <button onclick="closeSourcePanel()" class="text-gray-400 hover:text-white">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-                </button>
+                <button onclick="closeSourcePanel()" class="text-gray-400 hover:text-white"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg></button>
             </div>
             <div id="sourcePanelContent" class="p-4 space-y-3 overflow-y-auto flex-1"></div>
         </aside>
 
     </div>
     
+    <!-- JAVASCRIPT -->
     <script>
-        // --- 1. GLOBAL HELPER FUNCTIONS ---
-        
-        // Fix for 404 Links
+        // --- GLOBAL HELPERS (Global Access) ---
         window.cleanUrl = function(rawUrl) {
             if (!rawUrl) return "#";
             try {
@@ -879,15 +330,12 @@
             } catch (e) { return rawUrl; }
         };
 
-        // Open Side Panel
         window.openSourcePanel = function(sourcesJson) {
             const panel = document.getElementById('rightSourcePanel');
             const content = document.getElementById('sourcePanelContent');
             let sources = [];
             try { sources = JSON.parse(decodeURIComponent(sourcesJson)); } catch(e){}
-            
             content.innerHTML = '';
-            
             if(!sources || sources.length === 0) {
                  content.innerHTML = '<div class="text-gray-500 text-sm italic">No sources found.</div>';
             } else {
@@ -895,104 +343,62 @@
                     const safeLink = window.cleanUrl(src.url);
                     let domain = "External Link";
                     try { domain = new URL(safeLink).hostname.replace('www.',''); } catch(e){}
-
                     const item = document.createElement('a');
-                    item.href = safeLink;
-                    item.target = "_blank";
-                    item.rel = "noopener noreferrer";
+                    item.href = safeLink; item.target = "_blank"; item.rel = "noopener noreferrer";
                     item.className = "block bg-gray-800 hover:bg-gray-700 border border-gray-700 p-3 rounded-lg transition group mb-2";
-                    item.innerHTML = `
-                        <div class="flex items-center gap-2 mb-1">
-                            <img src="https://www.google.com/s2/favicons?domain=${domain}" class="w-4 h-4 rounded-sm" onerror="this.style.display='none'">
-                            <span class="text-sm font-bold text-emerald-400 truncate">${src.name || domain}</span>
-                        </div>
-                        <div class="text-xs text-gray-500 truncate group-hover:text-gray-400">${safeLink}</div>
-                    `;
+                    item.innerHTML = `<div class="flex items-center gap-2 mb-1"><img src="https://www.google.com/s2/favicons?domain=${domain}" class="w-4 h-4 rounded-sm" onerror="this.style.display='none'"><span class="text-sm font-bold text-emerald-400 truncate">${src.name || domain}</span></div><div class="text-xs text-gray-500 truncate group-hover:text-gray-400">${safeLink}</div>`;
                     content.appendChild(item);
                 });
             }
-            // Add open class (Width transition)
-            panel.style.width = "350px"; 
+            panel.classList.add('panel-open');
         };
 
-        // Close Side Panel
         window.closeSourcePanel = function() {
-            document.getElementById('rightSourcePanel').style.width = "0";
+            document.getElementById('rightSourcePanel').classList.remove('panel-open');
         };
 
-        // --- 2. NEW LAYOUT LOGIC (Phase-Gate) ---
-
+        // --- LAYOUT LOGIC ---
         window.switchPhase = (phaseId) => {
-            // Switch Workspace View
             document.querySelectorAll('.workspace-view').forEach(el => el.classList.remove('active'));
-            const view = document.getElementById(`view-${phaseId}`);
-            if(view) view.classList.add('active');
+            document.getElementById(`view-${phaseId}`).classList.add('active');
             
-            // Switch Tab Highlight
             const map = { 'diagnosis': 0, 'analysis': 1, 'solution': 2, 'execution': 3, 'maintain': 4 };
             const idx = map[phaseId];
-            
             const tabs = document.querySelectorAll('.phase-tab');
             tabs.forEach(t => t.classList.remove('active'));
             if(tabs[idx]) tabs[idx].classList.add('active');
             
-            // Hide Hero
-            const hero = document.getElementById('heroText');
-            if(hero) hero.style.display = 'none';
+            document.getElementById('heroText').style.display = 'none';
         };
 
         window.toggleChatDrawer = () => {
             const drawer = document.getElementById('chatDrawer');
             const icon = document.getElementById('drawerToggleIcon');
-            
             if (drawer.classList.contains('collapsed')) {
                 drawer.classList.remove('collapsed');
-                icon.style.transform = 'rotate(0deg)'; // Arrow down
+                icon.style.transform = 'rotate(0deg)';
             } else {
                 drawer.classList.add('collapsed');
-                icon.style.transform = 'rotate(180deg)'; // Arrow up
+                icon.style.transform = 'rotate(180deg)';
             }
         };
 
         window.triggerPrompt = (promptText) => {
             const input = document.getElementById('userInput');
-            
-            // Use global PROMPT_MAP
             let finalPrompt = promptText;
             if (window.PROMPT_MAP && window.PROMPT_MAP[promptText]) {
                 finalPrompt = window.PROMPT_MAP[promptText];
             }
-
             input.value = finalPrompt;
-            
-            // Open Drawer if closed
             const drawer = document.getElementById('chatDrawer');
-            if (drawer.classList.contains('collapsed')) {
-                window.toggleChatDrawer();
-            }
-            
+            if (drawer.classList.contains('collapsed')) window.toggleChatDrawer();
             input.focus();
             input.scrollTop = input.scrollHeight;
         };
 
-        // --- 3. MAIN APPLICATION LOGIC ---
+        // --- CORE APP LOGIC ---
         (function() {
-            // Elements
-            const sendButton = document.getElementById('sendButton');
-            const userInput = document.getElementById('userInput');
-            const chatArea = document.getElementById('chatArea');
-            const clearChatBtn = document.getElementById('clearChatBtn');
-            const attachBtn = document.getElementById('attachBtn');
-            const hiddenFileInput = document.getElementById('hiddenFileInput');
-            
-            // State
-            let attachedFileContent = null;
-            let attachedFileName = null;
-            let responseDepth = null;
-            let projectFiles = []; 
-            const chatHistory = [];
-
-            // PROMPT MAP (Exposed Globally for the Cards)
+            // PROMPT MAP
             window.PROMPT_MAP = {
                 'Guided Diagnostic (Interviewer Mode)': `Act as a Senior Partner Consultant. Conduct a diagnostic interview. \n\n**CONTEXT:** [DESCRIBE SITUATION]\n\n**TASK:** Ask 3-5 probing questions to find the root cause. Do NOT solve it yet.`,
                 'Industry Trends Snapshot': `Act as a Market Researcher. Find real-time trends for [INDUSTRY]. \n\n**OUTPUT:** \n1. Trend Name\n2. Data Point (Cited)\n3. Impact.`,
@@ -1015,14 +421,24 @@
                 'Implementation Plan Outline': `Act as a Program Manager. Create a phased rollout plan for [PROJECT].`
             };
 
-            // Mode Toggle Logic
+            // Elements
+            const sendButton = document.getElementById('sendButton');
+            const userInput = document.getElementById('userInput');
+            const chatArea = document.getElementById('chatArea');
+            const clearChatBtn = document.getElementById('clearChatBtn');
+            const attachBtn = document.getElementById('attachBtn');
+            const hiddenFileInput = document.getElementById('hiddenFileInput');
+            let attachedFileContent = null;
+            let attachedFileName = null;
+            let responseDepth = null;
+            const chatHistory = [];
+
+            // UI Toggles
             const modeBriefBtn = document.getElementById('modeBriefBtn');
             const modeDeepBtn = document.getElementById('modeDeepBtn');
-            
             function updateModeUI() {
                 const inactiveClass = "mb-2 px-3 py-1.5 text-xs font-bold rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-700 transition-all border border-transparent";
-                const activeClass = "mb-2 px-3 py-1.5 text-xs font-bold rounded-lg text-emerald-400 bg-emerald-900/30 border border-emerald-500/50 transition-all shadow-glow";
-                
+                const activeClass = "mb-2 px-3 py-1.5 text-xs font-bold rounded-lg text-emerald-400 bg-emerald-900/30 border border-emerald-500/50 transition-all";
                 modeBriefBtn.className = (responseDepth === 'brief') ? activeClass : inactiveClass;
                 modeDeepBtn.className = (responseDepth === 'deep') ? activeClass : inactiveClass;
             }
@@ -1030,7 +446,6 @@
             modeDeepBtn.onclick = () => { responseDepth = (responseDepth === 'deep') ? null : 'deep'; updateModeUI(); };
             updateModeUI();
 
-            // File Attachment Logic
             attachBtn.addEventListener('click', () => hiddenFileInput.click());
             hiddenFileInput.addEventListener('change', (e) => {
                 const file = e.target.files[0];
@@ -1039,80 +454,73 @@
                 reader.onload = (ev) => {
                     attachedFileContent = ev.target.result;
                     attachedFileName = file.name;
-                    const preview = document.getElementById('filePreviewArea');
-                    preview.classList.remove('hidden');
-                    preview.innerHTML = `<div class="bg-gray-700 px-2 py-1 rounded text-xs text-white flex items-center gap-2">📎 ${file.name} <button onclick="this.parentElement.remove()" class="text-gray-400 hover:text-red-400">×</button></div>`;
+                    document.getElementById('filePreviewArea').classList.remove('hidden');
+                    document.getElementById('filePreviewArea').innerHTML = `<div class="bg-gray-700 px-2 py-1 rounded text-xs text-white">📎 ${file.name}</div>`;
                 };
                 reader.readAsText(file);
             });
 
-            // Auto-Resize Textarea
-            userInput.addEventListener('input', function() {
-                this.style.height = 'auto';
-                this.style.height = (this.scrollHeight) + 'px';
-                if(this.value === '') this.style.height = '48px';
-            });
-
-            // --- CORE CHAT LOGIC ---
-
-            function processCitations(rawText) {
-                // Gen 6 Regex (The one that works)
+            // Citations Logic
+            function processCitations(rawText, metadata) {
+                const urlMap = {};
+                if (metadata && metadata.groundingChunks) {
+                    metadata.groundingChunks.forEach(chunk => {
+                        if (chunk.web && chunk.web.title && chunk.web.uri) {
+                            urlMap[chunk.web.title.toLowerCase()] = chunk.web.uri;
+                        }
+                    });
+                }
                 const regex = /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g;
                 let sources = [];
                 const textWithTokens = rawText.replace(regex, (match, name, url) => {
-                    let cleanUrl = url.replace(/[.,;!]+$/, ""); 
-                    sources.push({ name, url: cleanUrl });
+                    let finalUrl = url.replace(/[.,;!]+$/, ""); 
+                    const nameLower = name.toLowerCase().trim();
+                    if (finalUrl.includes('grounding-api') || finalUrl.includes('googleusercontent')) {
+                        let found = false;
+                        if (urlMap[nameLower]) { finalUrl = urlMap[nameLower]; found = true; }
+                        if (!found) {
+                            for (const [title, uri] of Object.entries(urlMap)) {
+                                if (title.includes(nameLower) || nameLower.includes(title)) { finalUrl = uri; found = true; break; }
+                            }
+                        }
+                        if (!found) finalUrl = `https://www.google.com/search?q=${encodeURIComponent(name)}`;
+                    }
+                    sources.push({ name, url: finalUrl });
                     return `%%CIT_${sources.length - 1}%%`;
                 });
                 return { textWithTokens, sources };
             }
 
-            function createMessageBubble(text, sender, animate = true) {
+            function createMessageBubble(text, sender, animate = true, metadata = null) {
                 const wrapper = document.createElement('div');
                 wrapper.classList.add('flex', 'mb-4', sender === 'user' ? 'justify-end' : 'justify-start');
-                
                 const bubble = document.createElement('div');
-                bubble.classList.add('rounded-xl', 'p-4', 'max-w-2xl', 'shadow-md', 
-                    sender === 'user' ? 'bg-emerald-600' : 'bg-gray-800', 'text-gray-100', 'text-sm');
+                bubble.classList.add('rounded-xl', 'p-4', 'max-w-2xl', 'shadow-md', sender === 'user' ? 'bg-emerald-600' : 'bg-gray-800', 'text-gray-100', 'text-sm');
                 
-                if(sender === 'model') {
-                    // Suggestions removal
-                    const suggestionRegex = /---SUGGESTIONS---([\s\S]*)$/;
-                    const suggestionMatch = text.match(suggestionRegex);
-                    if (suggestionMatch) text = text.replace(suggestionRegex, '').trim();
-
-                    const { textWithTokens, sources } = processCitations(text);
+                if (sender === 'model') {
+                    const { textWithTokens, sources } = processCitations(text, metadata);
                     const contentDiv = document.createElement('div');
                     contentDiv.className = 'ai-response-content';
-                    
                     let renderedHtml = marked.parse(textWithTokens);
                     const sourcesJson = encodeURIComponent(JSON.stringify(sources));
-
-                    sources.forEach((source, index) => {
-                        // Green Pin Logic
-                        const iconHtml = `<span class="citation-link inline-flex items-center justify-center ml-1 cursor-pointer text-emerald-400 bg-emerald-400/10 rounded px-1 hover:bg-emerald-400/20" onclick="window.openSourcePanel('${sourcesJson}')" title="${source.name}">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg>
-                        </span>`;
-                        const token = `%%CIT_${index}%%`;
-                        renderedHtml = renderedHtml.split(token).join(iconHtml);
-                    });
                     
+                    sources.forEach((source, index) => {
+                        const iconHtml = `<span class="citation-link" onclick="window.openSourcePanel('${sourcesJson}')" title="${source.name}"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg></span>`;
+                        renderedHtml = renderedHtml.split(`%%CIT_${index}%%`).join(iconHtml);
+                    });
                     contentDiv.innerHTML = renderedHtml;
                     bubble.appendChild(contentDiv);
-
-                    // View Sources Button
+                    
                     if (sources.length > 0) {
                         const btn = document.createElement('button');
-                        btn.className = "mt-2 text-xs bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-emerald-400 flex items-center gap-1";
+                        btn.className = "mt-3 text-xs bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-emerald-400 flex items-center gap-1";
                         btn.innerHTML = `<span>View ${sources.length} Sources</span>`;
                         btn.onclick = () => window.openSourcePanel(sourcesJson);
                         bubble.appendChild(btn);
                     }
-
                 } else {
                     bubble.textContent = text;
                 }
-
                 wrapper.appendChild(bubble);
                 chatArea.appendChild(wrapper);
                 chatArea.scrollTop = chatArea.scrollHeight;
@@ -1121,62 +529,49 @@
             async function sendMessage() {
                 const prompt = userInput.value.trim();
                 if (!prompt) return;
-
-                // Create User Bubble
+                
                 let displayPrompt = prompt;
-                if(attachedFileContent) displayPrompt += `\n[Attached: ${attachedFileName}]`;
+                if (attachedFileContent) displayPrompt += `\n[Attached: ${attachedFileName}]`;
                 createMessageBubble(displayPrompt, 'user');
                 
-                // Add to History
                 let fullPrompt = prompt;
-                if(attachedFileContent) fullPrompt += `\n\n[FILE: ${attachedFileName}]\n${attachedFileContent}`;
+                if (attachedFileContent) fullPrompt += `\n\n[FILE: ${attachedFileName}]\n${attachedFileContent}`;
                 chatHistory.push({ role: 'user', parts: [{ text: fullPrompt }] });
-
-                // Reset UI
+                
                 userInput.value = '';
                 attachedFileContent = null;
                 document.getElementById('filePreviewArea').classList.add('hidden');
-
-                // Loading
+                
                 const loadingDiv = document.createElement('div');
                 loadingDiv.className = "text-gray-500 text-xs ml-4 mb-4";
                 loadingDiv.innerText = "Thinking...";
                 chatArea.appendChild(loadingDiv);
-
+                
                 try {
-                    // Get Token (assuming Clerk is active)
                     let token = "";
-                    if(window.Clerk && window.Clerk.session) token = await window.Clerk.session.getToken();
-
-                    // API Call
+                    if (window.Clerk && window.Clerk.session) token = await window.Clerk.session.getToken();
+                    
                     const response = await fetch('/api/chat', {
                         method: 'POST',
-                        headers: { 
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                         body: JSON.stringify({
-                            systemInstruction: { 
-                                parts: [{ text: `You are Duvallo. 
-                                **CRITICAL:** 
-                                1. You MUST write citations inline like this: [Source Name](URL). 
-                                2. Do NOT use footnotes. 
-                                3. Use Google Search for facts.` }]
-                            },
+                            systemInstruction: { parts: [{ text: `You are Duvallo. **CRITICAL:** 1. Write citations inline: [Source Name](URL). 2. No footnotes. 3. Use Google Search.` }] },
                             messages: chatHistory
                         })
                     });
-
+                    
                     const result = await response.json();
                     chatArea.removeChild(loadingDiv);
-
-                    if(result.error) {
+                    
+                    if (result.error) {
                         createMessageBubble("Error: " + result.error.message, "model");
                     } else {
-                        const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
-                        if(text) {
+                        const candidate = result?.candidates?.[0];
+                        const text = candidate?.content?.parts?.[0]?.text;
+                        const metadata = candidate?.groundingMetadata;
+                        if (text) {
                             chatHistory.push({ role: 'model', parts: [{ text: text }] });
-                            createMessageBubble(text, "model");
+                            createMessageBubble(text, "model", true, metadata);
                         }
                     }
                 } catch(e) {
@@ -1186,11 +581,9 @@
             }
 
             sendButton.addEventListener('click', sendMessage);
-            userInput.addEventListener('keydown', (e) => {
-                if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-            });
+            userInput.addEventListener('keydown', (e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
             clearChatBtn.onclick = () => { chatArea.innerHTML = ''; chatHistory.length = 0; };
-
         })();
     </script>
+</body>
 </html>
