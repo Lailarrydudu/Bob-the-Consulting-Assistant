@@ -1012,59 +1012,8 @@
             }
             userInput.addEventListener('input', () => autoResizeTextarea(userInput));
 
-            // Populate Menus from Prompt Map
-            const populateMenu = (menuId, items) => {
-                const menu = document.getElementById(menuId);
-                menu.innerHTML = '';
-                items.forEach(item => {
-                    const btn = document.createElement('button');
-                    btn.className = 'sub-menu-btn';
-                    btn.textContent = item;
-                    btn.onclick = () => {
-                        // Use the FULL prompt from the map
-                        userInput.value = PROMPT_MAP[item] || item;
-                        autoResizeTextarea(userInput);
-                        userInput.focus();
-                        toggleMenu(menu); // Close menu after click
-                    };
-                    menu.appendChild(btn);
-                });
-            };
-
-            // 1. Initial Setup + The "Interviewer"
-            populateMenu('initialSetupMenu', [
-                'Guided Diagnostic (Interviewer Mode)',
-                'Initial Project Charter Draft', 
-                'Problem Statement Draft'
-            ]);
-
-            // 2. Analysis + The "MECE Validator"
-            populateMenu('analysisMenu', [
-                'MECE Logic Check', // NEW
-                'Market Analysis', 
-                'SWOT Analysis', 
-                'Competitor Benchmarking', 
-                '5 Forces Analysis', 
-                'PESTLE Analysis', 
-                'Hofstede Analysis'
-            ]);
-
-            // 3. Solution + "Devil's Advocate"
-            populateMenu('solutionDesignMenu', [
-                "Devil's Advocate Review", // NEW
-                'Business Plan Outline', 
-                'Market Entry Strategy', 
-                'Go-to-market Strategy', 
-                'Ansoff Matrix', 
-                'Risk Analysis'
-            ]);
-
-            // 4. Execution + "Monday Morning Protocol"
-            populateMenu('executionMenu', [
-                'Monday Morning Protocol', // NEW
-                'KPI Dashboard Mockup', 
-                'Implementation Plan Outline'
-            ]);
+            // [NOTE] Sidebar Menus removed in new UI. 
+            // The PROMPT_MAP is preserved above for future use in the new Phase Cards.
 
             // ============================================
             // 2. CORE LOGIC (Send, File, API)
