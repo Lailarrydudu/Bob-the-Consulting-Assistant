@@ -1785,17 +1785,25 @@
             
            // --- CITATION HELPER FUNCTIONS (SAFE TOKEN STRATEGY) ---
             
-            // 1. Process Text: Extract links (Gen 6 Logic)
+            // 1. Process Text: Extract links and FIX broken Google redirects
             function processCitations(rawText) {
-                // The Regex that worked in Gen 6
+                // The Regex to catch markdown links
                 const regex = /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g;
                 
                 let sources = [];
                 
                 // Replace Markdown links with tokens like %%CIT_0%%
                 const textWithTokens = rawText.replace(regex, (match, name, url) => {
-                    let cleanUrl = url.replace(/[.,;!]+$/, ""); 
-                    sources.push({ name, url: cleanUrl });
+                    let finalUrl = url.replace(/[.,;!]+$/, ""); 
+                    
+                    // --- 404 FIX: Detect broken Google internal links ---
+                    if (finalUrl.includes('grounding-api') || finalUrl.includes('googleusercontent')) {
+                        // Fallback: Redirect to a Google Search of the source name/title
+                        // This prevents the 404 and gives the user the actual info
+                        finalUrl = `https://www.google.com/search?q=${encodeURIComponent(name)}`;
+                    }
+
+                    sources.push({ name, url: finalUrl });
                     return `%%CIT_${sources.length - 1}%%`;
                 });
 
