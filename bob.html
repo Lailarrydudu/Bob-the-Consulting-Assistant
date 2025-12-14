@@ -174,610 +174,236 @@
             background-color: transparent; /* Seamless background */
         }
 
-        /* Sidebar Buttons */
-        .sidebar-btn {
-            font-family: 'Roboto Slab', serif;
-            width: 100%;
-            text-align: left;
-            padding: 0.75rem 1rem;
-            background-color: #1f2937; /* Gray 800 */
-            border: 1px solid #374151;
-            border-radius: 0.5rem;
-            color: #e5e7eb;
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: all 0.2s;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .sidebar-btn:hover { background-color: #374151; border-color: #10b981; }
+        /* --- NEW: Phase-Gate UI Styles --- */
         
-        /* Submenu styling in sidebar */
-        .sidebar-menu {
-            background-color: #111827;
-            border: 1px solid #374151;
-            border-radius: 0.5rem;
-            margin-top: 0.25rem;
-            overflow: hidden;
+        /* Top Navigation Phase Bar */
+        .phase-btn {
+            @apply px-4 py-2 text-sm font-bold text-gray-400 border-b-2 border-transparent transition-colors;
         }
-        .sub-menu-btn {
-            display: block;
-            width: 100%;
-            text-align: left;
-            padding: 0.5rem 1rem;
-            font-size: 0.85rem;
-            color: #9ca3af;
-            transition: color 0.2s, background-color 0.2s;
-        }
-        .sub-menu-btn:hover { color: #10b981; background-color: #1f2937; }
+        .phase-btn:hover { @apply text-white border-gray-600; }
+        .phase-btn.active { @apply text-emerald-400 border-emerald-500; }
 
-        /* Utility Buttons (Right Side) - Updated */
+        /* Chat Drawer Animation */
+        #chatDrawer {
+            transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #chatDrawer.drawer-collapsed {
+            height: 48px; /* Height of just the header bar */
+        }
+        #chatDrawer.drawer-expanded {
+            height: 400px; /* Functional height */
+        }
+
+        /* Workspace Area */
+        .workspace-card {
+            background-color: #1f2937;
+            border: 1px solid #374151;
+            border-radius: 0.75rem;
+            padding: 2rem;
+        }
+
+        /* Utilities */
         .utility-btn {
             width: 100%;
-            height: 42px; /* Fixed height for uniformity */
+            height: 36px;
             padding: 0 1rem;
-            background-color: #4b5563;
+            background-color: #374151;
             color: white;
-            border-radius: 0.5rem;
-            font-weight: bold;
-            font-size: 0.85rem;
-            margin-bottom: 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
             transition: all 0.2s;
-            /* Centering Logic */
             display: flex; 
             justify-content: center; 
             align-items: center;
-            position: relative; 
         }
-        .utility-btn:hover { background-color: #6b7280; }
-        
-        /* Force the arrow icon to the far right so text stays centered */
-        .utility-btn svg {
-            position: absolute;
-            right: 12px;
-        }
+        .utility-btn:hover { background-color: #4b5563; }
 
-        /* User Message Actions (Copy/Edit) */
-        .message-wrapper:hover .user-action-container {
-            opacity: 1;
-        }
+        /* Typography Override for Workspace */
+        .prose-headings { color: white; font-weight: bold; }
         
-        .user-action-container {
-            opacity: 0;
-            transition: opacity 0.2s ease-in-out;
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
-            margin-right: 0.75rem;
-        }
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #111827; }
+        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #4b5563; }
         
-        .action-icon-btn {
-            padding: 6px;
-            border-radius: 50%;
-            color: #9ca3af; /* Gray-400 */
-            background-color: #1f2937; /* Dark background */
-            border: 1px solid #374151;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .action-icon-btn:hover {
-            color: #f3f4f6;
-            background-color: #374151;
-            border-color: #10b981; /* Emerald border */
-        }
-        
-        /* Input Area Styling */
-        #userInput {
-            line-height: 1.5;
-            resize: none; 
-            max-height: 150px;
-        }
-    /* === CITATION STYLES (Fixed Visibility) === */
-        /* === CITATION STYLES (High Visibility) === */
+        /* Keep Citation Styles */
         .citation-link {
             display: inline-flex;
             align-items: center;
             justify-content: center;
             vertical-align: middle;
             margin-left: 5px;
-            background-color: #065f46; /* Dark Green */
-            border: 1px solid #34d399; /* Bright Green Border */
+            background-color: #065f46;
+            border: 1px solid #34d399;
             border-radius: 50%;
             width: 18px;
             height: 18px;
             cursor: pointer;
             transition: all 0.2s;
             position: relative;
-            top: -2px; /* Slight superscript alignment */
+            top: -2px;
         }
-        .citation-link:hover { 
-            background-color: #10b981; /* Brighter Green */
-            transform: scale(1.1);
-        }
-        .citation-link svg { 
-            width: 10px; 
-            height: 10px; 
-            color: #ffffff; /* White Icon */
-        }
-        .citation-link:hover svg {
-            color: white;
-        }
-
-        .sources-section {
-            margin-top: 1rem;
-            border-top: 1px solid #374151;
-            padding-top: 0.75rem;
-        }
-
-        .sources-toggle-btn {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            background-color: transparent;
-            border: 1px solid #6b7280;
-            color: #d1d5db;
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-        .sources-toggle-btn:hover { background-color: #374151; border-color: #9ca3af; }
-
-        .sources-list {
-            margin-top: 0.75rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-        .source-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.8rem;
-            color: #93c5fd;
-            text-decoration: none;
-            padding: 0.25rem;
-            border-radius: 0.25rem;
-        }
-        .source-item:hover { background-color: #1f2937; text-decoration: underline; }
-        .source-favicon { width: 16px; height: 16px; background-color: #fff; border-radius: 2px; }
-
-        /* Suggestion/Action Chips (The Iceberg) */
-        .suggestion-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-top: 1rem;
-            padding-top: 0.75rem;
-            border-top: 1px solid #374151; /* Gray-700 */
-            animation: fade-in 0.5s ease-in-out;
-        }
-        
-        .suggestion-chip {
-            background-color: #111827; /* Gray-900 */
-            border: 1px solid #059669; /* Emerald-600 */
-            color: #d1fae5; /* Emerald-100 */
-            padding: 0.4rem 0.8rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-        
-        .suggestion-chip:hover {
-            background-color: #059669;
-            color: white;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 6px -1px rgba(5, 150, 105, 0.3);
-        }
-
-        .suggestion-label {
-            color: #9ca3af;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 0.25rem;
-            display: block;
-            width: 100%;
-        }
-        
-        @keyframes fade-in {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Waiting Lobby (Glass Box) Styles */
-        .thinking-container {
-            font-family: 'Roboto Mono', monospace; /* Tech feel */
-            font-size: 0.75rem;
-            color: #9ca3af;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            padding: 0.5rem 0;
-        }
-
-        .thought-step {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            opacity: 0;
-            transform: translateY(5px);
-            transition: all 0.3s ease-out;
-        }
-
-        .thought-step.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .thought-step.done {
-            color: #059669; /* Emerald for completion */
-        }
-        
-        .thought-icon {
-            width: 14px;
-            height: 14px;
-        }
-        
-        /* Pulse animation for the active step */
-        .thought-step.active .thought-text {
-            color: #d1fae5;
-            animation: pulse-text 1.5s infinite;
-        }
-
-        @keyframes pulse-text {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        /* --- NEW: Source Panel & Citation Styles --- */
-        
-        /* The container that holds Chat + Panel side-by-side */
-        .content-wrapper {
-            display: flex;
-            flex: 1;
-            overflow: hidden; /* Contains the scroll bars */
-            position: relative;
-        }
-
-        /* The Main Chat Area - Adapts width */
-        #chatArea {
-            flex: 1; /* Takes full width by default */
-            transition: all 0.3s ease-in-out;
-            min-width: 0; /* Prevents flex blowout */
-        }
-
-        /* The Side Panel - Hidden by default */
-        #rightSourcePanel {
-            width: 0;
-            opacity: 0;
-            background-color: #111827; /* Gray 900 */
-            border-left: 1px solid #374151;
-            transition: all 0.3s ease-in-out;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        /* When Active: Give it width */
-        #rightSourcePanel.panel-open {
-            width: 350px; /* The "Red Area" width */
-            opacity: 1;
-        }
-
-        /* Citation Icon in Text [🔗] */
-        .citation-trigger {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            color: #34d399; /* Emerald 400 */
-            cursor: pointer;
-            margin-left: 4px;
-            vertical-align: middle;
-            position: relative;
-            background: rgba(16, 185, 129, 0.1);
-            border-radius: 4px;
-            padding: 0 4px;
-            font-size: 0.8em;
-            font-weight: bold;
-            transition: all 0.2s;
-            border: 1px solid transparent;
-        }
-        
-        .citation-trigger:hover {
-            background: rgba(16, 185, 129, 0.2);
-            border-color: #34d399;
-        }
-
-        /* Tooltip Logic (The "Black Box") */
-        .citation-trigger:hover::after {
-            content: attr(data-source);
-            position: absolute;
-            bottom: 120%;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #000;
-            color: #fff;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 10px;
-            white-space: nowrap;
-            z-index: 50;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-            pointer-events: none;
-        }
-        
+        .citation-link svg { width: 10px; height: 10px; color: #ffffff; }
     </style>
 </head>
-<body class="flex h-screen w-full bg-gray-900">
+<body class="flex flex-col h-screen w-full bg-gray-900 text-gray-100 overflow-hidden">
 
-    <!-- LEFT SIDEBAR (Phases) -->
-    <aside class="w-64 bg-gray-800 border-r border-gray-700 flex flex-col flex-shrink-0 z-20">
-       <!-- Logo Area -->
-        <div class="p-6 border-b border-gray-700 flex items-center gap-3">
-            <div class="p-1.5 bg-white rounded-full border-2 border-green-700 flex-shrink-0">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="28" height="28">
-                    <circle cx="50" cy="50" r="8" fill="none" stroke="#4a5d3e" stroke-width="4"/>
-                    <g stroke="#4a5d3e" stroke-width="3" fill="none">
-                        <line x1="50" y1="50" x2="50" y2="20"/><circle cx="50" cy="20" r="6"/>
-                        <line x1="50" y1="50" x2="75" y2="30"/><circle cx="75" cy="30" r="6"/>
-                        <line x1="50" y1="50" x2="75" y2="70"/><circle cx="75" cy="70" r="6"/>
-                        <line x1="50" y1="50" x2="50" y2="80"/><circle cx="50" cy="80" r="6"/>
-                        <line x1="50" y1="50" x2="25" y2="70"/><circle cx="25" cy="70" r="6"/>
-                        <line x1="50" y1="50" x2="25" y2="30"/><circle cx="25" cy="30" r="6"/>
+    <!-- 1. TOP NAVIGATION (The Phase Bar) -->
+    <header class="h-16 bg-gray-800 border-b border-gray-700 flex items-center px-6 justify-between flex-shrink-0 z-30">
+        <!-- Logo -->
+        <div class="flex items-center gap-3 w-64">
+            <div class="p-1 bg-white rounded-full border-2 border-emerald-600">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="20" height="20">
+                    <circle cx="50" cy="50" r="8" fill="none" stroke="#047857" stroke-width="5"/>
+                    <g stroke="#047857" stroke-width="4" fill="none">
+                        <line x1="50" y1="50" x2="50" y2="20"/><line x1="50" y1="50" x2="75" y2="30"/>
+                        <line x1="50" y1="50" x2="75" y2="70"/><line x1="50" y1="50" x2="50" y2="80"/>
+                        <line x1="50" y1="50" x2="25" y2="70"/><line x1="50" y1="50" x2="25" y2="30"/>
                     </g>
                 </svg>
             </div>
-            <h1 class="font-bold text-lg text-white tracking-wide">Duvallo</h1>
+            <h1 class="font-bold text-lg tracking-wide text-white">Duvallo</h1>
         </div>
 
-        <!-- PROJECT CONTROLS (Always Visible) -->
-        <div class="p-4 border-b border-gray-700 space-y-2">
-            <button id="newProjectBtn" class="w-full py-2 px-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold text-sm transition flex items-center justify-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-                New Project
-            </button>
-            <button id="loadProjectBtn" class="w-full py-2 px-3 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg font-bold text-sm transition flex items-center justify-center gap-2 border border-gray-600">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" /></svg>
-                Load Project
-            </button>
-            <button id="deleteProjectBtn" class="w-full py-2 px-3 bg-red-900/30 hover:bg-red-800 text-red-200 rounded-lg font-bold text-sm transition flex items-center justify-center gap-2 border border-red-800">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
-                Delete Project
-            </button>
+        <!-- Phase Gates -->
+        <div class="flex space-x-1" id="phaseNav">
+            <button class="phase-btn active">1. Diagnosis</button>
+            <button class="phase-btn">2. Research</button>
+            <button class="phase-btn">3. Strategy</button>
+            <button class="phase-btn">4. Execution</button>
+            <button class="phase-btn">5. Maintain</button>
         </div>
 
-        <!-- PHASE MENUS (Hidden by default) -->
-        <div id="phaseMenuContainer" class="hidden flex-1 overflow-y-auto p-4 space-y-4 opacity-50 transition-opacity duration-500">
+        <!-- Project Utils -->
+        <div class="w-64 flex justify-end gap-2">
+            <button id="newProjectBtn" class="text-xs bg-emerald-700 hover:bg-emerald-600 px-3 py-1.5 rounded text-white font-bold transition">New Project</button>
+            <button id="loadProjectBtn" class="text-xs border border-gray-600 hover:bg-gray-700 px-3 py-1.5 rounded text-gray-300 transition">Load</button>
+        </div>
+    </header>
+
+    <!-- 2. MAIN LAYOUT (Sidebar + Center + Drawer) -->
+    <div class="flex flex-1 overflow-hidden relative">
+        
+        <!-- LEFT CONTEXT SIDEBAR -->
+        <aside class="w-64 bg-gray-800 border-r border-gray-700 flex flex-col p-4 z-20">
+            <div class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Project Context</div>
             
-            <div class="text-xs text-gray-500 font-bold uppercase tracking-widest mb-2">Project Phases</div>
-
-            <!-- Phase 1 -->
-            <div>
-                <button id="initialSetupDropdownBtn" class="sidebar-btn">
-                    Initial Setup
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                </button>
-                <div id="initialSetupMenu" class="sidebar-menu hidden"></div>
+            <!-- Context Fields -->
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label class="text-[10px] text-gray-400 block mb-1">PROJECT NAME</label>
+                    <div id="currentProjectNameDisplay" class="text-sm font-bold text-white truncate">Select Project</div>
+                </div>
+                <div>
+                    <label class="text-[10px] text-gray-400 block mb-1">OBJECTIVE</label>
+                    <div class="text-xs text-gray-300 italic">Define a clear goal to unlock this field.</div>
+                </div>
             </div>
 
-            <!-- Phase 2 -->
-            <div>
-                <button id="analysisDropdownBtn" class="sidebar-btn">
-                    Analysis
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                </button>
-                <div id="analysisMenu" class="sidebar-menu hidden"></div>
+            <!-- Knowledge Vault -->
+            <div class="border-t border-gray-700 pt-4 flex-1">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs font-bold text-gray-500 uppercase">Assets</span>
+                    <input type="file" id="vaultFileInput" style="display: none;" accept=".pdf,.txt,.csv,.md">
+                    <button id="addVaultFileBtn" class="text-xs text-emerald-400 hover:text-emerald-300">+ Add</button>
+                </div>
+                <div id="vaultList" class="space-y-1">
+                    <div id="emptyVaultMsg" class="text-xs text-gray-600 italic">No assets loaded.</div>
+                </div>
             </div>
 
-            <!-- Phase 3 -->
-            <div>
-                <button id="solutionDesignDropdownBtn" class="sidebar-btn">
-                    Solution Design
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                </button>
-                <div id="solutionDesignMenu" class="sidebar-menu hidden"></div>
+            <!-- Export Buttons -->
+            <div class="border-t border-gray-700 pt-4 space-y-2">
+                <button id="exportBtn" class="utility-btn">Export Report (PDF)</button>
+                <button id="exportPptxBtn" class="utility-btn">Export Deck (PPTX)</button>
+                <button id="exportCsvBtn" class="utility-btn">Export Data (CSV)</button>
             </div>
+        </aside>
 
-            <!-- Phase 4 -->
-            <div>
-                <button id="executionDropdownBtn" class="sidebar-btn">
-                    Execution
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                </button>
-                <div id="executionMenu" class="sidebar-menu hidden"></div>
-            </div>
+        <!-- RIGHT COLUMN (Workspace + Drawer) -->
+        <div class="flex-1 flex flex-col relative min-w-0 bg-gray-900">
             
-            <!-- KNOWLEDGE VAULT (New) -->
-            <div class="mt-8 pt-4 border-t border-gray-700">
-                <div class="flex justify-between items-center mb-2 px-1">
-                    <span class="text-xs text-gray-500 font-bold uppercase tracking-widest">Context Vault</span>
-                    <!-- Hidden Vault Input -->
-                    <input type="file" id="vaultFileInput" style="display: none;" accept=".txt,.md,.csv,.json,.pdf">
-                    <button id="addVaultFileBtn" class="text-xs bg-emerald-900/50 text-emerald-400 border border-emerald-700 hover:bg-emerald-800 px-2 py-1 rounded transition">
-                        + Add Source
+            <!-- CENTER WORKSPACE (The Artifact View) -->
+            <div id="workspaceArea" class="flex-1 overflow-y-auto p-8 relative">
+                <!-- Placeholder for Active Artifact -->
+                <div id="heroText" class="flex flex-col items-center justify-center h-full text-center opacity-60">
+                    <div class="w-16 h-16 border-2 border-emerald-500/30 rounded-full flex items-center justify-center mb-4">
+                        <svg class="w-8 h-8 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-300">Phase 1: Diagnosis</h2>
+                    <p class="text-gray-500 mt-2 max-w-md">Start by defining the core problem. Use the chat drawer below to begin the interview.</p>
+                </div>
+            </div>
+
+            <!-- BOTTOM CHAT DRAWER (Collapsible) -->
+            <div id="chatDrawer" class="drawer-expanded bg-gray-800 border-t border-gray-700 flex flex-col shadow-[0_-4px_20px_rgba(0,0,0,0.3)] z-40">
+                
+                <!-- Drawer Header / Toggle -->
+                <div class="h-10 bg-gray-800 border-b border-gray-700 flex items-center justify-between px-4 cursor-pointer hover:bg-gray-750" onclick="toggleDrawer()">
+                    <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+                        Consultant Chat
+                    </span>
+                    <button class="text-gray-400 hover:text-white transform transition-transform" id="drawerChevron">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
                 </div>
-                <!-- List of Vault Files -->
-                <div id="vaultList" class="space-y-2 max-h-40 overflow-y-auto pr-1">
-                    <!-- Files will be injected here via JS -->
-                    <div id="emptyVaultMsg" class="text-xs text-gray-600 italic px-1">No context files loaded.</div>
+
+                <!-- Chat History (Preserved ID for JS compatibility) -->
+                <div id="chatArea" class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-900/50">
+                    <!-- Chat bubbles injected here by JS -->
+                </div>
+
+                <!-- Input Area (Preserved Layout) -->
+                <div class="p-3 bg-gray-800 border-t border-gray-700">
+                    <div class="max-w-4xl mx-auto relative flex items-end gap-2 bg-[#2f2f2f] p-2 rounded-[2rem] border border-gray-600 focus-within:border-emerald-500 transition-all">
+                        <input type="file" id="hiddenFileInput" style="display: none;" accept=".txt,.pdf,.csv">
+                        <button id="attachBtn" class="p-2 text-gray-400 hover:text-white rounded-full hover:bg-gray-700 mb-0.5"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" /></svg></button>
+                        
+                        <!-- Mode Toggles (Hidden in drawer to save space or kept minimal) -->
+                        <button id="modeBriefBtn" class="hidden">Brief</button> 
+                        <button id="modeDeepBtn" class="hidden">Deep</button>
+
+                        <div class="flex-1">
+                            <div id="filePreviewArea" class="hidden mb-1 px-1"></div>
+                            <textarea id="userInput" placeholder="Ask Duvallo..." rows="1" class="w-full bg-transparent text-gray-100 placeholder-gray-500 border-none focus:ring-0 resize-none py-2 text-sm max-h-32" style="min-height: 40px;"></textarea>
+                        </div>
+                        <button id="sendButton" class="p-2 bg-emerald-600 text-white rounded-full hover:bg-emerald-500 mb-0.5 shadow"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" /></svg></button>
+                    </div>
                 </div>
             </div>
 
-            <!-- Current Project Indicator -->
-            <div id="currentProjectBadge" class="mt-6 p-3 bg-gray-900 rounded border border-gray-700 text-center hidden">
-                <div class="text-xs text-gray-500">Active Project</div>
-                <div id="currentProjectNameDisplay" class="text-sm font-bold text-emerald-400 truncate"></div>
-            </div>
-
-        </div>
-    </aside>
-
-    <!-- CENTER CHAT AREA -->
-    <main class="flex-1 flex flex-col relative bg-gray-900 min-w-0">
-        
-        <!-- NEW WRAPPER: Holds Chat + Side Panel -->
-        <div class="content-wrapper">
-            
-            <!-- 1. Chat Area -->
-            <div id="chatArea" class="flex-1 overflow-y-auto p-8 space-y-6 relative">
-                <!-- Messages injected here -->
-                
-                <!-- HERO TEXT (Moved inside chatArea so it centers correctly relative to the "squeeze") -->
-                <div id="heroText" class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-0">
-                    <h2 class="text-4xl font-bold text-gray-200 tracking-tight drop-shadow-lg">Should we start building?</h2>
-                    <p class="text-gray-500 mt-2">Select a project from the left or type below.</p>
-                </div>
-            </div>
-
-            <!-- 2. The Side Panel (Hidden initially) -->
-            <aside id="rightSourcePanel">
+            <!-- SIDE PANEL FOR CITATIONS (Absolute positioned on right) -->
+            <aside id="rightSourcePanel" class="absolute top-0 right-0 h-full bg-gray-900 border-l border-gray-700 z-50 transform translate-x-full transition-transform duration-300 w-80">
                 <div class="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-800">
-                    <span class="text-xs font-bold uppercase text-gray-400 tracking-wider">Sources</span>
-                    <button onclick="closeSourcePanel()" class="text-gray-400 hover:text-white">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                        </svg>
-                    </button>
+                    <span class="text-xs font-bold uppercase text-gray-400">Sources</span>
+                    <button onclick="closeSourcePanel()" class="text-gray-400 hover:text-white"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
                 </div>
-                <div id="sourcePanelContent" class="p-4 space-y-3 overflow-y-auto flex-1">
-                    <!-- Source items injected here -->
-                </div>
+                <div id="sourcePanelContent" class="p-4 space-y-3 overflow-y-auto h-full pb-20"></div>
             </aside>
-            
+
         </div>
+    </div>
 
-        <!-- Input Area (Fixed Bottom - Stays full width) -->
-        <div class="p-6 bg-gray-900 z-20 border-t border-gray-800">
-            <!-- Unified Input Capsule -->
-             <div class="max-w-4xl mx-auto relative flex items-end gap-2 bg-[#2f2f2f] p-2 rounded-[2rem] border border-gray-700 shadow-xl focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500 transition-all">
-                
-                <!-- Hidden File Input -->
-                <input type="file" id="hiddenFileInput" style="display: none;" accept=".txt,.md,.csv,.json,.js,.html,.css,.xml,.pdf">
-                
-                <!-- Attachment Button (Left) -->
-                <button id="attachBtn" class="p-3 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-gray-700 flex-shrink-0 mb-0.5" title="Attach file">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" />
-                    </svg>
-                </button>
-
-                <!-- "Brief" Mode Button -->
-                <button id="modeBriefBtn" class="mb-2 px-3 py-1.5 text-xs font-bold rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-700 transition-all border border-transparent">
-                    Brief
-                </button>
-
-                <!-- Middle Column: File Preview + Text Input -->
-                <div class="flex-1 flex flex-col justify-end min-w-0">
-                    <!-- File Preview Card (Hidden by default) -->
-                    <div id="filePreviewArea" class="hidden mb-2 px-1"></div>
-
-                    <!-- Text Input -->
-                    <textarea id="userInput" 
-                        placeholder="Ask a question..." 
-                        rows="1" 
-                        class="w-full bg-transparent text-gray-100 placeholder-gray-500 border-none focus:ring-0 resize-none overflow-y-hidden py-3 text-base leading-relaxed max-h-32 text-left"
-                        style="min-height: 48px;"></textarea>
-                </div>
-
-                <!-- "Deep" Mode Button -->
-                <button id="modeDeepBtn" class="mb-2 px-3 py-1.5 text-xs font-bold rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-700 transition-all border border-transparent">
-                    Deep
-                </button>
-
-                <!-- Send Button (Right) -->
-                <button id="sendButton" class="p-3 bg-emerald-600 text-white rounded-full hover:bg-emerald-500 transition-transform transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg flex-shrink-0 mb-0.5">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
-                    </svg>
-                </button>
-            </div>
-            <p class="text-center text-xs text-gray-500 mt-2">Duvallo can make mistakes. Verify important information.</p>
-        </div>
-    </main>
-
-    <!-- RIGHT SIDEBAR (Utilities) -->
-    <aside class="w-64 bg-gray-800 border-l border-gray-700 flex flex-col flex-shrink-0 z-20 p-4">
-        
-        <!-- WRAPPER FOR TOGGLING VISIBILITY -->
-        <div id="toolsMenuContainer" class="hidden w-full h-full flex flex-col">
-            
-            <h3 class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-4 text-center">Tools</h3>
-            
-            <!-- My Prompts -->
-            <div class="relative mb-0"> 
-                <button id="myPromptsDropdownBtn" class="utility-btn">
-                    My Prompts
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                </button>
-                <div id="myPromptsMenu" class="absolute hidden top-full left-0 w-full bg-gray-700 rounded-lg shadow-xl z-30 border border-gray-600 p-2 mt-1"></div>
-            </div>
-
-            <!-- Takeaways -->
-            <button id="generateTakeawaysBtn" class="utility-btn">Generate Takeaways</button>
-
-            <!-- Workflow -->
-            <div class="relative mb-0">
-                <button id="workflowBtn" class="utility-btn">
-                    Run Workflow
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                </button>
-                <div id="workflowMenu" class="absolute hidden top-full right-0 w-64 bg-gray-700 rounded-lg shadow-xl z-30 border border-gray-600 p-2 mt-1">
-                    <button class="workflow-option w-full text-left px-3 py-2 text-sm text-gray-200 hover:bg-gray-600 rounded" data-workflow="market-entry-strategy">Market Entry Strategy</button>
-                    <button class="workflow-option w-full text-left px-3 py-2 text-sm text-gray-200 hover:bg-gray-600 rounded" data-workflow="business-health-check">Business Health Check</button>
-                    <button class="workflow-option w-full text-left px-3 py-2 text-sm text-gray-200 hover:bg-gray-600 rounded" data-workflow="competitive-analysis">Competitive Analysis</button>
-                </div>
-            </div>
-
-            <!-- Export Tools Group -->
-            <div class="space-y-2 mb-2 w-full">
-                <label class="text-[10px] uppercase text-gray-500 font-bold tracking-wider text-center block">Deliverables</label>
-                
-                <!-- 1. PDF Export (Existing) -->
-                <button id="exportBtn" class="utility-btn">
-                    <span class="mr-auto">Export PDF Report</span>
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                </button>
-
-                <!-- 2. PPTX Export (New) -->
-                <button id="exportPptxBtn" class="utility-btn bg-orange-700/80 hover:bg-orange-600">
-                    <span class="mr-auto">Export Slides (PPTX)</span>
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                </button>
-
-                <!-- 3. CSV Export (New) -->
-                <button id="exportCsvBtn" class="utility-btn bg-green-700/80 hover:bg-green-600">
-                    <span class="mr-auto">Export Tables (CSV)</span>
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                </button>
-            </div>
-
-            <div class="flex-grow"></div> <!-- Spacer -->
-
-            <!-- Clear Chat -->
-            <button id="clearChatBtn" class="w-full px-4 py-2 border border-red-500 text-red-400 rounded-lg hover:bg-red-900/20 transition text-sm font-bold flex justify-center items-center">
-                Clear Chat
-            </button>
-        </div>
-        
-        <!-- Placeholder when no project selected -->
-        <div id="noProjectToolState" class="flex-1 flex items-center justify-center text-center text-gray-600 text-sm p-4">
-            Select a project to access tools
-        </div>
-
-    </aside>
+    <!-- Toggle Drawer Logic (Inline for immediate function) -->
+    <script>
+        function toggleDrawer() {
+            const drawer = document.getElementById('chatDrawer');
+            const chevron = document.getElementById('drawerChevron');
+            if (drawer.classList.contains('drawer-expanded')) {
+                drawer.classList.remove('drawer-expanded');
+                drawer.classList.add('drawer-collapsed');
+                chevron.style.transform = 'rotate(180deg)';
+            } else {
+                drawer.classList.remove('drawer-collapsed');
+                drawer.classList.add('drawer-expanded');
+                chevron.style.transform = 'rotate(0deg)';
+            }
+        }
+    </script>
     <script>
         // --- GLOBAL HELPER FUNCTIONS (Fix for Interaction) ---
         window.cleanUrl = function(rawUrl) {
