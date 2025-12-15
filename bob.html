@@ -291,6 +291,54 @@
         #projectDropdown.hidden {
             display: none;
         }
+
+        /* --- CITATION & SIDE PANEL FIXES --- */
+        
+        /* 1. Green Pin Icon */
+        .citation-link {
+            display: inline-flex; align-items: center; justify-content: center;
+            vertical-align: middle; margin-left: 5px; 
+            background-color: #065f46; /* Emerald 900 */
+            border: 1px solid #34d399; /* Emerald 400 */
+            border-radius: 50%; width: 18px; height: 18px;
+            cursor: pointer; position: relative; top: -2px;
+            transition: transform 0.2s;
+        }
+        .citation-link:hover { transform: scale(1.1); background-color: #10b981; }
+        .citation-link svg { width: 10px; height: 10px; color: white; }
+
+        /* 2. Side Panel Slide Animation */
+        #rightSourcePanel {
+            /* Ensure it sits on top of the chat drawer */
+            z-index: 60; 
+            background-color: #111827;
+            border-left: 1px solid #374151;
+            /* Default: Hidden off-screen to the right */
+            transform: translateX(100%); 
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Class added via JS to slide it in */
+        #rightSourcePanel.panel-open {
+            transform: translateX(0);
+        }
+
+        /* 3. Suggestions (Recommended Steps) */
+        .suggestion-container {
+            display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem;
+            padding-top: 0.75rem; border-top: 1px solid #374151;
+        }
+        .suggestion-chip {
+            background-color: #1f2937; border: 1px solid #059669; color: #d1fae5;
+            padding: 0.4rem 0.8rem; border-radius: 9999px; font-size: 0.75rem;
+            font-weight: 600; cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; gap: 0.4rem;
+        }
+        .suggestion-chip:hover { background-color: #059669; color: white; }
+        .suggestion-label { 
+            width: 100%; display: block; font-size: 0.7rem; color: #9ca3af; 
+            margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em; 
+        }
         
     </style>
 </head>
@@ -478,7 +526,7 @@
         }
     </script>
     <script>
-        // --- GLOBAL HELPER FUNCTIONS (Fix for Interaction) ---
+        // --- GLOBAL HELPER FUNCTIONS ---
         window.cleanUrl = function(rawUrl) {
             if (!rawUrl) return "#";
             try {
@@ -491,14 +539,13 @@
         window.openSourcePanel = function(sourcesJson) {
             const panel = document.getElementById('rightSourcePanel');
             const content = document.getElementById('sourcePanelContent');
-            // Decode safely
             let sources = [];
             try { sources = JSON.parse(decodeURIComponent(sourcesJson)); } catch(e){}
             
             content.innerHTML = '';
             
             if(!sources || sources.length === 0) {
-                 content.innerHTML = '<div class="text-gray-500 text-sm italic">No sources found.</div>';
+                 content.innerHTML = '<div class="text-gray-500 text-sm italic p-4">No sources found.</div>';
             } else {
                 sources.forEach(src => {
                     const safeLink = window.cleanUrl(src.url);
@@ -619,46 +666,39 @@
                 localStorage.setItem(`duvallo_project_${currentProjectId}_chat`, JSON.stringify(chatHistory));
             }
 
-            // Switch to a specific project
+            // Switch to a specific project (FIXED SIDEBAR UPDATE)
             function activateProject(id, name) {
                 currentProjectId = id;
                 
                 // 1. Update UI Visibility
-                phaseMenuContainer.classList.remove('hidden', 'opacity-50');
-                phaseMenuContainer.classList.add('opacity-100');
-                toolsMenuContainer.classList.remove('hidden');
-                noProjectToolState.classList.add('hidden');
+                // (Note: Phase/Tools containers might be hidden/shown based on your UI needs)
                 
-                // 2. Update Hero Text
+                // 2. Update Hero Text (Hide it if we have chat)
                 heroText.style.display = 'none';
                 
-                // 3. Update Badge
-                currentProjectBadge.classList.remove('hidden');
-                // Reset Vault for new session (MVP: Clears on load. Future: Load from DB)
-                projectFiles = []; 
-                renderVaultFiles();
-                currentProjectNameDisplay.textContent = name;
+                // 3. Update Badge & Sidebar Text
+                if(currentProjectBadge) currentProjectBadge.classList.remove('hidden');
+                if(currentProjectNameDisplay) {
+                    currentProjectNameDisplay.textContent = name;
+                    currentProjectNameDisplay.classList.remove('text-gray-500'); // Ensure it looks active
+                    currentProjectNameDisplay.classList.add('text-white');
+                }
 
                 // 4. Load Chat History
-                chatArea.innerHTML = ''; // Clear screen
-                chatHistory.length = 0; // Clear memory array
+                chatArea.innerHTML = ''; 
+                chatHistory.length = 0; 
                 
                 const savedChat = JSON.parse(localStorage.getItem(`duvallo_project_${id}_chat`) || '[]');
                 
                 if (savedChat.length > 0) {
                     savedChat.forEach(msg => {
-                        // 1. Restore to memory
                         chatHistory.push(msg); 
-                        
-                        // 2. Restore to UI (NO ANIMATION)
+                        // Use the robust bubble creator
                         createMessageBubble(msg.parts[0].text, msg.role, false);
                     });
-                    
-                    // Scroll to bottom
                     setTimeout(() => chatArea.scrollTop = chatArea.scrollHeight, 100);
                 } else {
-                    // New Project: Show Hero Text
-                     heroText.style.display = 'flex';
+                     heroText.style.display = 'flex'; // Show hero if empty
                 }
             }
 
@@ -1505,7 +1545,7 @@
                 return bar;
             }
 
-            // 3. Render Message Bubble (Modified with Remix Bar)
+            // 3. Render Message Bubble (RESTORED GREEN PINS + FOOTER)
             function createMessageBubble(text, sender, animate = true) {
                 const wrapper = document.createElement('div');
                 wrapper.classList.add('flex', 'message-wrapper', 'mb-4', sender === 'user' ? 'justify-end' : 'justify-start');
@@ -1518,12 +1558,10 @@
                 );
                 bubble.style.overflow = 'hidden'; 
 
-                // --- LOGIC FOR AI MESSAGES (Model) ---
                 if (sender === 'model') {
                     let chartConfig = null;
                     let suggestionsList = [];
                     
-                    // 1. EXTRACT SUGGESTIONS
                     const suggestionRegex = /---SUGGESTIONS---([\s\S]*)$/;
                     const suggestionMatch = text.match(suggestionRegex);
                     if (suggestionMatch) {
@@ -1532,100 +1570,51 @@
                         text = text.replace(suggestionRegex, '').trim(); 
                     }
 
-                    // 2. EXTRACT CHART (Self-Healing)
-                    // Matches <chart>... and grabs everything until </chart> OR end of string
                     const tagRegex = /(?:<<<CHART>>>|<chart>|<<>>)\s*([\s\S]*?)(?:<<<END_CHART>>>|<\/chart>|<<>>|$)/i;
                     const codeRegex = /```json\s*({[\s\S]*?"type"[\s\S]*?"data"[\s\S]*?})\s*```/i;
-                    // Fallback for raw JSON without tags
-                    const rawRegex = /({[\s\n]*"type"[\s\n]*:[\s\n]*"(?:bar|line|pie|doughnut|radar|polarArea)"[\s\S]*?"data"[\s\S]*?})/i;
-
-                    let match = text.match(tagRegex) || text.match(codeRegex) || text.match(rawRegex);
+                    let match = text.match(tagRegex) || text.match(codeRegex);
                     
                     if (match) {
                         try {
-                            let fullBlock = match[0]; 
-                            let jsonContent = match[1] || match[0];
-                            
-                            // CLEANUP: Remove Markdown artifacts
-                            jsonContent = jsonContent.replace(/```json/gi, '').replace(/```/g, '').trim();
-                            
-                            // REPAIR 1: Remove trailing commas (The #1 AI Error)
-                            jsonContent = jsonContent.replace(/,(\s*[}\]])/g, '$1');
-
-                            // REPAIR 2: Find actual JSON boundaries (ignore text outside brackets)
+                            let jsonContent = (match[1] || match[0]).replace(/```json/gi, '').replace(/```/g, '').trim();
                             const firstBrace = jsonContent.indexOf('{');
                             const lastBrace = jsonContent.lastIndexOf('}');
-                            
                             if (firstBrace !== -1 && lastBrace !== -1) {
-                                jsonContent = jsonContent.substring(firstBrace, lastBrace + 1);
-                                
-                                // Attempt Parse
-                                chartConfig = JSON.parse(jsonContent);
-                                
-                                // SUCCESS: Remove the raw code from the text bubble
-                                text = text.replace(fullBlock, '').trim(); 
+                                chartConfig = JSON.parse(jsonContent.substring(firstBrace, lastBrace + 1));
+                                text = text.replace(match[0], '').trim(); 
                             }
-                        } catch (e) { 
-                            console.error("Chart parsing failed:", e);
-                            // Note: If parsing STILL fails, we leave the text so the user sees the data.
-                        }
+                        } catch (e) { console.error("Chart parsing failed:", e); }
                     }
 
-                    // 3. CITATION PROCESSING
                     const { textWithTokens, sources } = processCitations(text);
-                    
-                    // 4. PREPARE UI
                     const contentDiv = document.createElement('div');
                     contentDiv.classList.add('ai-response-content', 'mb-2');
                     bubble.appendChild(contentDiv);
                     wrapper.appendChild(bubble);
                     chatArea.appendChild(wrapper);
 
-                    // --- HELPER TO RENDER FINAL CONTENT (Instant Mode) ---
                     const renderFinalContent = () => {
-                        // A. Text Replacement
                         let renderedHtml = marked.parse(textWithTokens);
-                        
-                        // Serialize sources for the Global Panel Function
                         const sourcesJson = encodeURIComponent(JSON.stringify(sources));
 
                         sources.forEach((source, index) => {
-                            // THE HYBRID FIX: Green Pin Style + Global Click Handler
-                            const iconHtml = `<span class="citation-link" onclick="window.openSourcePanel('${sourcesJson}')" title="Source: ${source.name}" style="display:inline-flex; margin-left:4px; cursor:pointer;">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:12px; height:12px; color:white;"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg>
+                            const iconHtml = `<span class="citation-link" onclick="window.openSourcePanel('${sourcesJson}')" title="Source: ${source.name}">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg>
                             </span>`;
-                            
-                            const token = `%%CIT_${index}%%`;
-                            renderedHtml = renderedHtml.split(token).join(iconHtml);
+                            renderedHtml = renderedHtml.split(`%%CIT_${index}%%`).join(iconHtml);
                         });
                         contentDiv.innerHTML = renderedHtml;
 
-                        // B. Chart
                         if (chartConfig) {
                             const chartContainer = document.createElement('div');
-                            chartContainer.style.marginTop = '1rem';
-                            chartContainer.style.backgroundColor = '#1f2937';
-                            chartContainer.style.padding = '10px';
-                            chartContainer.style.borderRadius = '8px';
+                            chartContainer.style.cssText = 'margin-top: 1rem; background-color: #1f2937; padding: 10px; border-radius: 8px;';
                             if(animate) chartContainer.classList.add('animate-fade-in');
                             const canvas = document.createElement('canvas');
                             chartContainer.appendChild(canvas);
                             bubble.appendChild(chartContainer);
-                            new Chart(canvas, {
-                                type: chartConfig.type,
-                                data: chartConfig.data,
-                                options: {
-                                    responsive: true,
-                                    plugins: { legend: { labels: { color: 'white' } } },
-                                    scales: {
-                                        x: { display: chartConfig.type!=='pie'&&chartConfig.type!=='doughnut', ticks: {color:'white'}, grid: {color:'#374151'} },
-                                        y: { display: chartConfig.type!=='pie'&&chartConfig.type!=='doughnut', ticks: {color:'white'}, grid: {color:'#374151'} }
-                                    }
-                                }
-                            });
+                            new Chart(canvas, { type: chartConfig.type, data: chartConfig.data });
                         }
 
-                        // C. Suggestions
                         if (suggestionsList.length > 0) {
                             const suggContainer = document.createElement('div');
                             suggContainer.className = 'suggestion-container';
@@ -1643,7 +1632,6 @@
                             bubble.appendChild(suggContainer);
                         }
 
-                        // D. Footer: "Sources" Button (Triggers Global Panel)
                         if (sources.length > 0) {
                             const footerBtn = document.createElement('button');
                             footerBtn.className = "mt-3 flex items-center gap-2 px-3 py-1.5 bg-gray-700 hover:bg-gray-600 rounded-full text-xs font-medium text-emerald-400 transition";
@@ -1654,77 +1642,33 @@
                             footerBtn.onclick = () => window.openSourcePanel(sourcesJson);
                             bubble.appendChild(footerBtn);
                         }
-                        
-                        // E. Copy Button
-                        const copyBtn = document.createElement('button');
-                        copyBtn.className = 'text-xs text-gray-400 hover:text-white mt-2 block ml-auto';
-                        copyBtn.textContent = 'Copy';
-                        copyBtn.onclick = () => { navigator.clipboard.writeText(text); copyBtn.textContent = 'Copied!'; setTimeout(() => copyBtn.textContent = 'Copy', 1500); };
-                        bubble.appendChild(copyBtn);
-                        
-                        // F. Remix Bar
-                        bubble.appendChild(createRemixBar(text));
                     };
 
-                    // 5. DECIDE: ANIMATE OR INSTANT?
                     if (animate) {
-                        let i = 0;
-                        const chunkSize = 3; 
-                        
+                        let i = 0; const chunkSize = 3; 
                         function typeWriter() {
                             if (i < textWithTokens.length) {
-                                i += chunkSize;
-                                if (i > textWithTokens.length) i = textWithTokens.length;
+                                i += chunkSize; if (i > textWithTokens.length) i = textWithTokens.length;
                                 let currentRaw = textWithTokens.substring(0, i);
                                 let renderedHtml = marked.parse(currentRaw);
-                                // We serialize the sources array so we can pass it to the onClick function
                                 const sourcesJson = encodeURIComponent(JSON.stringify(sources));
-                                
                                 sources.forEach((source, index) => {
-                                    // The Chain Icon [🔗] with Hover Tooltip
-                                    const iconHtml = `<span class="citation-trigger" onclick="openSourcePanel('${sourcesJson}')" data-source="${source.name}">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3 h-3"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg>
-                                    </span>`;
-                                    
-                                    const token = `%%CIT_${index}%%`;
-                                    renderedHtml = renderedHtml.split(token).join(iconHtml);
+                                    const iconHtml = `<span class="citation-link" onclick="window.openSourcePanel('${sourcesJson}')" title="Source: ${source.name}"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg></span>`;
+                                    renderedHtml = renderedHtml.split(`%%CIT_${index}%%`).join(iconHtml);
                                 });
                                 contentDiv.innerHTML = renderedHtml;
-                                chatArea.scrollTop = chatArea.scrollHeight; 
-                                requestAnimationFrame(typeWriter); 
-                            } else {
-                                // FINISH ANIMATION -> CALL RENDERER
-                                renderFinalContent(); 
-                            }
+                                chatArea.scrollTop = chatArea.scrollHeight; requestAnimationFrame(typeWriter); 
+                            } else { renderFinalContent(); }
                         }
                         typeWriter();
-                    } else {
-                        // NO ANIMATION: Render everything instantly
-                        renderFinalContent();
-                    }
+                    } else { renderFinalContent(); }
 
                 } else {
-                    // USER MESSAGE
                     bubble.textContent = text;
-                    const actionsDiv = document.createElement('div');
-                    actionsDiv.className = 'user-action-container';
-                    const editBtn = document.createElement('button');
-                    editBtn.className = 'action-icon-btn';
-                    editBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>`;
-                    editBtn.onclick = () => { userInput.value = text; autoResizeTextarea(userInput); userInput.focus(); };
-
-                    const copyBtnUser = document.createElement('button');
-                    copyBtnUser.className = 'action-icon-btn';
-                    copyBtnUser.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v2.25A2.25 2.25 0 0113.5 22.5h-8.25a2.25 2.25 0 01-2.25-2.25v-8.25a2.25 2.25 0 012.25-2.25H5.25a2.25 2.25 0 012.25-2.25h1.5a.75.75 0 010 1.5H6a.75.75 0 00-.75.75v8.25c0 .414.336.75.75.75H13.5a.75.75 0 00.75-.75V11.25H18a.75.75 0 01.75.75v4.5a.75.75 0 00.75.75h1.5A2.25 2.25 0 0122.5 17.25v2.25a.75.75 0 001.5 0V17.25A2.25 2.25 0 00-2.25-2.25H15z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 7.125h-10.5a2.25 2.25 0 00-2.25 2.25v10.5" /></svg>`;
-                    copyBtnUser.onclick = () => { navigator.clipboard.writeText(text); };
-
-                    actionsDiv.appendChild(editBtn);
-                    actionsDiv.appendChild(copyBtnUser);
-                    wrapper.appendChild(actionsDiv);
                     wrapper.appendChild(bubble);
                     chatArea.appendChild(wrapper);
-                    chatArea.scrollTop = chatArea.scrollHeight;
                 }
+                chatArea.scrollTop = chatArea.scrollHeight;
             }
 
             // Clear Chat
