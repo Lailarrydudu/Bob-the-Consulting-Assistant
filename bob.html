@@ -733,17 +733,96 @@
                 this.style.height = (this.scrollHeight) + 'px';
             });
 
-            // Export Report (PDF of Workspace)
-            if(exportReportBtn) exportReportBtn.onclick = () => {
+            // --- EXPORT LOGIC ---
+
+            // 1. PDF Export (From Workspace)
+            // Note: In your HTML sidebar, the button ID is 'exportBtn'
+            if(exportBtn) exportBtn.onclick = () => {
                 const element = document.getElementById('workspaceContent');
-                // Use html2pdf library
+                // Temporarily remove border/shadow for clean print
+                const originalStyle = element.style.cssText;
+                element.style.border = "none";
+                element.style.boxShadow = "none";
+                
                 html2pdf().set({
-                    margin: 1,
-                    filename: 'Duvallo_Strategy_Report.pdf',
+                    margin: 0.5,
+                    filename: `Duvallo_Strategy_${Date.now()}.pdf`,
                     image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2 },
+                    html2canvas: { scale: 2, useCORS: true },
                     jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-                }).from(element).save();
+                }).from(element).save().then(() => {
+                    element.style.cssText = originalStyle; // Restore style
+                });
+            };
+
+            // 2. PPTX Export (From Chat History - Generates Slides)
+            const exportPptxBtn = document.getElementById('exportPptxBtn');
+            if(exportPptxBtn) exportPptxBtn.onclick = () => {
+                if(chatHistory.length === 0) return alert("No content to export.");
+                
+                let pptx = new PptxGenJS();
+                pptx.layout = 'LAYOUT_16x9';
+                pptx.author = 'Duvallo Strategy Engine';
+                
+                // Title Slide
+                let slide = pptx.addSlide();
+                slide.background = { color: '111827' };
+                slide.addText("Strategy Deck", { x:0.5, y:2.5, w:'90%', fontSize:36, color:'ffffff', align:'center', bold:true });
+                slide.addText(`Generated on ${new Date().toLocaleDateString()}`, { x:0.5, y:3.5, w:'90%', fontSize:14, color:'34d399', align:'center' });
+
+                // Content Slides
+                chatHistory.forEach(msg => {
+                    if(msg.role === 'model') {
+                        let text = msg.parts[0].text;
+                        // Clean up internal tags
+                        text = text.replace(/---SUGGESTIONS---[\s\S]*$/, '').replace(/<<<.*?>>>/g, '');
+                        
+                        // Create a new slide for every major section
+                        let slide = pptx.addSlide();
+                        slide.background = { color: 'ffffff' };
+                        slide.addText("Consultant Analysis", { x:0.5, y:0.5, w:'90%', fontSize:18, color:'064e3b', bold:true });
+                        slide.addText(text.substring(0, 1000), { x:0.5, y:1.5, w:'90%', h:'70%', fontSize:12, color:'1f2937', wrap:true });
+                    }
+                });
+                pptx.writeFile({ fileName: "Duvallo_Deck.pptx" });
+            };
+
+            // 3. CSV Export (Extracts Tables)
+            const exportCsvBtn = document.getElementById('exportCsvBtn');
+            if(exportCsvBtn) exportCsvBtn.onclick = () => {
+                let csvContent = "";
+                let tablesFound = 0;
+                
+                chatHistory.forEach((msg, i) => {
+                    if(msg.role === 'model') {
+                        // Find Markdown Tables
+                        const tableRegex = /(\|.*\|\n\|[-:| ]+\|\n(?:\|.*\|\n?)+)/g;
+                        let match;
+                        while ((match = tableRegex.exec(msg.parts[0].text)) !== null) {
+                            tablesFound++;
+                            csvContent += `TABLE ${tablesFound} (Message ${i+1})\n`;
+                            let rows = match[0].trim().split('\n');
+                            rows.forEach(row => {
+                                if(row.includes('---')) return; // Skip separator
+                                let cells = row.split('|').filter((c, idx, arr) => idx > 0 && idx < arr.length-1);
+                                let cleanCells = cells.map(c => `"${c.trim().replace(/"/g, '""')}"`);
+                                csvContent += cleanCells.join(",") + "\n";
+                            });
+                            csvContent += "\n";
+                        }
+                    }
+                });
+
+                if(tablesFound === 0) return alert("No tables found to export.");
+                
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.setAttribute("href", url);
+                link.setAttribute("download", "Duvallo_Data.csv");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
             };
 
             // Initialize Phase 1
